@@ -3,23 +3,28 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TaskFlow — Mockup</title>
+<title>TaskFlow Aduanero — Gerente Comercial</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-  .sidebar-btn.active { background:#eff6ff; color:#1d4ed8; font-weight:600; }
-  .view { display:none; }
-  .view.active { display:block; }
-  .task-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); transform:translateY(-1px); }
-  .task-card { transition: all .15s ease; }
-  .notif-panel { display:none; position:absolute; right:0; top:56px; width:300px; z-index:50; }
-  .notif-panel.open { display:block; }
-  .progress-bar { transition: width .6s ease; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-  .badge-critical { background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
-  .badge-important { background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; }
-  .badge-urgent { background:#fef3c7; color:#b45309; border:1px solid #fcd34d; }
-  .badge-low { background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db; }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+  .sidebar-btn.active{background:#eff6ff;color:#1d4ed8;font-weight:600}
+  .view{display:none}.view.active{display:block}
+  .card{transition:all .15s ease}.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.09);transform:translateY(-1px)}
+  .notif-panel{display:none;position:absolute;right:0;top:56px;width:320px;z-index:50}
+  .notif-panel.open{display:block}
+  .tab{cursor:pointer;transition:all .15s}
+  .tab.active{border-bottom:2px solid #2563eb;color:#1d4ed8;font-weight:600}
+  .pill-ext{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+  .pill-int{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+  .pill-vip{background:#fdf4ff;color:#7c3aed;border:1px solid #e9d5ff}
+  .badge-critical{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+  .badge-high{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+  .badge-medium{background:#fef3c7;color:#b45309;border:1px solid #fcd34d}
+  .badge-low{background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db}
+  .border-l-ext{border-left-color:#3b82f6}
+  .border-l-int{border-left-color:#22c55e}
+  .border-l-critical{border-left-color:#ef4444}
+  .score-bar{height:6px;border-radius:3px;transition:width .4s}
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
@@ -27,302 +32,307 @@
 <!-- SIDEBAR -->
 <aside class="w-60 bg-white border-r flex flex-col fixed inset-y-0 left-0 shadow-sm z-10">
   <div class="flex items-center gap-3 px-5 py-4 border-b">
-    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">TF</div>
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style="background:linear-gradient(135deg,#1d4ed8,#7c3aed)">⚓</div>
     <div>
-      <div class="font-bold text-gray-900 text-sm leading-tight">TaskFlow</div>
-      <div class="text-xs text-gray-400">Gestión de tareas</div>
+      <div class="font-bold text-gray-900 text-sm">TaskFlow</div>
+      <div class="text-xs text-gray-400">Gerencia Comercial · Aduana</div>
     </div>
   </div>
   <nav class="p-3 flex-1 space-y-1">
-    <button onclick="switchView('dashboard')" id="btn-dashboard" class="sidebar-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+    <button onclick="switchView('dashboard')" id="btn-dashboard" class="sidebar-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
       Dashboard
     </button>
-    <button onclick="switchView('tasks')" id="btn-tasks" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-      Tareas
+    <button onclick="switchView('external')" id="btn-external" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Clientes Externos
+      <span class="ml-auto text-xs font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">5</span>
     </button>
-    <button onclick="switchView('reports')" id="btn-reports" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+    <button onclick="switchView('internal')" id="btn-internal" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+      Gestión Interna
+      <span class="ml-auto text-xs font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">3</span>
+    </button>
+    <button onclick="switchView('emails')" id="btn-emails" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Análisis de Correos
+      <span class="ml-auto text-xs font-bold bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">8</span>
+    </button>
+    <button onclick="switchView('reports')" id="btn-reports" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
       Reportes
     </button>
-    <button onclick="switchView('settings')" id="btn-settings" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+    <button onclick="switchView('settings')" id="btn-settings" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       Configuración
     </button>
   </nav>
-  <!-- Eisenhower legend -->
-  <div class="m-3 p-3 rounded-xl border" style="background:#f8faff;border-color:#e0e7ff">
-    <div class="text-xs font-semibold text-indigo-700 mb-2">Matriz de Eisenhower</div>
-    <div class="grid grid-cols-2 gap-1 text-xs">
-      <div class="badge-critical px-1.5 py-1 rounded text-center font-medium">🔴 Crítica</div>
-      <div class="badge-important px-1.5 py-1 rounded text-center font-medium">🔵 Importante</div>
-      <div class="badge-urgent px-1.5 py-1 rounded text-center font-medium">🟡 Urgente</div>
-      <div class="badge-low px-1.5 py-1 rounded text-center font-medium">⚪ Baja</div>
+  <div class="m-3 p-3 rounded-xl border text-xs" style="background:#f8faff;border-color:#e0e7ff">
+    <div class="font-semibold text-indigo-700 mb-2">Priorización Aduanera</div>
+    <div class="space-y-1">
+      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0"></span><span class="text-gray-600">Crítica — Cliente ext. VIP urgente</span></div>
+      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-400 flex-shrink-0"></span><span class="text-gray-600">Alta — Cliente externo</span></div>
+      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 flex-shrink-0"></span><span class="text-gray-600">Media — Interno urgente</span></div>
+      <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gray-300 flex-shrink-0"></span><span class="text-gray-600">Baja — Interno rutinario</span></div>
     </div>
   </div>
 </aside>
 
 <!-- MAIN -->
 <div class="flex-1 ml-60 flex flex-col min-h-screen">
-  <!-- HEADER -->
   <header class="bg-white border-b px-6 py-3.5 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
     <div class="flex-1">
       <div id="header-title" class="font-semibold text-gray-900">Dashboard</div>
-      <div class="text-xs text-gray-400">Domingo, 4 de mayo de 2026</div>
+      <div class="text-xs text-gray-400">Lunes, 4 de mayo de 2026 · Agencia Aduanera</div>
     </div>
-    <!-- Notif bell -->
+    <button onclick="openModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-white" style="background:#2563eb">
+      + Tarea rápida
+    </button>
     <div class="relative" id="notif-wrapper">
-      <button onclick="toggleNotif()" class="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
+      <button onclick="toggleNotif()" class="relative p-2 rounded-xl hover:bg-gray-100">
         <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
+        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">4</span>
       </button>
       <div class="notif-panel bg-white rounded-2xl shadow-2xl border overflow-hidden" id="notif-panel">
         <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
           <span class="font-semibold text-gray-900 text-sm">Notificaciones</span>
-          <button onclick="toggleNotif()" class="text-xs text-blue-600 hover:underline">Leer todas</button>
+          <button class="text-xs text-blue-600">Leer todas</button>
         </div>
-        <div class="divide-y">
-          <div class="flex gap-3 p-3 bg-red-50">
-            <span class="text-lg">🚨</span>
-            <div><p class="text-sm font-medium text-gray-900">Tarea vencida</p><p class="text-xs text-gray-500">Revisión contrato proveedor está vencida</p><p class="text-xs text-gray-400 mt-0.5">hace 2h</p></div>
-          </div>
-          <div class="flex gap-3 p-3">
-            <span class="text-lg">⏰</span>
-            <div><p class="text-sm font-medium text-gray-900">Recordatorio</p><p class="text-xs text-gray-500">Reunión con equipo en 30 minutos</p><p class="text-xs text-gray-400 mt-0.5">hace 5min</p></div>
-          </div>
-          <div class="flex gap-3 p-3">
-            <span class="text-lg">✅</span>
-            <div><p class="text-sm font-medium text-gray-900">Tarea completada</p><p class="text-xs text-gray-500">Completaste: Informe mensual</p><p class="text-xs text-gray-400 mt-0.5">hace 1h</p></div>
-          </div>
+        <div class="divide-y max-h-80 overflow-y-auto">
+          <div class="flex gap-3 p-3 bg-red-50"><span>🚨</span><div><p class="text-sm font-medium text-gray-900">Despacho vencido</p><p class="text-xs text-gray-500">Importadora Del Sur — DAI #4521 pendiente liberación</p><p class="text-xs text-gray-400">hace 1h</p></div></div>
+          <div class="flex gap-3 p-3"><span>⭐</span><div><p class="text-sm font-medium text-gray-900">Cliente VIP — Solicitud nueva</p><p class="text-xs text-gray-500">Minera Collahuasi: cotización urgente fletes</p><p class="text-xs text-gray-400">hace 20min</p></div></div>
+          <div class="flex gap-3 p-3"><span>⏰</span><div><p class="text-sm font-medium text-gray-900">Recordatorio</p><p class="text-xs text-gray-500">Reunión con equipo operaciones en 30 min</p><p class="text-xs text-gray-400">hace 5min</p></div></div>
+          <div class="flex gap-3 p-3"><span>✅</span><div><p class="text-sm font-medium text-gray-900">Completada</p><p class="text-xs text-gray-500">DUS exportación Viña Santa Carolina aprobada</p><p class="text-xs text-gray-400">hace 2h</p></div></div>
         </div>
       </div>
     </div>
-    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">S</div>
+    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#1d4ed8,#7c3aed)">S</div>
   </header>
 
-  <main class="flex-1 p-6 max-w-4xl mx-auto w-full">
+  <main class="flex-1 p-6 max-w-5xl mx-auto w-full space-y-5">
 
     <!-- ═══ DASHBOARD ═══ -->
-    <div id="view-dashboard" class="view active space-y-6">
-
-      <!-- Daily summary -->
-      <div class="bg-white rounded-2xl border shadow-sm p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <div class="font-semibold text-gray-900">Resumen del día</div>
-            <div class="text-xs text-gray-400">Domingo, 4 de mayo de 2026</div>
-          </div>
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-            <span class="text-2xl font-bold text-blue-600">68%</span>
-            <span class="text-sm text-gray-400">completado</span>
-          </div>
+    <div id="view-dashboard" class="view active space-y-5">
+      <!-- KPIs -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white rounded-2xl border p-4 text-center shadow-sm">
+          <div class="text-2xl font-bold text-blue-600">8</div>
+          <div class="text-xs text-gray-500 mt-1">Clientes externos hoy</div>
+          <div class="text-xs text-blue-500 mt-1 font-medium">5 pendientes</div>
         </div>
-        <div class="w-full bg-gray-100 rounded-full h-2.5 mb-5">
-          <div class="h-2.5 rounded-full progress-bar" style="width:68%;background:linear-gradient(90deg,#3b82f6,#22c55e)"></div>
+        <div class="bg-white rounded-2xl border p-4 text-center shadow-sm">
+          <div class="text-2xl font-bold text-green-600">5</div>
+          <div class="text-xs text-gray-500 mt-1">Gestión interna</div>
+          <div class="text-xs text-green-500 mt-1 font-medium">3 pendientes</div>
         </div>
-        <div class="grid grid-cols-4 gap-3">
-          <div class="bg-gray-50 rounded-xl p-4 text-center">
-            <svg class="w-5 h-5 text-gray-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <div class="text-2xl font-bold text-gray-700">11</div>
-            <div class="text-xs text-gray-400">Total</div>
-          </div>
-          <div class="bg-green-50 rounded-xl p-4 text-center">
-            <svg class="w-5 h-5 text-green-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="text-2xl font-bold text-green-600">7</div>
-            <div class="text-xs text-gray-400">Completadas</div>
-          </div>
-          <div class="bg-blue-50 rounded-xl p-4 text-center">
-            <svg class="w-5 h-5 text-blue-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="text-2xl font-bold text-blue-600">3</div>
-            <div class="text-xs text-gray-400">En progreso</div>
-          </div>
-          <div class="bg-red-50 rounded-xl p-4 text-center">
-            <svg class="w-5 h-5 text-red-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <div class="text-2xl font-bold text-red-600">1</div>
-            <div class="text-xs text-gray-400">Vencidas</div>
-          </div>
+        <div class="bg-white rounded-2xl border p-4 text-center shadow-sm">
+          <div class="text-2xl font-bold text-red-600">2</div>
+          <div class="text-xs text-gray-500 mt-1">Tareas críticas</div>
+          <div class="text-xs text-red-500 mt-1 font-medium">Acción inmediata</div>
         </div>
-        <div class="mt-4 p-3 rounded-xl border" style="background:#fff1f2;border-color:#fecdd3">
-          <p class="text-sm font-semibold" style="color:#b91c1c">🔴 2 tareas críticas hoy</p>
-          <p class="text-xs mt-1" style="color:#e11d48">• Entrega propuesta comercial cliente ABC</p>
-          <p class="text-xs" style="color:#e11d48">• Revisión y firma contrato proveedor</p>
+        <div class="bg-white rounded-2xl border p-4 text-center shadow-sm">
+          <div class="text-2xl font-bold text-indigo-600">72%</div>
+          <div class="text-xs text-gray-500 mt-1">Cumplimiento hoy</div>
+          <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2"><div class="bg-indigo-500 h-1.5 rounded-full" style="width:72%"></div></div>
         </div>
       </div>
 
-      <!-- Task list preview -->
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="font-semibold text-gray-900">Mis Tareas</div>
-          <button onclick="switchView('tasks')" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white transition-colors shadow-sm" style="background:#2563eb" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Nueva tarea
-          </button>
-        </div>
-        <div class="space-y-2" id="task-list-dashboard"></div>
-      </div>
-    </div>
-
-    <!-- ═══ TASKS ═══ -->
-    <div id="view-tasks" class="view">
-      <div class="flex items-center justify-between mb-4">
-        <div class="font-semibold text-gray-900 text-lg">Mis Tareas</div>
-        <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white transition-colors shadow-sm" style="background:#2563eb" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Nueva tarea
-        </button>
-      </div>
-      <div class="flex gap-2 mb-4 flex-wrap">
-        <div class="relative flex-1 min-w-40">
-          <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Buscar tareas..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2" style="--tw-ring-color:#3b82f6"/>
-        </div>
-        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none">
-          <option>Todas</option><option>Pendientes</option><option>En progreso</option><option>Completadas</option>
-        </select>
-        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none">
-          <option>Cualquier prioridad</option><option>🔴 Crítica</option><option>🔵 Importante</option><option>🟡 Urgente</option><option>⚪ Baja</option>
-        </select>
-      </div>
-      <div class="space-y-2" id="task-list-full"></div>
-      <p class="text-xs text-gray-400 text-center mt-3">11 tareas · Ordenadas por prioridad (Matriz de Eisenhower)</p>
-    </div>
-
-    <!-- ═══ REPORTS ═══ -->
-    <div id="view-reports" class="view">
-      <div class="bg-white rounded-2xl border shadow-sm p-6">
-        <div class="flex items-center justify-between mb-5">
-          <div>
-            <div class="font-semibold text-gray-900">Reporte Semanal</div>
-            <div class="text-xs text-gray-400">28 Apr — 4 May 2026</div>
-          </div>
-          <button class="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          </button>
-        </div>
-        <div class="grid grid-cols-4 gap-3 mb-6">
-          <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-gray-700">42</div><div class="text-xs text-gray-400">Total tareas</div></div>
-          <div class="bg-green-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-green-600">31</div><div class="text-xs text-gray-400">Completadas</div></div>
-          <div class="bg-blue-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-blue-600">73%</div><div class="text-xs text-gray-400">Tasa</div></div>
-          <div class="bg-purple-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-purple-600">47m</div><div class="text-xs text-gray-400">Tiempo prom.</div></div>
-        </div>
-        <div class="mb-4 p-3 bg-green-50 rounded-xl border border-green-100 flex items-center gap-2">
-          <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-          <p class="text-sm text-green-700">Tu día más productivo fue el <strong>Miércoles</strong></p>
-        </div>
-        <!-- Bar chart SVG -->
-        <div class="mb-6">
-          <p class="text-sm font-medium text-gray-700 mb-3">Productividad por día</p>
-          <svg viewBox="0 0 400 130" class="w-full" style="height:130px">
-            <g transform="translate(30,10)">
-              <!-- Grid -->
-              <line x1="0" y1="0" x2="350" y2="0" stroke="#f3f4f6" stroke-width="1"/>
-              <line x1="0" y1="30" x2="350" y2="30" stroke="#f3f4f6" stroke-width="1"/>
-              <line x1="0" y1="60" x2="350" y2="60" stroke="#f3f4f6" stroke-width="1"/>
-              <line x1="0" y1="90" x2="350" y2="90" stroke="#f3f4f6" stroke-width="1"/>
-              <!-- Bars -->
-              <rect x="5" y="63" width="36" height="27" rx="4" fill="#93c5fd"/>
-              <rect x="55" y="45" width="36" height="45" rx="4" fill="#3b82f6"/>
-              <rect x="105" y="18" width="36" height="72" rx="4" fill="#2563eb"/>
-              <rect x="155" y="36" width="36" height="54" rx="4" fill="#3b82f6"/>
-              <rect x="205" y="54" width="36" height="36" rx="4" fill="#93c5fd"/>
-              <rect x="255" y="45" width="36" height="45" rx="4" fill="#3b82f6"/>
-              <rect x="305" y="72" width="36" height="18" rx="4" fill="#dbeafe"/>
-              <!-- Labels -->
-              <text x="23" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Lun</text>
-              <text x="73" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Mar</text>
-              <text x="123" y="108" text-anchor="middle" font-size="11" fill="#1d4ed8" font-weight="600">Mié</text>
-              <text x="173" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Jue</text>
-              <text x="223" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Vie</text>
-              <text x="273" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Sáb</text>
-              <text x="323" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Dom</text>
-              <!-- Values -->
-              <text x="23" y="57" text-anchor="middle" font-size="10" fill="#6b7280">3</text>
-              <text x="73" y="39" text-anchor="middle" font-size="10" fill="#6b7280">5</text>
-              <text x="123" y="12" text-anchor="middle" font-size="10" fill="#2563eb" font-weight="600">8</text>
-              <text x="173" y="30" text-anchor="middle" font-size="10" fill="#6b7280">6</text>
-              <text x="223" y="48" text-anchor="middle" font-size="10" fill="#6b7280">4</text>
-              <text x="273" y="39" text-anchor="middle" font-size="10" fill="#6b7280">5</text>
-              <text x="323" y="66" text-anchor="middle" font-size="10" fill="#6b7280">2</text>
-            </g>
-          </svg>
-        </div>
-        <!-- Pie chart SVG -->
-        <div class="mb-6">
-          <p class="text-sm font-medium text-gray-700 mb-3">Distribución por prioridad</p>
-          <div class="flex items-center gap-6">
-            <svg viewBox="0 0 120 120" style="width:120px;height:120px;flex-shrink:0">
-              <!-- Pie segments: critical 30%, important 35%, urgent 20%, low 15% -->
-              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#ef4444" stroke-width="80" stroke-dasharray="75 251" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
-              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#3b82f6" stroke-width="80" stroke-dasharray="88 251" stroke-dashoffset="-75" transform="rotate(-90 60 60)"/>
-              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#f59e0b" stroke-width="80" stroke-dasharray="50 251" stroke-dashoffset="-163" transform="rotate(-90 60 60)"/>
-              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#d1d5db" stroke-width="80" stroke-dasharray="38 251" stroke-dashoffset="-213" transform="rotate(-90 60 60)"/>
-              <circle r="20" cx="60" cy="60" fill="white"/>
-              <text x="60" y="55" text-anchor="middle" font-size="10" fill="#374151" font-weight="600">31</text>
-              <text x="60" y="68" text-anchor="middle" font-size="8" fill="#9ca3af">tareas</text>
-            </svg>
-            <div class="space-y-2 flex-1">
-              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div><span class="text-sm text-gray-600">Crítica</span><span class="ml-auto text-sm font-semibold text-gray-700">30%</span></div>
-              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div><span class="text-sm text-gray-600">Importante</span><span class="ml-auto text-sm font-semibold text-gray-700">35%</span></div>
-              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0"></div><span class="text-sm text-gray-600">Urgente</span><span class="ml-auto text-sm font-semibold text-gray-700">20%</span></div>
-              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-gray-300 flex-shrink-0"></div><span class="text-sm text-gray-600">Baja</span><span class="ml-auto text-sm font-semibold text-gray-700">15%</span></div>
+      <!-- Alerta crítica -->
+      <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+        <span class="text-2xl flex-shrink-0">🚨</span>
+        <div class="flex-1">
+          <p class="font-semibold text-red-800">2 solicitudes críticas requieren atención inmediata</p>
+          <div class="mt-2 space-y-1">
+            <div class="flex items-center gap-2 text-sm text-red-700">
+              <span class="pill-vip text-xs px-2 py-0.5 rounded-full font-medium">⭐ VIP</span>
+              <span>Minera Collahuasi — Cotización urgente fletes marítimos</span>
+              <span class="ml-auto text-xs text-red-500">Vence hoy 14:00</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-red-700">
+              <span class="pill-ext text-xs px-2 py-0.5 rounded-full font-medium">Externo</span>
+              <span>Importadora Del Sur — DAI #4521 pendiente de liberación</span>
+              <span class="ml-auto text-xs text-red-500">Vencida hace 1h</span>
             </div>
           </div>
         </div>
-        <!-- Suggestions -->
+      </div>
+
+      <!-- Dos columnas: Externo e Interno -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Clientes Externos -->
+        <div class="bg-white rounded-2xl border shadow-sm">
+          <div class="flex items-center justify-between px-5 py-3.5 border-b">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
+              <span class="font-semibold text-gray-900 text-sm">Clientes Externos</span>
+              <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">5 pendientes</span>
+            </div>
+            <button onclick="switchView('external')" class="text-xs text-blue-600 hover:underline">Ver todas</button>
+          </div>
+          <div class="p-3 space-y-2" id="ext-list"></div>
+        </div>
+
+        <!-- Gestión Interna -->
+        <div class="bg-white rounded-2xl border shadow-sm">
+          <div class="flex items-center justify-between px-5 py-3.5 border-b">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+              <span class="font-semibold text-gray-900 text-sm">Gestión Interna</span>
+              <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">3 pendientes</span>
+            </div>
+            <button onclick="switchView('internal')" class="text-xs text-green-600 hover:underline">Ver todas</button>
+          </div>
+          <div class="p-3 space-y-2" id="int-list"></div>
+        </div>
+      </div>
+
+      <!-- Análisis correos rápido -->
+      <div class="bg-white rounded-2xl border shadow-sm">
+        <div class="flex items-center justify-between px-5 py-3.5 border-b">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span class="font-semibold text-gray-900 text-sm">Correos prioritarios — Últimas 24h</span>
+          </div>
+          <button onclick="switchView('emails')" class="text-xs text-purple-600 hover:underline">Análisis completo</button>
+        </div>
+        <div class="p-3 space-y-2" id="email-preview"></div>
+      </div>
+    </div>
+
+    <!-- ═══ CLIENTES EXTERNOS ═══ -->
+    <div id="view-external" class="view">
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <p class="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-            Sugerencias de mejora
-          </p>
+          <h2 class="font-semibold text-gray-900 text-lg">Clientes Externos</h2>
+          <p class="text-sm text-gray-500">Solicitudes de importadores, exportadores y terceros</p>
+        </div>
+        <button onclick="openModal('external')" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white" style="background:#2563eb">+ Nueva solicitud</button>
+      </div>
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white"><option>Todas las categorías</option><option>🚢 Despacho</option><option>📄 Documentación</option><option>🔢 Clasificación</option><option>💰 Pagos</option><option>🔍 Fiscalización</option><option>💼 Cotización</option></select>
+        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white"><option>Todos los estados</option><option>Pendiente</option><option>En progreso</option><option>Completada</option></select>
+        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white"><option>Toda importancia</option><option>⭐ VIP</option><option>Regular</option><option>Ocasional</option></select>
+      </div>
+      <div class="space-y-2" id="ext-full-list"></div>
+    </div>
+
+    <!-- ═══ GESTIÓN INTERNA ═══ -->
+    <div id="view-internal" class="view">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-semibold text-gray-900 text-lg">Gestión Interna</h2>
+          <p class="text-sm text-gray-500">Coordinación con equipos de operaciones, finanzas y administración</p>
+        </div>
+        <button onclick="openModal('internal')" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white" style="background:#16a34a">+ Nueva tarea interna</button>
+      </div>
+      <div class="space-y-2" id="int-full-list"></div>
+    </div>
+
+    <!-- ═══ ANÁLISIS DE CORREOS ═══ -->
+    <div id="view-emails" class="view">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="font-semibold text-gray-900 text-lg">Análisis de Correos</h2>
+          <p class="text-sm text-gray-500">Correos clasificados por prioridad según tipo de cliente y urgencia</p>
+        </div>
+        <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white" style="background:#7c3aed">🔄 Sincronizar correo</button>
+      </div>
+      <!-- Estadísticas correos -->
+      <div class="grid grid-cols-4 gap-3 mb-5">
+        <div class="bg-white rounded-xl border p-3 text-center"><div class="text-xl font-bold text-gray-700">8</div><div class="text-xs text-gray-400">Correos hoy</div></div>
+        <div class="bg-blue-50 rounded-xl border border-blue-100 p-3 text-center"><div class="text-xl font-bold text-blue-600">5</div><div class="text-xs text-blue-500">Clientes externos</div></div>
+        <div class="bg-purple-50 rounded-xl border border-purple-100 p-3 text-center"><div class="text-xl font-bold text-purple-600">2</div><div class="text-xs text-purple-500">Clientes VIP</div></div>
+        <div class="bg-red-50 rounded-xl border border-red-100 p-3 text-center"><div class="text-xl font-bold text-red-600">3</div><div class="text-xs text-red-500">Requieren acción hoy</div></div>
+      </div>
+      <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
+        <div class="px-5 py-3 border-b bg-gray-50 flex items-center justify-between">
+          <span class="text-sm font-semibold text-gray-700">Ranking de prioridad</span>
+          <span class="text-xs text-gray-400">Ordenado por: Tipo cliente + Urgencia</span>
+        </div>
+        <div class="divide-y" id="email-full-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══ REPORTES ═══ -->
+    <div id="view-reports" class="view">
+      <div class="bg-white rounded-2xl border shadow-sm p-6 mb-5">
+        <div class="flex items-center justify-between mb-5">
+          <div><div class="font-semibold text-gray-900">Reporte Semanal — Gerencia Comercial</div><div class="text-xs text-gray-400">28 Abr — 4 May 2026</div></div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-gray-700">38</div><div class="text-xs text-gray-400">Total tareas</div></div>
+          <div class="bg-blue-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-blue-600">26</div><div class="text-xs text-blue-400">Ext. completadas</div></div>
+          <div class="bg-green-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-green-600">9</div><div class="text-xs text-green-400">Int. completadas</div></div>
+          <div class="bg-indigo-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-indigo-600">92%</div><div class="text-xs text-indigo-400">Cumpl. externo</div></div>
+        </div>
+        <!-- Barras cliente externo vs interno -->
+        <div class="mb-5">
+          <p class="text-sm font-medium text-gray-700 mb-3">Cumplimiento por tipo de cliente</p>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> Cliente Externo</span><span class="font-semibold text-blue-600">92%</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-3"><div class="bg-blue-500 h-3 rounded-full" style="width:92%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-gray-500 mb-1"><span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Gestión Interna</span><span class="font-semibold text-green-600">75%</span></div>
+              <div class="w-full bg-gray-100 rounded-full h-3"><div class="bg-green-500 h-3 rounded-full" style="width:75%"></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Categorías -->
+        <div class="mb-5">
+          <p class="text-sm font-medium text-gray-700 mb-3">Tareas por categoría</p>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-gray-50 rounded-xl p-3 text-center border"><div class="font-bold text-gray-700">12</div><div class="text-xs text-gray-400">🚢 Despacho</div></div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center border"><div class="font-bold text-gray-700">8</div><div class="text-xs text-gray-400">📄 Documentación</div></div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center border"><div class="font-bold text-gray-700">6</div><div class="text-xs text-gray-400">💼 Cotización</div></div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center border"><div class="font-bold text-gray-700">5</div><div class="text-xs text-gray-400">🔢 Clasificación</div></div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center border"><div class="font-bold text-gray-700">4</div><div class="text-xs text-gray-400">💰 Pagos</div></div>
+            <div class="bg-gray-50 rounded-xl p-3 text-center border"><div class="font-bold text-gray-700">3</div><div class="text-xs text-gray-400">📊 Reportes</div></div>
+          </div>
+        </div>
+        <div class="mb-4 p-3 bg-green-50 rounded-xl border border-green-100">🏆 Tu día más productivo fue el <strong>Miércoles</strong></div>
+        <div>
+          <p class="text-sm font-semibold text-gray-700 mb-2">💡 Sugerencias para esta semana</p>
           <div class="space-y-2">
-            <div class="flex items-start gap-2 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a"><span>💡</span><p class="text-sm" style="color:#92400e">Tienes muchas tareas críticas. Revisa si todas son realmente urgentes e importantes, o si puedes delegar algunas.</p></div>
-            <div class="flex items-start gap-2 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a"><span>💡</span><p class="text-sm" style="color:#92400e">Tu productividad cae los viernes. Considera reservar ese día para tareas de baja prioridad o planificación.</p></div>
+            <div class="flex gap-2 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a"><span>💡</span><p class="text-sm" style="color:#92400e">Las cotizaciones toman en promedio 2.5h. Considera crear plantillas para los servicios más frecuentes (importación marítima, despacho aéreo).</p></div>
+            <div class="flex gap-2 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a"><span>💡</span><p class="text-sm" style="color:#92400e">Define horarios fijos de revisión de correo (08:00, 12:00, 16:00) para evitar interrupciones y mejorar el foco en tareas críticas.</p></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ SETTINGS ═══ -->
-    <div id="view-settings" class="view space-y-6">
+    <!-- ═══ CONFIGURACIÓN ═══ -->
+    <div id="view-settings" class="view space-y-5">
       <div class="bg-white rounded-2xl border shadow-sm p-6">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          </div>
-          <div>
-            <div class="font-semibold text-gray-900">Integración de Correo</div>
-            <div class="text-xs text-gray-400">Extrae tareas automáticamente de tu bandeja</div>
-          </div>
-        </div>
+        <div class="flex items-center gap-3 mb-5"><div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-xl">📧</div><div><div class="font-semibold text-gray-900">Integración de Correo</div><div class="text-xs text-gray-400">Clasificación automática externo/interno</div></div></div>
         <div class="flex items-center gap-3 p-4 rounded-xl border mb-4" style="background:#f0fdf4;border-color:#bbf7d0">
-          <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <div>
-            <p class="text-sm font-medium text-green-800">sebastian@gmail.com</p>
-            <p class="text-xs text-green-600">imap.gmail.com:993 · Última sync: hoy 09:30</p>
-          </div>
+          <span class="text-green-600">✅</span>
+          <div><p class="text-sm font-medium text-green-800">gerencia@agenciaaduanera.cl</p><p class="text-xs text-green-600">imap.gmail.com:993 · Última sync: hoy 08:45</p></div>
         </div>
-        <div class="flex gap-2">
-          <button class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-white transition-colors" style="background:#7c3aed">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            Sincronizar ahora
-          </button>
-          <button class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">Editar</button>
+        <div class="space-y-3">
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">Dominios internos (separados por coma)</label><input type="text" value="agenciaaduanera.cl, grupoaduanero.cl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"/></div>
+          <div><label class="block text-xs font-medium text-gray-700 mb-1">Correos VIP (clientes estratégicos)</label><input type="text" value="gerencia@minerapescanova.cl, comercial@collahuasi.cl" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"/></div>
         </div>
-        <div class="mt-3 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a">
-          <p class="text-xs" style="color:#92400e"><strong>Nota:</strong> Para Gmail activa IMAP en Configuración. Si usas verificación en 2 pasos, genera una <strong>Contraseña de aplicación</strong>.</p>
-        </div>
+        <button class="mt-3 w-full py-2.5 rounded-xl text-sm font-medium text-white" style="background:#7c3aed">🔄 Sincronizar ahora</button>
       </div>
       <div class="bg-white rounded-2xl border shadow-sm p-6">
-        <div class="font-semibold text-gray-900 mb-3">Acerca de TaskFlow</div>
-        <ul class="text-sm text-gray-600 space-y-2">
-          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Integración con correo electrónico (IMAP)</li>
-          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Priorización automática (Matriz de Eisenhower)</li>
-          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Recordatorios y notificaciones en tiempo real</li>
-          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Reportes semanales de productividad</li>
-          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Seguimiento de progreso por tarea</li>
-        </ul>
+        <div class="font-semibold text-gray-900 mb-3">Registro de Clientes</div>
+        <div class="space-y-2 mb-4">
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border">
+            <div><p class="text-sm font-medium text-gray-800">Minera Collahuasi</p><p class="text-xs text-gray-500">collahuasi.cl · Importación/Exportación</p></div>
+            <span class="pill-vip text-xs px-2 py-0.5 rounded-full font-medium">⭐ VIP</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border">
+            <div><p class="text-sm font-medium text-gray-800">Viña Santa Carolina</p><p class="text-xs text-gray-500">santacarolina.cl · Exportación vinos</p></div>
+            <span class="pill-ext text-xs px-2 py-0.5 rounded-full font-medium">Regular</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border">
+            <div><p class="text-sm font-medium text-gray-800">Importadora Del Sur</p><p class="text-xs text-gray-500">importadoradelsur.cl · Importación general</p></div>
+            <span class="pill-ext text-xs px-2 py-0.5 rounded-full font-medium">Regular</span>
+          </div>
+        </div>
+        <button class="w-full py-2 rounded-xl border border-dashed border-gray-300 text-sm text-gray-500 hover:bg-gray-50">+ Agregar cliente</button>
       </div>
     </div>
 
@@ -331,152 +341,181 @@
 
 <!-- MODAL Nueva Tarea -->
 <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-    <div class="flex items-center justify-between p-5 border-b">
-      <div class="font-semibold text-gray-900">Nueva tarea</div>
-      <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between p-5 border-b sticky top-0 bg-white">
+      <div class="font-semibold text-gray-900">Nueva tarea rápida</div>
+      <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 text-gray-500">✕</button>
     </div>
     <div class="p-5 space-y-4">
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Título *</label><input type="text" placeholder="Ej: Cotización flete marítimo — Minera Collahuasi" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/></div>
+
+      <!-- Tipo de cliente -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
-        <input type="text" placeholder="¿Qué necesitas hacer?" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de cliente</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-blue-400 bg-blue-50 cursor-pointer">
+            <input type="radio" name="client_type" checked class="w-4 h-4 accent-blue-600"/>
+            <div><p class="text-sm font-medium text-gray-800">Externo</p><p class="text-xs text-gray-500">Importador / Exportador</p></div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-gray-200 bg-white cursor-pointer">
+            <input type="radio" name="client_type" class="w-4 h-4"/>
+            <div><p class="text-sm font-medium text-gray-800">Interno</p><p class="text-xs text-gray-500">Equipo / Área interna</p></div>
+          </label>
+        </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-        <textarea rows="2" placeholder="Detalles adicionales..." class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+
+      <!-- Importancia + categoría -->
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Importancia del cliente</label>
+          <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+            <option>⭐ VIP</option><option selected>Regular</option><option>Ocasional</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+          <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+            <option>🚢 Despacho</option><option>📄 Documentación</option><option>🔢 Clasificación</option><option>💰 Pagos</option><option selected>💼 Cotización</option><option>🔍 Fiscalización</option><option>📊 Reporte</option>
+          </select>
+        </div>
       </div>
+
+      <!-- Urgente/Importante -->
       <div class="bg-gray-50 rounded-xl p-4">
-        <p class="text-sm font-medium text-gray-700 mb-3">Prioridad: <span class="text-red-600 font-semibold" id="priority-label">Crítica</span></p>
+        <p class="text-sm font-medium text-gray-700 mb-3">Priorización <span class="text-blue-600 font-semibold">→ Crítica</span></p>
         <div class="grid grid-cols-2 gap-3">
-          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-amber-400 bg-amber-50 cursor-pointer" onclick="updatePriority()">
-            <input type="checkbox" checked class="w-4 h-4 accent-amber-500"/>
-            <div><p class="text-sm font-medium text-gray-800">Urgente</p><p class="text-xs text-gray-500">Atención inmediata</p></div>
-          </label>
-          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-blue-400 bg-blue-50 cursor-pointer" onclick="updatePriority()">
-            <input type="checkbox" checked class="w-4 h-4 accent-blue-500"/>
-            <div><p class="text-sm font-medium text-gray-800">Importante</p><p class="text-xs text-gray-500">Alto impacto</p></div>
-          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-amber-400 bg-amber-50 cursor-pointer"><input type="checkbox" checked class="w-4 h-4 accent-amber-500"/><div><p class="text-sm font-medium">Urgente</p><p class="text-xs text-gray-500">Requiere acción hoy</p></div></label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-blue-400 bg-blue-50 cursor-pointer"><input type="checkbox" checked class="w-4 h-4 accent-blue-500"/><div><p class="text-sm font-medium">Importante</p><p class="text-xs text-gray-500">Alto impacto cliente</p></div></label>
         </div>
       </div>
+
       <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Fecha límite</label>
-          <input type="datetime-local" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Recordatorio</label>
-          <input type="datetime-local" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Nombre cliente</label><input type="text" placeholder="Ej: Minera Collahuasi" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"/></div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Fecha límite</label><input type="datetime-local" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"/></div>
       </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Etiquetas</label>
-          <input type="text" placeholder="trabajo, reunión" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Tiempo estimado (min)</label>
-          <input type="number" placeholder="30" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-        </div>
-      </div>
+
+      <div><label class="block text-sm font-medium text-gray-700 mb-1">Descripción / Notas</label><textarea rows="2" placeholder="Detalles de la solicitud..." class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none"></textarea></div>
+
       <div class="flex gap-3 pt-1">
-        <button onclick="closeModal()" class="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancelar</button>
-        <button onclick="closeModal()" class="flex-1 py-2.5 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2" style="background:#2563eb">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-          Crear tarea
-        </button>
+        <button onclick="closeModal()" class="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700">Cancelar</button>
+        <button onclick="closeModal()" class="flex-1 py-2.5 text-white rounded-xl text-sm font-medium" style="background:#2563eb">Crear tarea</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const TASKS = [
-  { title:'Entrega propuesta comercial cliente ABC', priority:'critical', status:'pending', source:'email', email_from:'juan@abc.com', due:'Hoy 17:00', progress:0 },
-  { title:'Revisión y firma contrato proveedor', priority:'critical', status:'in_progress', source:'email', email_from:'legal@empresa.com', due:'Hoy 18:00', progress:45 },
-  { title:'Preparar presentación Q2 resultados', priority:'important', status:'pending', source:'manual', due:'Mañana 10:00', progress:0 },
-  { title:'Reunión semanal con equipo de ventas', priority:'urgent', status:'pending', source:'email', email_from:'maria@empresa.com', due:'Hoy 16:00', progress:0 },
-  { title:'Actualizar CRM con nuevos contactos', priority:'urgent', status:'in_progress', source:'manual', due:'Hoy 15:00', progress:60 },
-  { title:'Revisar y aprobar facturas pendientes', priority:'important', status:'completed', source:'email', email_from:'admin@empresa.com', due:'Ayer', progress:100 },
-  { title:'Enviar reporte semanal a dirección', priority:'important', status:'completed', source:'manual', due:'Ayer', progress:100 },
-  { title:'Organizar archivos del proyecto Beta', priority:'low', status:'pending', source:'manual', due:'Esta semana', progress:0 },
+const EXT = [
+  {id:1,title:'Cotización urgente — fletes marítimos Iquique/Rotterdam',client:'Minera Collahuasi',importance:'vip',priority:'critical',status:'pending',cat:'cotizacion',catLabel:'💼 Cotización',due:'Hoy 14:00',urgent:true},
+  {id:2,title:'DAI #4521 pendiente liberación — Productos electrónicos',client:'Importadora Del Sur',importance:'regular',priority:'critical',status:'in_progress',cat:'despacho',catLabel:'🚢 Despacho',due:'Vencida',urgent:true},
+  {id:3,title:'Clasificación arancelaria — nuevos SKUs',client:'Viña Santa Carolina',importance:'regular',priority:'high',status:'pending',cat:'clasificacion',catLabel:'🔢 Clasificación',due:'Hoy 18:00',urgent:false},
+  {id:4,title:'DUS exportación salmones — revisión documentos',client:'Pacific Salmon Export',importance:'regular',priority:'high',status:'in_progress',cat:'documentacion',catLabel:'📄 Documentación',due:'Mañana 09:00',urgent:false},
+  {id:5,title:'Requerimiento SAG — certificado fitosanitario',client:'Agro Exportaciones Sur',importance:'ocasional',priority:'medium',status:'pending',cat:'fiscalizacion',catLabel:'🔍 Fiscalización',due:'Mañana 12:00',urgent:false},
 ];
 
-const PRIORITY_CFG = {
-  critical: { label:'Crítica', badgeClass:'badge-critical', border:'border-l-red-500' },
-  important: { label:'Importante', badgeClass:'badge-important', border:'border-l-blue-500' },
-  urgent: { label:'Urgente', badgeClass:'badge-urgent', border:'border-l-amber-500' },
-  low: { label:'Baja', badgeClass:'badge-low', border:'border-l-gray-300' },
-};
+const INT = [
+  {id:6,title:'Reunión operaciones — revisión KPIs semanales',client:'Equipo Operaciones',importance:'interno',priority:'medium',status:'pending',cat:'reunion',catLabel:'📅 Reunión',due:'Hoy 16:00',urgent:true},
+  {id:7,title:'Reporte mensual despachos — Gerencia General',client:'Gerencia General',importance:'interno',priority:'medium',status:'in_progress',cat:'reporte',catLabel:'📊 Reporte',due:'Viernes EOD',urgent:false},
+  {id:8,title:'Actualizar tarifas en sistema — nuevos fletes',client:'Finanzas',importance:'interno',priority:'low',status:'pending',cat:'coordinacion',catLabel:'🔄 Coordinación',due:'Esta semana',urgent:false},
+];
 
-const STATUS_ICONS = {
-  pending: `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/></svg>`,
-  in_progress: `<svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>`,
-  completed: `<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-};
+const EMAILS = [
+  {score:95,subject:'URGENTE: Cotización fletes Rotterdam — respuesta hoy',from:'jgomez@collahuasi.cl',client:'Minera Collahuasi',type:'external',importance:'vip',urgent:true,cat:'💼 Cotización',status:'pending'},
+  {score:80,subject:'Solicitud liberación DAI #4521 — bloqueada en Aduana',from:'operaciones@importadoradelsur.cl',client:'Importadora Del Sur',type:'external',importance:'regular',urgent:true,cat:'🚢 Despacho',status:'in_progress'},
+  {score:65,subject:'Clasificación arancelaria nuevos productos 2026',from:'comercial@santacarolina.cl',client:'Viña Santa Carolina',type:'external',importance:'regular',urgent:false,cat:'🔢 Clasificación',status:'pending'},
+  {score:60,subject:'Documentos DUS exportación — revisión requerida',from:'logistica@pacificsalmon.cl',client:'Pacific Salmon',type:'external',importance:'regular',urgent:false,cat:'📄 Documentación',status:'pending'},
+  {score:45,subject:'Certificado SAG — requerimiento inspector',from:'exportaciones@agrosur.cl',client:'Agro Sur',type:'external',importance:'ocasional',urgent:false,cat:'🔍 Fiscalización',status:'pending'},
+  {score:25,subject:'KPIs semanales — preparar presentación',from:'operaciones@agenciaaduanera.cl',client:'Equipo Operaciones',type:'internal',importance:'interno',urgent:true,cat:'📅 Reunión',status:'pending'},
+  {score:20,subject:'Actualización tarifas sistema — pendiente',from:'finanzas@agenciaaduanera.cl',client:'Finanzas',type:'internal',importance:'interno',urgent:false,cat:'🔄 Coordinación',status:'pending'},
+  {score:15,subject:'Reporte mensual despachos Q1',from:'gerencia@agenciaaduanera.cl',client:'Gerencia',type:'internal',importance:'interno',urgent:false,cat:'📊 Reporte',status:'in_progress'},
+];
 
-function renderTask(t) {
-  const cfg = PRIORITY_CFG[t.priority];
-  const isCompleted = t.status === 'completed';
-  return `
-    <div class="task-card bg-white rounded-xl border border-l-4 ${cfg.border} p-4 cursor-default">
-      <div class="flex items-start gap-3">
-        <div class="mt-0.5 flex-shrink-0">${STATUS_ICONS[t.status]}</div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="font-medium text-gray-900 text-sm ${isCompleted?'line-through text-gray-400':''}">${t.title}</span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-medium ${cfg.badgeClass}">${cfg.label}</span>
-            ${t.source==='email'?`<span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#f3e8ff;color:#7c3aed;border:1px solid #e9d5ff">✉️ Email</span>`:''}
-          </div>
-          <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-            ${t.due?`<span>📅 ${t.due}</span>`:''}
-            ${t.email_from?`<span class="truncate">De: ${t.email_from}</span>`:''}
-            <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">${t.status==='pending'?'Pendiente':t.status==='in_progress'?'En progreso':'Completada'}</span>
-          </div>
-          ${t.progress>0&&t.progress<100?`
-          <div class="mt-2">
-            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Progreso</span><span>${t.progress}%</span></div>
-            <div class="w-full bg-gray-100 rounded-full h-1.5">
-              <div class="bg-blue-500 h-1.5 rounded-full" style="width:${t.progress}%"></div>
-            </div>
-          </div>`:''}
+const PC={critical:{label:'Crítica',cls:'badge-critical'},high:{label:'Alta',cls:'badge-high'},medium:{label:'Media',cls:'badge-medium'},low:{label:'Baja',cls:'badge-low'}};
+const ST={pending:'Pendiente',in_progress:'En progreso',completed:'Completada'};
+const IC={vip:'⭐ VIP',regular:'Regular',ocasional:'Ocasional',interno:'Interno'};
+const IB={vip:'pill-vip',regular:'pill-ext',ocasional:'badge-low',interno:'pill-int'};
+const SV={pending:'○',in_progress:'◑',completed:'●'};
+const SC={pending:'text-gray-400',in_progress:'text-blue-500',completed:'text-green-500'};
+
+function taskCard(t,type='ext'){
+  const pc=PC[t.priority];
+  const ib=IB[t.importance];
+  const bl=type==='ext'?'border-l-ext':'border-l-int';
+  const isComp=t.status==='completed';
+  return `<div class="card bg-white rounded-xl border border-l-4 ${bl} p-3.5 cursor-default">
+    <div class="flex items-start gap-2.5">
+      <span class="text-lg ${SC[t.status]} mt-0.5 flex-shrink-0">${SV[t.status]}</span>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-medium text-sm ${isComp?'line-through text-gray-400':'text-gray-900'}">${t.title}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium ${pc.cls}">${pc.label}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full font-medium ${ib}">${IC[t.importance]}</span>
         </div>
-        <div class="flex items-center gap-1 flex-shrink-0">
-          <button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </button>
-          <button class="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-400 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
+        <div class="flex items-center gap-3 mt-1 text-xs text-gray-400 flex-wrap">
+          <span class="font-medium text-gray-600">${t.client}</span>
+          <span>${t.catLabel}</span>
+          ${t.due?`<span class="${t.due==='Vencida'?'text-red-500 font-semibold':''}">📅 ${t.due}</span>`:''}
+          <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">${ST[t.status]}</span>
         </div>
       </div>
-    </div>`;
+      <div class="flex gap-1 flex-shrink-0"><button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 text-xs">✏️</button><button class="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 text-xs">🗑️</button></div>
+    </div>
+  </div>`;
 }
 
-document.getElementById('task-list-dashboard').innerHTML = TASKS.slice(0,5).map(renderTask).join('');
-document.getElementById('task-list-full').innerHTML = TASKS.map(renderTask).join('');
+function emailRow(e,i){
+  const typeClass=e.type==='external'?'pill-ext':'pill-int';
+  const typeLabel=e.type==='external'?'Externo':'Interno';
+  const importClass=IB[e.importance];
+  return `<div class="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+    <div class="text-center flex-shrink-0 w-8">
+      <div class="text-lg font-bold ${e.score>=80?'text-red-600':e.score>=60?'text-orange-500':e.score>=40?'text-amber-500':'text-gray-400'}">${i+1}</div>
+    </div>
+    <div class="flex-shrink-0 w-16">
+      <div class="w-full bg-gray-100 rounded-full h-1.5 mb-1"><div class="score-bar ${e.score>=80?'bg-red-500':e.score>=60?'bg-orange-400':e.score>=40?'bg-amber-400':'bg-gray-300'}" style="width:${e.score}%"></div></div>
+      <div class="text-xs text-center font-semibold ${e.score>=80?'text-red-600':e.score>=40?'text-amber-600':'text-gray-400'}">${e.score}pts</div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 flex-wrap mb-0.5">
+        <span class="text-sm font-medium text-gray-900 truncate">${e.subject}</span>
+        ${e.urgent?'<span class="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-medium">🔥 Urgente</span>':''}
+      </div>
+      <div class="flex items-center gap-2 text-xs text-gray-400">
+        <span>${e.from}</span>
+        <span>·</span><span class="font-medium text-gray-600">${e.client}</span>
+        <span>·</span><span>${e.cat}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <span class="text-xs px-2 py-0.5 rounded-full font-medium ${typeClass}">${typeLabel}</span>
+      <span class="text-xs px-2 py-0.5 rounded-full font-medium ${importClass}">${IC[e.importance]}</span>
+      <button class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#2563eb">Crear tarea</button>
+    </div>
+  </div>`;
+}
 
-function switchView(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.sidebar-btn').forEach(el => el.classList.remove('active'));
+// Render lists
+document.getElementById('ext-list').innerHTML = EXT.slice(0,3).map(t=>taskCard(t,'ext')).join('');
+document.getElementById('int-list').innerHTML = INT.map(t=>taskCard(t,'int')).join('');
+document.getElementById('ext-full-list').innerHTML = EXT.map(t=>taskCard(t,'ext')).join('');
+document.getElementById('int-full-list').innerHTML = INT.map(t=>taskCard(t,'int')).join('');
+document.getElementById('email-preview').innerHTML = EMAILS.slice(0,3).map((e,i)=>emailRow(e,i)).join('');
+document.getElementById('email-full-list').innerHTML = EMAILS.map((e,i)=>emailRow(e,i)).join('');
+
+function switchView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.sidebar-btn').forEach(e=>e.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('btn-'+v).classList.add('active');
-  document.getElementById('header-title').textContent = {dashboard:'Dashboard',tasks:'Tareas',reports:'Reportes',settings:'Configuración'}[v];
+  const labels={dashboard:'Dashboard',external:'Clientes Externos',internal:'Gestión Interna',emails:'Análisis de Correos',reports:'Reportes',settings:'Configuración'};
+  document.getElementById('header-title').textContent=labels[v]||v;
   document.getElementById('notif-panel').classList.remove('open');
 }
-
-function toggleNotif() {
-  document.getElementById('notif-panel').classList.toggle('open');
-}
-document.addEventListener('click', e => {
-  const w = document.getElementById('notif-wrapper');
-  if (!w.contains(e.target)) document.getElementById('notif-panel').classList.remove('open');
-});
-
-function openModal() { document.getElementById('modal').classList.remove('hidden'); }
-function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+function toggleNotif(){document.getElementById('notif-panel').classList.toggle('open');}
+document.addEventListener('click',e=>{const w=document.getElementById('notif-wrapper');if(!w.contains(e.target))document.getElementById('notif-panel').classList.remove('open');});
+function openModal(){document.getElementById('modal').classList.remove('hidden');}
+function closeModal(){document.getElementById('modal').classList.add('hidden');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 </script>
 </body>
 </html>
