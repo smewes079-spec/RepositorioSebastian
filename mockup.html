@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TaskFlow — Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .sidebar-btn.active { background:#eff6ff; color:#1d4ed8; font-weight:600; }
+  .view { display:none; }
+  .view.active { display:block; }
+  .task-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); transform:translateY(-1px); }
+  .task-card { transition: all .15s ease; }
+  .notif-panel { display:none; position:absolute; right:0; top:56px; width:300px; z-index:50; }
+  .notif-panel.open { display:block; }
+  .progress-bar { transition: width .6s ease; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .badge-critical { background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+  .badge-important { background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; }
+  .badge-urgent { background:#fef3c7; color:#b45309; border:1px solid #fcd34d; }
+  .badge-low { background:#f3f4f6; color:#4b5563; border:1px solid #d1d5db; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+<!-- SIDEBAR -->
+<aside class="w-60 bg-white border-r flex flex-col fixed inset-y-0 left-0 shadow-sm z-10">
+  <div class="flex items-center gap-3 px-5 py-4 border-b">
+    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">TF</div>
+    <div>
+      <div class="font-bold text-gray-900 text-sm leading-tight">TaskFlow</div>
+      <div class="text-xs text-gray-400">Gestión de tareas</div>
+    </div>
+  </div>
+  <nav class="p-3 flex-1 space-y-1">
+    <button onclick="switchView('dashboard')" id="btn-dashboard" class="sidebar-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      Dashboard
+    </button>
+    <button onclick="switchView('tasks')" id="btn-tasks" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Tareas
+    </button>
+    <button onclick="switchView('reports')" id="btn-reports" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Reportes
+    </button>
+    <button onclick="switchView('settings')" id="btn-settings" class="sidebar-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-all">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Configuración
+    </button>
+  </nav>
+  <!-- Eisenhower legend -->
+  <div class="m-3 p-3 rounded-xl border" style="background:#f8faff;border-color:#e0e7ff">
+    <div class="text-xs font-semibold text-indigo-700 mb-2">Matriz de Eisenhower</div>
+    <div class="grid grid-cols-2 gap-1 text-xs">
+      <div class="badge-critical px-1.5 py-1 rounded text-center font-medium">🔴 Crítica</div>
+      <div class="badge-important px-1.5 py-1 rounded text-center font-medium">🔵 Importante</div>
+      <div class="badge-urgent px-1.5 py-1 rounded text-center font-medium">🟡 Urgente</div>
+      <div class="badge-low px-1.5 py-1 rounded text-center font-medium">⚪ Baja</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="flex-1 ml-60 flex flex-col min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-white border-b px-6 py-3.5 flex items-center gap-4 sticky top-0 z-10 shadow-sm">
+    <div class="flex-1">
+      <div id="header-title" class="font-semibold text-gray-900">Dashboard</div>
+      <div class="text-xs text-gray-400">Domingo, 4 de mayo de 2026</div>
+    </div>
+    <!-- Notif bell -->
+    <div class="relative" id="notif-wrapper">
+      <button onclick="toggleNotif()" class="relative p-2 rounded-xl hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
+      </button>
+      <div class="notif-panel bg-white rounded-2xl shadow-2xl border overflow-hidden" id="notif-panel">
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+          <span class="font-semibold text-gray-900 text-sm">Notificaciones</span>
+          <button onclick="toggleNotif()" class="text-xs text-blue-600 hover:underline">Leer todas</button>
+        </div>
+        <div class="divide-y">
+          <div class="flex gap-3 p-3 bg-red-50">
+            <span class="text-lg">🚨</span>
+            <div><p class="text-sm font-medium text-gray-900">Tarea vencida</p><p class="text-xs text-gray-500">Revisión contrato proveedor está vencida</p><p class="text-xs text-gray-400 mt-0.5">hace 2h</p></div>
+          </div>
+          <div class="flex gap-3 p-3">
+            <span class="text-lg">⏰</span>
+            <div><p class="text-sm font-medium text-gray-900">Recordatorio</p><p class="text-xs text-gray-500">Reunión con equipo en 30 minutos</p><p class="text-xs text-gray-400 mt-0.5">hace 5min</p></div>
+          </div>
+          <div class="flex gap-3 p-3">
+            <span class="text-lg">✅</span>
+            <div><p class="text-sm font-medium text-gray-900">Tarea completada</p><p class="text-xs text-gray-500">Completaste: Informe mensual</p><p class="text-xs text-gray-400 mt-0.5">hace 1h</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">S</div>
+  </header>
+
+  <main class="flex-1 p-6 max-w-4xl mx-auto w-full">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div id="view-dashboard" class="view active space-y-6">
+
+      <!-- Daily summary -->
+      <div class="bg-white rounded-2xl border shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="font-semibold text-gray-900">Resumen del día</div>
+            <div class="text-xs text-gray-400">Domingo, 4 de mayo de 2026</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <span class="text-2xl font-bold text-blue-600">68%</span>
+            <span class="text-sm text-gray-400">completado</span>
+          </div>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-2.5 mb-5">
+          <div class="h-2.5 rounded-full progress-bar" style="width:68%;background:linear-gradient(90deg,#3b82f6,#22c55e)"></div>
+        </div>
+        <div class="grid grid-cols-4 gap-3">
+          <div class="bg-gray-50 rounded-xl p-4 text-center">
+            <svg class="w-5 h-5 text-gray-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div class="text-2xl font-bold text-gray-700">11</div>
+            <div class="text-xs text-gray-400">Total</div>
+          </div>
+          <div class="bg-green-50 rounded-xl p-4 text-center">
+            <svg class="w-5 h-5 text-green-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="text-2xl font-bold text-green-600">7</div>
+            <div class="text-xs text-gray-400">Completadas</div>
+          </div>
+          <div class="bg-blue-50 rounded-xl p-4 text-center">
+            <svg class="w-5 h-5 text-blue-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="text-2xl font-bold text-blue-600">3</div>
+            <div class="text-xs text-gray-400">En progreso</div>
+          </div>
+          <div class="bg-red-50 rounded-xl p-4 text-center">
+            <svg class="w-5 h-5 text-red-500 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div class="text-2xl font-bold text-red-600">1</div>
+            <div class="text-xs text-gray-400">Vencidas</div>
+          </div>
+        </div>
+        <div class="mt-4 p-3 rounded-xl border" style="background:#fff1f2;border-color:#fecdd3">
+          <p class="text-sm font-semibold" style="color:#b91c1c">🔴 2 tareas críticas hoy</p>
+          <p class="text-xs mt-1" style="color:#e11d48">• Entrega propuesta comercial cliente ABC</p>
+          <p class="text-xs" style="color:#e11d48">• Revisión y firma contrato proveedor</p>
+        </div>
+      </div>
+
+      <!-- Task list preview -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-gray-900">Mis Tareas</div>
+          <button onclick="switchView('tasks')" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white transition-colors shadow-sm" style="background:#2563eb" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Nueva tarea
+          </button>
+        </div>
+        <div class="space-y-2" id="task-list-dashboard"></div>
+      </div>
+    </div>
+
+    <!-- ═══ TASKS ═══ -->
+    <div id="view-tasks" class="view">
+      <div class="flex items-center justify-between mb-4">
+        <div class="font-semibold text-gray-900 text-lg">Mis Tareas</div>
+        <button onclick="openModal()" class="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white transition-colors shadow-sm" style="background:#2563eb" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Nueva tarea
+        </button>
+      </div>
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <div class="relative flex-1 min-w-40">
+          <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" placeholder="Buscar tareas..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2" style="--tw-ring-color:#3b82f6"/>
+        </div>
+        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none">
+          <option>Todas</option><option>Pendientes</option><option>En progreso</option><option>Completadas</option>
+        </select>
+        <select class="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none">
+          <option>Cualquier prioridad</option><option>🔴 Crítica</option><option>🔵 Importante</option><option>🟡 Urgente</option><option>⚪ Baja</option>
+        </select>
+      </div>
+      <div class="space-y-2" id="task-list-full"></div>
+      <p class="text-xs text-gray-400 text-center mt-3">11 tareas · Ordenadas por prioridad (Matriz de Eisenhower)</p>
+    </div>
+
+    <!-- ═══ REPORTS ═══ -->
+    <div id="view-reports" class="view">
+      <div class="bg-white rounded-2xl border shadow-sm p-6">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <div class="font-semibold text-gray-900">Reporte Semanal</div>
+            <div class="text-xs text-gray-400">28 Apr — 4 May 2026</div>
+          </div>
+          <button class="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-4 gap-3 mb-6">
+          <div class="bg-gray-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-gray-700">42</div><div class="text-xs text-gray-400">Total tareas</div></div>
+          <div class="bg-green-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-green-600">31</div><div class="text-xs text-gray-400">Completadas</div></div>
+          <div class="bg-blue-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-blue-600">73%</div><div class="text-xs text-gray-400">Tasa</div></div>
+          <div class="bg-purple-50 rounded-xl p-4 text-center"><div class="text-xl font-bold text-purple-600">47m</div><div class="text-xs text-gray-400">Tiempo prom.</div></div>
+        </div>
+        <div class="mb-4 p-3 bg-green-50 rounded-xl border border-green-100 flex items-center gap-2">
+          <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+          <p class="text-sm text-green-700">Tu día más productivo fue el <strong>Miércoles</strong></p>
+        </div>
+        <!-- Bar chart SVG -->
+        <div class="mb-6">
+          <p class="text-sm font-medium text-gray-700 mb-3">Productividad por día</p>
+          <svg viewBox="0 0 400 130" class="w-full" style="height:130px">
+            <g transform="translate(30,10)">
+              <!-- Grid -->
+              <line x1="0" y1="0" x2="350" y2="0" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="30" x2="350" y2="30" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="60" x2="350" y2="60" stroke="#f3f4f6" stroke-width="1"/>
+              <line x1="0" y1="90" x2="350" y2="90" stroke="#f3f4f6" stroke-width="1"/>
+              <!-- Bars -->
+              <rect x="5" y="63" width="36" height="27" rx="4" fill="#93c5fd"/>
+              <rect x="55" y="45" width="36" height="45" rx="4" fill="#3b82f6"/>
+              <rect x="105" y="18" width="36" height="72" rx="4" fill="#2563eb"/>
+              <rect x="155" y="36" width="36" height="54" rx="4" fill="#3b82f6"/>
+              <rect x="205" y="54" width="36" height="36" rx="4" fill="#93c5fd"/>
+              <rect x="255" y="45" width="36" height="45" rx="4" fill="#3b82f6"/>
+              <rect x="305" y="72" width="36" height="18" rx="4" fill="#dbeafe"/>
+              <!-- Labels -->
+              <text x="23" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Lun</text>
+              <text x="73" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Mar</text>
+              <text x="123" y="108" text-anchor="middle" font-size="11" fill="#1d4ed8" font-weight="600">Mié</text>
+              <text x="173" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Jue</text>
+              <text x="223" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Vie</text>
+              <text x="273" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Sáb</text>
+              <text x="323" y="108" text-anchor="middle" font-size="11" fill="#9ca3af">Dom</text>
+              <!-- Values -->
+              <text x="23" y="57" text-anchor="middle" font-size="10" fill="#6b7280">3</text>
+              <text x="73" y="39" text-anchor="middle" font-size="10" fill="#6b7280">5</text>
+              <text x="123" y="12" text-anchor="middle" font-size="10" fill="#2563eb" font-weight="600">8</text>
+              <text x="173" y="30" text-anchor="middle" font-size="10" fill="#6b7280">6</text>
+              <text x="223" y="48" text-anchor="middle" font-size="10" fill="#6b7280">4</text>
+              <text x="273" y="39" text-anchor="middle" font-size="10" fill="#6b7280">5</text>
+              <text x="323" y="66" text-anchor="middle" font-size="10" fill="#6b7280">2</text>
+            </g>
+          </svg>
+        </div>
+        <!-- Pie chart SVG -->
+        <div class="mb-6">
+          <p class="text-sm font-medium text-gray-700 mb-3">Distribución por prioridad</p>
+          <div class="flex items-center gap-6">
+            <svg viewBox="0 0 120 120" style="width:120px;height:120px;flex-shrink:0">
+              <!-- Pie segments: critical 30%, important 35%, urgent 20%, low 15% -->
+              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#ef4444" stroke-width="80" stroke-dasharray="75 251" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#3b82f6" stroke-width="80" stroke-dasharray="88 251" stroke-dashoffset="-75" transform="rotate(-90 60 60)"/>
+              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#f59e0b" stroke-width="80" stroke-dasharray="50 251" stroke-dashoffset="-163" transform="rotate(-90 60 60)"/>
+              <circle r="40" cx="60" cy="60" fill="transparent" stroke="#d1d5db" stroke-width="80" stroke-dasharray="38 251" stroke-dashoffset="-213" transform="rotate(-90 60 60)"/>
+              <circle r="20" cx="60" cy="60" fill="white"/>
+              <text x="60" y="55" text-anchor="middle" font-size="10" fill="#374151" font-weight="600">31</text>
+              <text x="60" y="68" text-anchor="middle" font-size="8" fill="#9ca3af">tareas</text>
+            </svg>
+            <div class="space-y-2 flex-1">
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div><span class="text-sm text-gray-600">Crítica</span><span class="ml-auto text-sm font-semibold text-gray-700">30%</span></div>
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div><span class="text-sm text-gray-600">Importante</span><span class="ml-auto text-sm font-semibold text-gray-700">35%</span></div>
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500 flex-shrink-0"></div><span class="text-sm text-gray-600">Urgente</span><span class="ml-auto text-sm font-semibold text-gray-700">20%</span></div>
+              <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-gray-300 flex-shrink-0"></div><span class="text-sm text-gray-600">Baja</span><span class="ml-auto text-sm font-semibold text-gray-700">15%</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Suggestions -->
+        <div>
+          <p class="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            Sugerencias de mejora
+          </p>
+          <div class="space-y-2">
+            <div class="flex items-start gap-2 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a"><span>💡</span><p class="text-sm" style="color:#92400e">Tienes muchas tareas críticas. Revisa si todas son realmente urgentes e importantes, o si puedes delegar algunas.</p></div>
+            <div class="flex items-start gap-2 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a"><span>💡</span><p class="text-sm" style="color:#92400e">Tu productividad cae los viernes. Considera reservar ese día para tareas de baja prioridad o planificación.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div id="view-settings" class="view space-y-6">
+      <div class="bg-white rounded-2xl border shadow-sm p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <div class="font-semibold text-gray-900">Integración de Correo</div>
+            <div class="text-xs text-gray-400">Extrae tareas automáticamente de tu bandeja</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 p-4 rounded-xl border mb-4" style="background:#f0fdf4;border-color:#bbf7d0">
+          <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <p class="text-sm font-medium text-green-800">sebastian@gmail.com</p>
+            <p class="text-xs text-green-600">imap.gmail.com:993 · Última sync: hoy 09:30</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-white transition-colors" style="background:#7c3aed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Sincronizar ahora
+          </button>
+          <button class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">Editar</button>
+        </div>
+        <div class="mt-3 p-3 rounded-xl border" style="background:#fffbeb;border-color:#fde68a">
+          <p class="text-xs" style="color:#92400e"><strong>Nota:</strong> Para Gmail activa IMAP en Configuración. Si usas verificación en 2 pasos, genera una <strong>Contraseña de aplicación</strong>.</p>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl border shadow-sm p-6">
+        <div class="font-semibold text-gray-900 mb-3">Acerca de TaskFlow</div>
+        <ul class="text-sm text-gray-600 space-y-2">
+          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Integración con correo electrónico (IMAP)</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Priorización automática (Matriz de Eisenhower)</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Recordatorios y notificaciones en tiempo real</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Reportes semanales de productividad</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✅</span> Seguimiento de progreso por tarea</li>
+        </ul>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL Nueva Tarea -->
+<div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+    <div class="flex items-center justify-between p-5 border-b">
+      <div class="font-semibold text-gray-900">Nueva tarea</div>
+      <button onclick="closeModal()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="p-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+        <input type="text" placeholder="¿Qué necesitas hacer?" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+        <textarea rows="2" placeholder="Detalles adicionales..." class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-4">
+        <p class="text-sm font-medium text-gray-700 mb-3">Prioridad: <span class="text-red-600 font-semibold" id="priority-label">Crítica</span></p>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-amber-400 bg-amber-50 cursor-pointer" onclick="updatePriority()">
+            <input type="checkbox" checked class="w-4 h-4 accent-amber-500"/>
+            <div><p class="text-sm font-medium text-gray-800">Urgente</p><p class="text-xs text-gray-500">Atención inmediata</p></div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-blue-400 bg-blue-50 cursor-pointer" onclick="updatePriority()">
+            <input type="checkbox" checked class="w-4 h-4 accent-blue-500"/>
+            <div><p class="text-sm font-medium text-gray-800">Importante</p><p class="text-xs text-gray-500">Alto impacto</p></div>
+          </label>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Fecha límite</label>
+          <input type="datetime-local" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Recordatorio</label>
+          <input type="datetime-local" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Etiquetas</label>
+          <input type="text" placeholder="trabajo, reunión" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tiempo estimado (min)</label>
+          <input type="number" placeholder="30" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-1">
+        <button onclick="closeModal()" class="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancelar</button>
+        <button onclick="closeModal()" class="flex-1 py-2.5 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2" style="background:#2563eb">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+          Crear tarea
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TASKS = [
+  { title:'Entrega propuesta comercial cliente ABC', priority:'critical', status:'pending', source:'email', email_from:'juan@abc.com', due:'Hoy 17:00', progress:0 },
+  { title:'Revisión y firma contrato proveedor', priority:'critical', status:'in_progress', source:'email', email_from:'legal@empresa.com', due:'Hoy 18:00', progress:45 },
+  { title:'Preparar presentación Q2 resultados', priority:'important', status:'pending', source:'manual', due:'Mañana 10:00', progress:0 },
+  { title:'Reunión semanal con equipo de ventas', priority:'urgent', status:'pending', source:'email', email_from:'maria@empresa.com', due:'Hoy 16:00', progress:0 },
+  { title:'Actualizar CRM con nuevos contactos', priority:'urgent', status:'in_progress', source:'manual', due:'Hoy 15:00', progress:60 },
+  { title:'Revisar y aprobar facturas pendientes', priority:'important', status:'completed', source:'email', email_from:'admin@empresa.com', due:'Ayer', progress:100 },
+  { title:'Enviar reporte semanal a dirección', priority:'important', status:'completed', source:'manual', due:'Ayer', progress:100 },
+  { title:'Organizar archivos del proyecto Beta', priority:'low', status:'pending', source:'manual', due:'Esta semana', progress:0 },
+];
+
+const PRIORITY_CFG = {
+  critical: { label:'Crítica', badgeClass:'badge-critical', border:'border-l-red-500' },
+  important: { label:'Importante', badgeClass:'badge-important', border:'border-l-blue-500' },
+  urgent: { label:'Urgente', badgeClass:'badge-urgent', border:'border-l-amber-500' },
+  low: { label:'Baja', badgeClass:'badge-low', border:'border-l-gray-300' },
+};
+
+const STATUS_ICONS = {
+  pending: `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/></svg>`,
+  in_progress: `<svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>`,
+  completed: `<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+};
+
+function renderTask(t) {
+  const cfg = PRIORITY_CFG[t.priority];
+  const isCompleted = t.status === 'completed';
+  return `
+    <div class="task-card bg-white rounded-xl border border-l-4 ${cfg.border} p-4 cursor-default">
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 flex-shrink-0">${STATUS_ICONS[t.status]}</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-medium text-gray-900 text-sm ${isCompleted?'line-through text-gray-400':''}">${t.title}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium ${cfg.badgeClass}">${cfg.label}</span>
+            ${t.source==='email'?`<span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background:#f3e8ff;color:#7c3aed;border:1px solid #e9d5ff">✉️ Email</span>`:''}
+          </div>
+          <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+            ${t.due?`<span>📅 ${t.due}</span>`:''}
+            ${t.email_from?`<span class="truncate">De: ${t.email_from}</span>`:''}
+            <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">${t.status==='pending'?'Pendiente':t.status==='in_progress'?'En progreso':'Completada'}</span>
+          </div>
+          ${t.progress>0&&t.progress<100?`
+          <div class="mt-2">
+            <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Progreso</span><span>${t.progress}%</span></div>
+            <div class="w-full bg-gray-100 rounded-full h-1.5">
+              <div class="bg-blue-500 h-1.5 rounded-full" style="width:${t.progress}%"></div>
+            </div>
+          </div>`:''}
+        </div>
+        <div class="flex items-center gap-1 flex-shrink-0">
+          <button class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button class="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-400 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+document.getElementById('task-list-dashboard').innerHTML = TASKS.slice(0,5).map(renderTask).join('');
+document.getElementById('task-list-full').innerHTML = TASKS.map(renderTask).join('');
+
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sidebar-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('btn-'+v).classList.add('active');
+  document.getElementById('header-title').textContent = {dashboard:'Dashboard',tasks:'Tareas',reports:'Reportes',settings:'Configuración'}[v];
+  document.getElementById('notif-panel').classList.remove('open');
+}
+
+function toggleNotif() {
+  document.getElementById('notif-panel').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const w = document.getElementById('notif-wrapper');
+  if (!w.contains(e.target)) document.getElementById('notif-panel').classList.remove('open');
+});
+
+function openModal() { document.getElementById('modal').classList.remove('hidden'); }
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+</script>
+</body>
+</html>
