@@ -2,7 +2,14 @@ import { useRef, useState } from 'react';
 import { X, UploadCloud, Download } from 'lucide-react';
 import { api } from '../lib/api.js';
 
-export default function ImportCsvModal({ onClose, onImported }) {
+export default function ImportCsvModal({
+  onClose,
+  onImported,
+  titulo = 'Importar desde Excel o CSV',
+  endpoint = '/ventas/importar',
+  plantillaHref = '/plantilla-ventas.xlsx',
+  descripcionColumnas,
+}) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
@@ -17,7 +24,7 @@ export default function ImportCsvModal({ onClose, onImported }) {
     try {
       const formData = new FormData();
       formData.append('archivo', file);
-      const data = await api.post('/ventas/importar', formData);
+      const data = await api.post(endpoint, formData);
       setResultado(data);
       onImported?.();
     } catch (err) {
@@ -31,14 +38,14 @@ export default function ImportCsvModal({ onClose, onImported }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl w-full max-w-lg p-7">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif text-xl text-[#2C2420]">Importar ventas desde Excel o CSV</h2>
+          <h2 className="font-serif text-xl text-[#2C2420]">{titulo}</h2>
           <button onClick={onClose} className="text-[#2C2420]/40 hover:text-[#2C2420]">
             <X size={20} />
           </button>
         </div>
 
         <a
-          href="/plantilla-ventas.xlsx"
+          href={plantillaHref}
           download
           className="flex items-center gap-2 text-sm font-medium text-[#C9A96E] hover:opacity-70 mb-4"
         >
@@ -46,12 +53,9 @@ export default function ImportCsvModal({ onClose, onImported }) {
           Descargar plantilla Excel para completar
         </a>
 
-        <p className="text-xs text-[#2C2420]/60 mb-4 leading-relaxed">
-          Completa la plantilla con las columnas: CÓDIGO, NOMBRE CLIENTA, TIPO, ESTADO, FECHA
-          VENTA, FECHA EVENTO, TOTAL VENTA, TOTAL PAGADO, DEUDA, PAGO 1, FECHA, PAGO 2, FECHA 2,
-          PAGO 3, FECHA 3 — y súbela aquí en formato .xlsx o .csv. Si el código ya existe, la venta
-          se actualiza.
-        </p>
+        {descripcionColumnas && (
+          <p className="text-xs text-[#2C2420]/60 mb-4 leading-relaxed">{descripcionColumnas}</p>
+        )}
 
         <div
           onClick={() => inputRef.current?.click()}
@@ -76,7 +80,9 @@ export default function ImportCsvModal({ onClose, onImported }) {
           <div className="mt-4 text-sm rounded-lg bg-[#FAFAF8] border border-black/5 p-4 space-y-1">
             <p>Filas procesadas: {resultado.totalFilas}</p>
             <p className="text-[#5C8C6A]">Creadas: {resultado.creadas}</p>
-            <p className="text-[#C9A96E]">Actualizadas: {resultado.actualizadas}</p>
+            {resultado.actualizadas !== undefined && (
+              <p className="text-[#C9A96E]">Actualizadas: {resultado.actualizadas}</p>
+            )}
             {resultado.errores.length > 0 && (
               <div className="text-[#A85C52]">
                 <p>Errores ({resultado.errores.length}):</p>

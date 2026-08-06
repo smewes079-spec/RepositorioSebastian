@@ -259,6 +259,10 @@ export default function VentasList() {
 
       {showImport && (
         <ImportCsvModal
+          titulo="Importar ventas desde Excel o CSV"
+          endpoint="/ventas/importar"
+          plantillaHref="/plantilla-ventas.xlsx"
+          descripcionColumnas="Completa la plantilla con las columnas: CÓDIGO, NOMBRE CLIENTA, TIPO, ESTADO, FECHA VENTA, FECHA EVENTO, TOTAL VENTA, TOTAL PAGADO, DEUDA, PAGO 1, FECHA, PAGO 2, FECHA 2, PAGO 3, FECHA 3. Si el código ya existe, la venta se actualiza."
           onClose={() => setShowImport(false)}
           onImported={() => {
             load();

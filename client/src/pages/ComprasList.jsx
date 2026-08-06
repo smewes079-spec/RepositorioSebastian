@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Upload } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
+import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import { api } from '../lib/api.js';
 import {
   formatCLP,
@@ -28,11 +29,13 @@ const ASIGNACION_COLORS = {
 };
 
 export default function ComprasList() {
+  const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
   const [compras, setCompras] = useState([]);
   const [resumen, setResumen] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showImport, setShowImport] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -73,14 +76,23 @@ export default function ComprasList() {
       title="Registro de insumos"
       subtitle="Compras de materiales y su asignación de costo a los vestidos"
       actions={
-        <Link
-          to="/costos/insumos/nueva"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
-          style={{ backgroundColor: '#1A1A2E' }}
-        >
-          <Plus size={16} />
-          Nueva compra
-        </Link>
+        <>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-black/10 text-[#2C2420]/80 hover:bg-black/5"
+          >
+            <Upload size={16} />
+            Importar Excel
+          </button>
+          <Link
+            to="/costos/insumos/nueva"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
+            style={{ backgroundColor: '#1A1A2E' }}
+          >
+            <Plus size={16} />
+            Nueva compra
+          </Link>
+        </>
       }
     >
       {resumen && (
@@ -191,17 +203,14 @@ export default function ComprasList() {
               compras.map((c) => {
                 const colors = ASIGNACION_COLORS[c.tipoAsignacion];
                 return (
-                  <tr key={c.id} className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8]">
+                  <tr
+                    key={c.id}
+                    onClick={() => navigate(`/costos/insumos/${c.id}`)}
+                    className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer"
+                  >
                     <td className="px-5 py-3 text-[#2C2420]/70">{formatFecha(c.fecha)}</td>
                     <td className="px-5 py-3">{CATEGORIA_LABELS[c.categoria]}</td>
-                    <td className="px-5 py-3">
-                      <Link
-                        to={`/costos/insumos/${c.id}`}
-                        className="font-medium text-[#2C2420] hover:text-[#C9A96E]"
-                      >
-                        {c.descripcion}
-                      </Link>
-                    </td>
+                    <td className="px-5 py-3 font-medium text-[#2C2420]">{c.descripcion}</td>
                     <td className="px-5 py-3">
                       <span
                         className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
@@ -214,7 +223,10 @@ export default function ComprasList() {
                     <td className="px-5 py-3 text-right font-medium">{formatCLP(c.montoTotal)}</td>
                     <td className="px-5 py-3 text-right">
                       <button
-                        onClick={() => handleDelete(c.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(c.id);
+                        }}
                         className="text-[#A85C52]/70 hover:text-[#A85C52]"
                       >
                         <Trash2 size={15} />
@@ -226,6 +238,19 @@ export default function ComprasList() {
           </tbody>
         </table>
       </div>
+
+      {showImport && (
+        <ImportCsvModal
+          titulo="Importar compras de insumos desde Excel o CSV"
+          endpoint="/purchases/importar"
+          plantillaHref="/plantilla-compras.xlsx"
+          descripcionColumnas="Completa la plantilla con las columnas: FECHA COMPRA, CATEGORIA, DESCRIPCION, MONTO TOTAL, TIPO ASIGNACION, CODIGO VENTA (solo si es Directo), UNIDAD MEDIDA, CANTIDAD COMPRADA, CONSUMO NOVIA, CONSUMO MADRINA, CONSUMO INVITADA, CONSUMO CIVIL (estas últimas 4 solo si es Consumo estimado)."
+          onClose={() => setShowImport(false)}
+          onImported={() => {
+            load();
+          }}
+        />
+      )}
     </Layout>
   );
 }

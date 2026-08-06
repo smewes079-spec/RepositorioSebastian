@@ -1,11 +1,6 @@
-import { parse } from 'csv-parse/sync';
-import ExcelJS from 'exceljs';
 import { prisma } from '../lib/prisma.js';
-
-const MESES = {
-  ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5,
-  jul: 6, ago: 7, sep: 8, set: 8, oct: 9, nov: 10, dic: 11,
-};
+import { parseArchivoRows } from '../lib/fileRows.js';
+import { normalize, parseMonto, parseFecha, getField } from '../lib/parseUtils.js';
 
 const TIPO_MAP = {
   novia: 'NOVIA',
@@ -20,59 +15,6 @@ const ESTADO_MAP = {
   pendiente: 'NO_ENTREGADO',
 };
 
-function normalize(str) {
-  return String(str ?? '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
-}
-
-export function parseMonto(value) {
-  if (value === null || value === undefined) return 0;
-  const str = String(value).trim();
-  if (!str) return 0;
-  const negative = str.includes('-');
-  const digits = str.replace(/[^0-9]/g, '');
-  if (!digits) return 0;
-  const num = parseInt(digits, 10);
-  return negative ? -num : num;
-}
-
-export function parseFecha(value) {
-  if (!value) return null;
-  if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
-  const str = String(value).trim();
-  if (!str) return null;
-
-  // ISO: YYYY-MM-DD
-  let m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-
-  // DD-MMM-YY o DD-MMM-YYYY (ej: 04-Ago-26)
-  m = str.match(/^(\d{1,2})[-/]([a-zA-Z]+)[-/](\d{2,4})$/);
-  if (m) {
-    const mes = MESES[normalize(m[2]).slice(0, 3)];
-    if (mes === undefined) return null;
-    let year = parseInt(m[3], 10);
-    if (year < 100) year += 2000;
-    return new Date(Date.UTC(year, mes, parseInt(m[1], 10)));
-  }
-
-  // DD/MM/YYYY o DD-MM-YYYY
-  m = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
-  if (m) {
-    let year = parseInt(m[3], 10);
-    if (year < 100) year += 2000;
-    return new Date(Date.UTC(year, parseInt(m[2], 10) - 1, parseInt(m[1], 10)));
-  }
-
-  const asDate = new Date(str);
-  if (!isNaN(asDate.getTime())) return asDate;
-
-  return null;
-}
-
 function parseTipo(value) {
   return TIPO_MAP[normalize(value)] || null;
 }
@@ -81,69 +23,7 @@ function parseEstado(value) {
   return ESTADO_MAP[normalize(value)] || 'NO_ENTREGADO';
 }
 
-function getField(row, ...names) {
-  for (const name of names) {
-    for (const key of Object.keys(row)) {
-      if (normalize(key) === normalize(name)) return row[key];
-    }
-  }
-  return undefined;
-}
-
-export function parseCsvBuffer(buffer) {
-  return parse(buffer.toString('utf-8'), {
-    columns: true,
-    trim: true,
-    skip_empty_lines: true,
-    bom: true,
-    relax_column_count: true,
-  });
-}
-
-function celdaAValor(cell) {
-  let value = cell.value;
-  if (value && typeof value === 'object' && !(value instanceof Date)) {
-    // Fórmulas: usar el resultado calculado; texto enriquecido: concatenar
-    if (value.result !== undefined) value = value.result;
-    else if (Array.isArray(value.richText)) value = value.richText.map((t) => t.text).join('');
-    else if (value.text !== undefined) value = value.text;
-  }
-  return value ?? '';
-}
-
-export async function parseXlsxBuffer(buffer) {
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
-  const hoja = workbook.worksheets[0];
-  if (!hoja) return [];
-
-  const encabezados = [];
-  hoja.getRow(1).eachCell({ includeEmpty: true }, (cell, colNumber) => {
-    encabezados[colNumber] = String(celdaAValor(cell)).trim();
-  });
-
-  const filas = [];
-  hoja.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-    const obj = {};
-    let tieneDatos = false;
-    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      const clave = encabezados[colNumber];
-      if (!clave) return;
-      const valor = celdaAValor(cell);
-      if (valor !== '' && valor !== null && valor !== undefined) tieneDatos = true;
-      obj[clave] = valor;
-    });
-    if (tieneDatos) filas.push(obj);
-  });
-
-  return filas;
-}
-
-export async function parseArchivoVentas(buffer, nombreArchivo) {
-  const esExcel = /\.(xlsx|xls)$/i.test(nombreArchivo || '');
-  return esExcel ? parseXlsxBuffer(buffer) : parseCsvBuffer(buffer);
-}
+export const parseArchivoVentas = parseArchivoRows;
 
 export async function importVentasRows(rows) {
   const creadas = [];
