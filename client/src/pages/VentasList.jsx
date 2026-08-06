@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Upload, Search } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ResumenCards from '../components/ResumenCards.jsx';
@@ -46,6 +46,7 @@ function EstadoBadge({ estado }) {
 }
 
 export default function VentasList() {
+  const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
   const [ventas, setVentas] = useState([]);
   const [resumen, setResumen] = useState(null);
@@ -216,13 +217,10 @@ export default function VentasList() {
               ventas.map((v) => (
                 <tr
                   key={v.id}
+                  onClick={() => navigate(`/ventas/${v.id}`)}
                   className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer"
                 >
-                  <td className="px-5 py-3">
-                    <Link to={`/ventas/${v.id}`} className="font-medium text-[#2C2420] hover:text-[#C9A96E]">
-                      {v.codigo}
-                    </Link>
-                  </td>
+                  <td className="px-5 py-3 font-medium text-[#2C2420]">{v.codigo}</td>
                   <td className="px-5 py-3">{v.nombreClienta}</td>
                   <td className="px-5 py-3">
                     <TipoBadge tipo={v.tipo} />
