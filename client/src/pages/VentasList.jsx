@@ -95,7 +95,7 @@ export default function VentasList() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-black/10 text-[#2C2420]/80 hover:bg-black/5"
           >
             <Upload size={16} />
-            Importar CSV
+            Importar Excel
           </button>
           <Link
             to="/ventas/nueva"

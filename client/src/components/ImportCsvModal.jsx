@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { X, UploadCloud } from 'lucide-react';
+import { X, UploadCloud, Download } from 'lucide-react';
 import { api } from '../lib/api.js';
 
 export default function ImportCsvModal({ onClose, onImported }) {
@@ -31,16 +31,26 @@ export default function ImportCsvModal({ onClose, onImported }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl w-full max-w-lg p-7">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif text-xl text-[#2C2420]">Importar ventas desde CSV</h2>
+          <h2 className="font-serif text-xl text-[#2C2420]">Importar ventas desde Excel o CSV</h2>
           <button onClick={onClose} className="text-[#2C2420]/40 hover:text-[#2C2420]">
             <X size={20} />
           </button>
         </div>
 
+        <a
+          href="/plantilla-ventas.xlsx"
+          download
+          className="flex items-center gap-2 text-sm font-medium text-[#C9A96E] hover:opacity-70 mb-4"
+        >
+          <Download size={15} />
+          Descargar plantilla Excel para completar
+        </a>
+
         <p className="text-xs text-[#2C2420]/60 mb-4 leading-relaxed">
-          Columnas esperadas: CÓDIGO, NOMBRE CLIENTA, TIPO, ESTADO, FECHA VENTA, FECHA EVENTO,
-          TOTAL VENTA, TOTAL PAGADO, DEUDA, PAGO 1, FECHA, PAGO 2, FECHA 2, PAGO 3, FECHA 3.
-          Si el código ya existe, la venta se actualiza.
+          Completa la plantilla con las columnas: CÓDIGO, NOMBRE CLIENTA, TIPO, ESTADO, FECHA
+          VENTA, FECHA EVENTO, TOTAL VENTA, TOTAL PAGADO, DEUDA, PAGO 1, FECHA, PAGO 2, FECHA 2,
+          PAGO 3, FECHA 3 — y súbela aquí en formato .xlsx o .csv. Si el código ya existe, la venta
+          se actualiza.
         </p>
 
         <div
@@ -49,12 +59,12 @@ export default function ImportCsvModal({ onClose, onImported }) {
         >
           <UploadCloud size={28} className="text-[#C9A96E]" />
           <p className="text-sm text-[#2C2420]/70">
-            {file ? file.name : 'Haz clic para seleccionar un archivo .csv'}
+            {file ? file.name : 'Haz clic para seleccionar un archivo .xlsx, .xls o .csv'}
           </p>
           <input
             ref={inputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls"
             className="hidden"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />

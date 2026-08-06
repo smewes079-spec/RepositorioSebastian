@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import * as ventasController from '../controllers/ventas.controller.js';
-import { importVentasCsv } from '../services/csvImport.service.js';
+import { parseArchivoVentas, importVentasRows } from '../services/csvImport.service.js';
 import * as costeoService from '../services/costeo.service.js';
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -21,9 +21,10 @@ router.delete('/:id', ventasController.destroy);
 router.patch('/:id/kanban', ventasController.moveKanban);
 
 router.post('/importar', upload.single('archivo'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Debes adjuntar un archivo CSV' });
+  if (!req.file) return res.status(400).json({ error: 'Debes adjuntar un archivo Excel o CSV' });
   try {
-    const resultado = await importVentasCsv(req.file.buffer.toString('utf-8'));
+    const rows = await parseArchivoVentas(req.file.buffer, req.file.originalname);
+    const resultado = await importVentasRows(rows);
     res.json(resultado);
   } catch (err) {
     console.error(err);
