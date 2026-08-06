@@ -11,6 +11,8 @@
     "dev:client": "npm run dev --workspace=client",
     "prisma:generate": "npm run prisma:generate --workspace=server",
     "prisma:migrate": "npm run prisma:migrate --workspace=server",
-    "prisma:seed": "npm run prisma:seed --workspace=server"
+    "prisma:seed": "npm run prisma:seed --workspace=server",
+    "build": "npm run build --workspace=client && npm run prisma:generate --workspace=server",
+    "start": "npm run prisma:deploy --workspace=server && npm run start --workspace=server"
   }
 }
