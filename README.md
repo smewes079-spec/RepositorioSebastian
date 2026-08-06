@@ -18,9 +18,22 @@ todo. Aplicación de escritorio (desktop-first).
   totales, alta/edición de ventas, plan de pagos 100% libre por cuotas
   (monto y fecha propios), cálculo automático de saldo pendiente y %
   cobrado, importación desde CSV.
+- ✅ **Costeo y Registro de Insumos**: compras de materiales con 3 tipos
+  de asignación de costo (directo a un vestido, por consumo estimado con
+  sugerencia automática, o prorrateo fijo entre vestidos "No entregado"),
+  ficha de costo por vestido (materiales + mano de obra estimada +
+  margen real) integrada en el detalle de cada venta, página de
+  Rentabilidad por vestido (comparativo por tipo + detalle individual) y
+  página de Configuración/Supuestos (costos estándar, consumo de tela,
+  sueldos de modistas).
 - 🔜 Módulo 2 — Dashboard financiero (EERR devengado, flujo de caja,
-  presupuesto de ventas)
-- 🔜 Módulo 3 — Producción (tablero kanban)
+  presupuesto de ventas). El costeo ya deja los datos listos para que el
+  EERR use costos reales de insumos en vez del costo estándar, y para que
+  el flujo de caja use la fecha real de cada compra.
+- 🔜 Módulo 3 — Producción (tablero kanban). El indicador "insumos
+  completos / sin insumos" por vestido ya está disponible vía
+  `GET /api/ventas/:id/costo`, pendiente de mostrarse en las tarjetas del
+  kanban cuando se construya el tablero.
 - 🔜 Módulo 4 — Agenda y Google Calendar
 
 ## Estructura
@@ -86,6 +99,13 @@ PAGO 3, FECHA 3
 
 Si el código de una venta ya existe, el importador la actualiza en
 lugar de duplicarla.
+
+### 5. Costeo de insumos
+
+Antes de registrar compras, revisa **Configuración** para ajustar los
+costos estándar por tipo, el consumo de tela estimado (usado como
+sugerencia en la asignación "Por consumo estimado") y los sueldos de
+modistas (usados para calcular la mano de obra estimada por vestido).
 
 ## Paleta de diseño
 
