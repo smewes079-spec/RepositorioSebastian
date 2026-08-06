@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { formatCLP } from '../lib/format.js';
+import MoneyInput from './MoneyInput.jsx';
 
 export default function CuotasEditor({ cuotas, onChange, precioTotal }) {
   function update(idx, patch) {
@@ -54,10 +55,9 @@ export default function CuotasEditor({ cuotas, onChange, precioTotal }) {
             className="flex items-center gap-2 bg-[#FAFAF8] border border-black/5 rounded-lg px-3 py-2.5"
           >
             <span className="text-xs text-[#2C2420]/40 w-14 shrink-0">Cuota {c.numero}</span>
-            <input
-              type="number"
+            <MoneyInput
               value={c.monto}
-              onChange={(e) => update(idx, { monto: Number(e.target.value) })}
+              onChange={(monto) => update(idx, { monto })}
               placeholder="Monto"
               className="w-32 px-2 py-1.5 text-sm rounded-md border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
