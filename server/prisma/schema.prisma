@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoVestido {
+  NOVIA
+  MADRINA
+  INVITADA
+  CIVIL
+}
+
+enum EstadoVenta {
+  NO_ENTREGADO
+  ENTREGADO
+}
+
+enum KanbanEstado {
+  PENDIENTE
+  EN_CONFECCION
+  LISTO_ENTREGA
+  ENTREGADO
+}
+
+model Venta {
+  id              String       @id @default(cuid())
+  codigo          String       @unique
+  nombreClienta   String
+  tipo            TipoVestido
+  fechaVenta      DateTime
+  fechaEvento     DateTime
+  precioTotal     Int
+  estado          EstadoVenta  @default(NO_ENTREGADO)
+  kanbanEstado    KanbanEstado @default(PENDIENTE)
+  notas           String?
+  notasProduccion String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  cuotas Cuota[]
+
+  @@index([tipo])
+  @@index([estado])
+  @@index([fechaVenta])
+  @@index([fechaEvento])
+}
+
+model Cuota {
+  id              String    @id @default(cuid())
+  ventaId         String
+  venta           Venta     @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  numero          Int
+  monto           Int
+  fechaProgramada DateTime
+  pagada          Boolean   @default(false)
+  fechaPago       DateTime?
+  montoPagado     Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([ventaId, numero])
+}
