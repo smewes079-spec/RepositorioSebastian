@@ -85,6 +85,15 @@ export async function updateVenta(id, data) {
   if (ventaData.fechaVenta) updateData.fechaVenta = new Date(ventaData.fechaVenta);
   if (ventaData.fechaEvento) updateData.fechaEvento = new Date(ventaData.fechaEvento);
 
+  if (ventaData.estado) {
+    const previa = await prisma.venta.findUnique({ where: { id }, select: { estado: true } });
+    if (ventaData.estado === 'ENTREGADO' && previa?.estado !== 'ENTREGADO') {
+      updateData.fechaEntrega = new Date();
+    } else if (ventaData.estado === 'NO_ENTREGADO') {
+      updateData.fechaEntrega = null;
+    }
+  }
+
   await prisma.$transaction(async (tx) => {
     await tx.venta.update({ where: { id }, data: updateData });
 
@@ -124,7 +133,9 @@ export async function deleteVenta(id) {
 export async function moveKanban(id, kanbanEstado) {
   const data = { kanbanEstado };
   if (kanbanEstado === 'ENTREGADO') {
+    const previa = await prisma.venta.findUnique({ where: { id }, select: { estado: true } });
     data.estado = 'ENTREGADO';
+    if (previa?.estado !== 'ENTREGADO') data.fechaEntrega = new Date();
   }
   const venta = await prisma.venta.update({
     where: { id },

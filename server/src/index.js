@@ -4,6 +4,9 @@ import cors from 'cors';
 import session from 'express-session';
 import authRoutes from './routes/auth.routes.js';
 import ventasRoutes from './routes/ventas.routes.js';
+import purchasesRoutes from './routes/purchases.routes.js';
+import configRoutes from './routes/config.routes.js';
+import rentabilidadRoutes from './routes/rentabilidad.routes.js';
 import { requireAuth } from './middleware/auth.js';
 
 const app = express();
@@ -32,6 +35,9 @@ app.use(
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/ventas', requireAuth, ventasRoutes);
+app.use('/api/purchases', requireAuth, purchasesRoutes);
+app.use('/api/config', requireAuth, configRoutes);
+app.use('/api/rentabilidad', requireAuth, rentabilidadRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

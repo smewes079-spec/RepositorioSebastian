@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CuotasEditor from '../components/CuotasEditor.jsx';
+import FichaCosto from '../components/FichaCosto.jsx';
 import { api } from '../lib/api.js';
 import { formatCLP, toInputDate, TIPO_LABELS, ESTADO_LABELS, KANBAN_LABELS } from '../lib/format.js';
 
@@ -287,6 +288,13 @@ export default function VentaForm() {
           </button>
         </div>
       </form>
+
+      {isEdit && (
+        <div className="bg-white rounded-xl border border-black/5 p-6 max-w-3xl mt-6">
+          <p className="font-serif text-lg text-[#2C2420] mb-4">Ficha de costo del vestido</p>
+          <FichaCosto ventaId={id} />
+        </div>
+      )}
     </Layout>
   );
 }

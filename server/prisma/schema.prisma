@@ -26,6 +26,21 @@ enum KanbanEstado {
   ENTREGADO
 }
 
+enum CategoriaInsumo {
+  TELA
+  FORRO
+  ENCAJE_ADORNO
+  CIERRE_BOTONES
+  HILOS_AGUJAS_ALFILERES
+  OTROS_MATERIALES
+}
+
+enum TipoAsignacion {
+  DIRECTO
+  CONSUMO_ESTIMADO
+  PRORRATEO
+}
+
 model Venta {
   id              String       @id @default(cuid())
   codigo          String       @unique
@@ -33,6 +48,7 @@ model Venta {
   tipo            TipoVestido
   fechaVenta      DateTime
   fechaEvento     DateTime
+  fechaEntrega    DateTime?
   precioTotal     Int
   estado          EstadoVenta  @default(NO_ENTREGADO)
   kanbanEstado    KanbanEstado @default(PENDIENTE)
@@ -41,7 +57,8 @@ model Venta {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  cuotas Cuota[]
+  cuotas               Cuota[]
+  purchaseAssignments  PurchaseAssignment[]
 
   @@index([tipo])
   @@index([estado])
@@ -63,4 +80,61 @@ model Cuota {
   updatedAt       DateTime  @updatedAt
 
   @@unique([ventaId, numero])
+}
+
+model Purchase {
+  id               String          @id @default(cuid())
+  fecha            DateTime
+  categoria        CategoriaInsumo
+  descripcion      String
+  montoTotal       Int
+  tipoAsignacion   TipoAsignacion
+
+  // Tipo B — por consumo estimado
+  unidadMedida     String?
+  cantidadComprada Float?
+  consumoNovia     Float?
+  consumoMadrina   Float?
+  consumoInvitada  Float?
+  consumoCivil     Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  asignaciones PurchaseAssignment[]
+
+  @@index([categoria])
+  @@index([tipoAsignacion])
+  @@index([fecha])
+}
+
+model PurchaseAssignment {
+  id            String   @id @default(cuid())
+  purchaseId    String
+  purchase      Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  ventaId       String
+  venta         Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  montoAsignado Int
+  createdAt     DateTime @default(now())
+
+  @@index([ventaId])
+  @@index([purchaseId])
+}
+
+model ConfigTipoVestido {
+  id                  String      @id @default(cuid())
+  tipo                TipoVestido @unique
+  costoEstandar       Int
+  consumoTelaEstimado Float
+
+  updatedAt DateTime @updatedAt
+}
+
+model ConfigSueldo {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  monto       Int
+  fechaInicio DateTime
+
+  updatedAt DateTime @updatedAt
 }

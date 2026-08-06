@@ -70,3 +70,29 @@ export const TIPO_COLORS = {
   INVITADA: { bg: '#E6EEEA', text: '#3E6350', dot: '#5C8C6A' },
   CIVIL: { bg: '#EDE7E3', text: '#5B4A3F', dot: '#8C7565' },
 };
+
+export const CATEGORIA_LABELS = {
+  TELA: 'Tela',
+  FORRO: 'Forro',
+  ENCAJE_ADORNO: 'Encaje / Adorno',
+  CIERRE_BOTONES: 'Cierre / Botones',
+  HILOS_AGUJAS_ALFILERES: 'Hilos / Agujas / Alfileres',
+  OTROS_MATERIALES: 'Otros materiales',
+};
+
+export const TIPO_ASIGNACION_LABELS = {
+  DIRECTO: 'Directo a un vestido',
+  CONSUMO_ESTIMADO: 'Por consumo estimado',
+  PRORRATEO: 'Prorrateo entre vestidos activos',
+};
+
+export const TIPO_ASIGNACION_CORTO = {
+  DIRECTO: 'Directo',
+  CONSUMO_ESTIMADO: 'Consumo est.',
+  PRORRATEO: 'Prorrateo',
+};
+
+export function formatNumero(value, decimales = 1) {
+  const n = Number(value) || 0;
+  return n.toLocaleString('es-CL', { maximumFractionDigits: decimales });
+}

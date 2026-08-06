@@ -3,6 +3,10 @@ import { useAuth } from './lib/AuthContext.jsx';
 import Login from './pages/Login.jsx';
 import VentasList from './pages/VentasList.jsx';
 import VentaForm from './pages/VentaForm.jsx';
+import ComprasList from './pages/ComprasList.jsx';
+import CompraForm from './pages/CompraForm.jsx';
+import RentabilidadPorVestido from './pages/RentabilidadPorVestido.jsx';
+import Configuracion from './pages/Configuracion.jsx';
 import ComingSoon from './components/ComingSoon.jsx';
 
 function PrivateRoute({ children }) {
@@ -44,6 +48,46 @@ export default function App() {
         element={
           <PrivateRoute>
             <VentaForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/insumos"
+        element={
+          <PrivateRoute>
+            <ComprasList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/insumos/nueva"
+        element={
+          <PrivateRoute>
+            <CompraForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/insumos/:id"
+        element={
+          <PrivateRoute>
+            <CompraForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/rentabilidad"
+        element={
+          <PrivateRoute>
+            <RentabilidadPorVestido />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/configuracion"
+        element={
+          <PrivateRoute>
+            <Configuracion />
           </PrivateRoute>
         }
       />

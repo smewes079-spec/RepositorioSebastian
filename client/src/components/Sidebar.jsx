@@ -1,5 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { ShoppingBag, LayoutDashboard, Shirt, CalendarDays, LogOut } from 'lucide-react';
+import {
+  ShoppingBag,
+  LayoutDashboard,
+  Shirt,
+  CalendarDays,
+  LogOut,
+  PackageSearch,
+  TrendingUp,
+  Settings,
+} from 'lucide-react';
 import Logo from './Logo.jsx';
 import { useAuth } from '../lib/AuthContext.jsx';
 
@@ -9,6 +18,29 @@ const NAV_ITEMS = [
   { to: '/produccion', label: 'Producción', icon: Shirt },
   { to: '/agenda', label: 'Agenda', icon: CalendarDays },
 ];
+
+const COSTOS_ITEMS = [
+  { to: '/costos/insumos', label: 'Registro de insumos', icon: PackageSearch },
+  { to: '/costos/rentabilidad', label: 'Rentabilidad por vestido', icon: TrendingUp },
+];
+
+function NavItem({ to, label, icon: Icon }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+          isActive
+            ? 'bg-white/10 text-[#C9A96E]'
+            : 'text-white/70 hover:bg-white/5 hover:text-white'
+        }`
+      }
+    >
+      <Icon size={18} />
+      {label}
+    </NavLink>
+  );
+}
 
 export default function Sidebar() {
   const { logout } = useAuth();
@@ -28,26 +60,21 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 py-6 px-3 space-y-1">
-        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-white/10 text-[#C9A96E]'
-                  : 'text-white/70 hover:bg-white/5 hover:text-white'
-              }`
-            }
-          >
-            <Icon size={18} />
-            {label}
-          </NavLink>
+      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+        {NAV_ITEMS.map((item) => (
+          <NavItem key={item.to} {...item} />
+        ))}
+
+        <p className="px-4 pt-5 pb-1 text-[10px] font-semibold tracking-widest uppercase text-white/35">
+          Costos
+        </p>
+        {COSTOS_ITEMS.map((item) => (
+          <NavItem key={item.to} {...item} />
         ))}
       </nav>
 
-      <div className="px-3 pb-6">
+      <div className="px-3 pb-6 space-y-1">
+        <NavItem to="/configuracion" label="Configuración" icon={Settings} />
         <button
           onClick={logout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/60 hover:bg-white/5 hover:text-white transition-colors"
