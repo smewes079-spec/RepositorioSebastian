@@ -150,6 +150,7 @@ export default function CompraForm() {
     <Layout
       title={isEdit ? 'Editar compra de insumos' : 'Nueva compra de insumos'}
       subtitle="Registra la compra y cómo se asigna su costo a los vestidos"
+      backTo="/costos/insumos"
       actions={
         isEdit && (
           <button

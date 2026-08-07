@@ -123,6 +123,7 @@ export default function VentaForm() {
     <Layout
       title={isEdit ? `Venta ${form.codigo}` : 'Nueva venta'}
       subtitle={isEdit ? form.nombreClienta : 'Registrar una nueva venta y su plan de pagos'}
+      backTo="/ventas"
       actions={
         isEdit && (
           <button
