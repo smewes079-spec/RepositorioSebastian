@@ -5,6 +5,8 @@ import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
+import pg from 'pg';
+import connectPgSimple from 'connect-pg-simple';
 import authRoutes from './routes/auth.routes.js';
 import ventasRoutes from './routes/ventas.routes.js';
 import purchasesRoutes from './routes/purchases.routes.js';
@@ -31,8 +33,23 @@ if (!serveClient) {
   );
 }
 app.use(express.json());
+
+// Las sesiones se guardan en PostgreSQL (no en memoria) para que no se pierdan
+// cada vez que el servidor se reinicia (nuevo despliegue, o el plan gratis de
+// Render "duerme" y despierta el proceso).
+const PgSession = connectPgSimple(session);
+const sessionPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
+});
+
 app.use(
   session({
+    store: new PgSession({
+      pool: sessionPool,
+      tableName: 'session',
+      createTableIfMissing: true,
+    }),
     name: 'hsn.sid',
     secret: process.env.SESSION_SECRET || 'dev-secret',
     resave: false,
@@ -41,7 +58,7 @@ app.use(
       httpOnly: true,
       sameSite: 'lax',
       secure: isProduction ? 'auto' : false,
-      maxAge: 1000 * 60 * 60 * 12,
+      maxAge: 1000 * 60 * 60 * 24 * 30,
     },
   })
 );
