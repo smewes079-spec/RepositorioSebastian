@@ -6,7 +6,15 @@ import ResumenCards from '../components/ResumenCards.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import BulkEditVentasModal from '../components/BulkEditVentasModal.jsx';
 import { api } from '../lib/api.js';
-import { formatCLP, formatFecha, TIPO_LABELS, ESTADO_LABELS, TIPO_COLORS } from '../lib/format.js';
+import {
+  formatCLP,
+  formatFecha,
+  TIPO_LABELS,
+  ESTADO_LABELS,
+  TIPO_COLORS,
+  KANBAN_LABELS,
+  KANBAN_COLORS,
+} from '../lib/format.js';
 
 const FILTROS_INICIALES = { tipo: '', estado: '', mesVenta: '', mesEvento: '', search: '' };
 
@@ -42,6 +50,18 @@ function EstadoBadge({ estado }) {
       }}
     >
       {ESTADO_LABELS[estado]}
+    </span>
+  );
+}
+
+function KanbanBadge({ kanbanEstado }) {
+  const c = KANBAN_COLORS[kanbanEstado] || {};
+  return (
+    <span
+      className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
+      style={{ backgroundColor: c.bg, color: c.text }}
+    >
+      {KANBAN_LABELS[kanbanEstado]}
     </span>
   );
 }
@@ -265,19 +285,20 @@ export default function VentasList() {
               <th className="px-5 py-3 font-medium text-right">Saldo</th>
               <th className="px-5 py-3 font-medium">% Cobrado</th>
               <th className="px-5 py-3 font-medium">Estado</th>
+              <th className="px-5 py-3 font-medium">Producción</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={10} className="px-5 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={11} className="px-5 py-10 text-center text-[#2C2420]/40">
                   Cargando…
                 </td>
               </tr>
             )}
             {!loading && ventas.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-5 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={11} className="px-5 py-10 text-center text-[#2C2420]/40">
                   No hay ventas registradas todavía.
                 </td>
               </tr>
@@ -329,6 +350,9 @@ export default function VentasList() {
                   </td>
                   <td className="px-5 py-3">
                     <EstadoBadge estado={v.estado} />
+                  </td>
+                  <td className="px-5 py-3">
+                    <KanbanBadge kanbanEstado={v.kanbanEstado} />
                   </td>
                 </tr>
               ))}

@@ -64,6 +64,13 @@ export const KANBAN_LABELS = {
   ENTREGADO: 'Entregado',
 };
 
+export const KANBAN_COLORS = {
+  PENDIENTE: { bg: '#EDEBE7', text: '#8A7F75' },
+  EN_CONFECCION: { bg: '#FBF3E3', text: '#B8873F' },
+  LISTO_ENTREGA: { bg: '#E7EEF5', text: '#4A7A9E' },
+  ENTREGADO: { bg: '#E6EEEA', text: '#5C8C6A' },
+};
+
 export const TIPO_COLORS = {
   NOVIA: { bg: '#F3ECE4', text: '#8A6D3B', dot: '#C9A96E' },
   MADRINA: { bg: '#EFE7F1', text: '#6B4C7A', dot: '#9B6FAE' },
