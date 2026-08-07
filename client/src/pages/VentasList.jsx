@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Upload, Search, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Upload, Search, Pencil, Trash2, X, RotateCcw } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ResumenCards from '../components/ResumenCards.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import BulkEditVentasModal from '../components/BulkEditVentasModal.jsx';
+import DraggableColumnHeader from '../components/DraggableColumnHeader.jsx';
+import { useColumnOrder } from '../lib/useColumnOrder.js';
 import { api } from '../lib/api.js';
 import {
   formatCLP,
@@ -66,6 +68,61 @@ function KanbanBadge({ kanbanEstado }) {
   );
 }
 
+const COLUMN_DEFS = {
+  codigo: {
+    label: 'Código',
+    cell: (v) => <span className="font-medium text-[#2C2420]">{v.codigo}</span>,
+  },
+  clienta: { label: 'Clienta', cell: (v) => v.nombreClienta },
+  tipo: { label: 'Tipo', cell: (v) => <TipoBadge tipo={v.tipo} /> },
+  fechaVenta: {
+    label: 'Fecha venta',
+    cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaVenta)}</span>,
+  },
+  fechaEvento: {
+    label: 'Fecha evento',
+    cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaEvento)}</span>,
+  },
+  total: {
+    label: 'Total',
+    align: 'right',
+    cell: (v) => <span className="font-medium">{formatCLP(v.precioTotal)}</span>,
+  },
+  saldo: {
+    label: 'Saldo',
+    align: 'right',
+    cell: (v) => (
+      <span
+        className="font-medium"
+        style={{ color: v.saldoPendiente > 0 ? '#A85C52' : '#5C8C6A' }}
+      >
+        {formatCLP(v.saldoPendiente)}
+      </span>
+    ),
+  },
+  cobrado: {
+    label: '% Cobrado',
+    cell: (v) => (
+      <div className="flex items-center gap-2 w-28">
+        <div className="flex-1 h-1.5 rounded-full bg-black/5 overflow-hidden">
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${Math.min(v.porcentajeCobrado, 100)}%`, backgroundColor: '#C9A96E' }}
+          />
+        </div>
+        <span className="text-xs text-[#2C2420]/60 w-9">{v.porcentajeCobrado}%</span>
+      </div>
+    ),
+  },
+  estado: { label: 'Estado', cell: (v) => <EstadoBadge estado={v.estado} /> },
+  produccion: { label: 'Producción', cell: (v) => <KanbanBadge kanbanEstado={v.kanbanEstado} /> },
+};
+
+const ORDEN_COLUMNAS_DEFECTO = [
+  'codigo', 'clienta', 'tipo', 'fechaVenta', 'fechaEvento',
+  'total', 'saldo', 'cobrado', 'estado', 'produccion',
+];
+
 export default function VentasList() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
@@ -76,6 +133,10 @@ export default function VentasList() {
   const [showImport, setShowImport] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const { order: ordenColumnas, moverColumna, restablecer: restablecerColumnas } = useColumnOrder(
+    'hsn-ventas-columnas',
+    ORDEN_COLUMNAS_DEFECTO
+  );
 
   async function load() {
     setLoading(true);
@@ -235,6 +296,17 @@ export default function VentasList() {
 
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={restablecerColumnas}
+          className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
+          title="Vuelve las columnas al orden original"
+        >
+          <RotateCcw size={12} />
+          Restablecer orden de columnas
+        </button>
+      </div>
+
       {seleccionadas.length > 0 && (
         <div className="flex items-center gap-3 bg-[#1A1A2E] text-white rounded-xl px-4 py-2.5 mb-3">
           <span className="text-sm font-medium">
@@ -276,16 +348,15 @@ export default function VentasList() {
                   className="accent-[#C9A96E]"
                 />
               </th>
-              <th className="px-5 py-3 font-medium">Código</th>
-              <th className="px-5 py-3 font-medium">Clienta</th>
-              <th className="px-5 py-3 font-medium">Tipo</th>
-              <th className="px-5 py-3 font-medium">Fecha venta</th>
-              <th className="px-5 py-3 font-medium">Fecha evento</th>
-              <th className="px-5 py-3 font-medium text-right">Total</th>
-              <th className="px-5 py-3 font-medium text-right">Saldo</th>
-              <th className="px-5 py-3 font-medium">% Cobrado</th>
-              <th className="px-5 py-3 font-medium">Estado</th>
-              <th className="px-5 py-3 font-medium">Producción</th>
+              {ordenColumnas.map((key) => (
+                <DraggableColumnHeader
+                  key={key}
+                  columnKey={key}
+                  label={COLUMN_DEFS[key].label}
+                  align={COLUMN_DEFS[key].align}
+                  onMove={moverColumna}
+                />
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -320,40 +391,14 @@ export default function VentasList() {
                       className="accent-[#C9A96E]"
                     />
                   </td>
-                  <td className="px-5 py-3 font-medium text-[#2C2420]">{v.codigo}</td>
-                  <td className="px-5 py-3">{v.nombreClienta}</td>
-                  <td className="px-5 py-3">
-                    <TipoBadge tipo={v.tipo} />
-                  </td>
-                  <td className="px-5 py-3 text-[#2C2420]/70">{formatFecha(v.fechaVenta)}</td>
-                  <td className="px-5 py-3 text-[#2C2420]/70">{formatFecha(v.fechaEvento)}</td>
-                  <td className="px-5 py-3 text-right font-medium">{formatCLP(v.precioTotal)}</td>
-                  <td
-                    className="px-5 py-3 text-right font-medium"
-                    style={{ color: v.saldoPendiente > 0 ? '#A85C52' : '#5C8C6A' }}
-                  >
-                    {formatCLP(v.saldoPendiente)}
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2 w-28">
-                      <div className="flex-1 h-1.5 rounded-full bg-black/5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${Math.min(v.porcentajeCobrado, 100)}%`,
-                            backgroundColor: '#C9A96E',
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs text-[#2C2420]/60 w-9">{v.porcentajeCobrado}%</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3">
-                    <EstadoBadge estado={v.estado} />
-                  </td>
-                  <td className="px-5 py-3">
-                    <KanbanBadge kanbanEstado={v.kanbanEstado} />
-                  </td>
+                  {ordenColumnas.map((key) => (
+                    <td
+                      key={key}
+                      className={`px-5 py-3 ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
+                    >
+                      {COLUMN_DEFS[key].cell(v)}
+                    </td>
+                  ))}
                 </tr>
               ))}
           </tbody>
