@@ -5,8 +5,9 @@ import Layout from '../components/Layout.jsx';
 import ResumenCards from '../components/ResumenCards.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import BulkEditVentasModal from '../components/BulkEditVentasModal.jsx';
-import DraggableColumnHeader from '../components/DraggableColumnHeader.jsx';
+import FilterableHeader from '../components/FilterableHeader.jsx';
 import { useColumnOrder } from '../lib/useColumnOrder.js';
+import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { api } from '../lib/api.js';
 import {
   formatCLP,
@@ -72,21 +73,29 @@ const COLUMN_DEFS = {
   codigo: {
     label: 'Código',
     cell: (v) => <span className="font-medium text-[#2C2420]">{v.codigo}</span>,
+    getValue: (v) => v.codigo,
   },
-  clienta: { label: 'Clienta', cell: (v) => v.nombreClienta },
-  tipo: { label: 'Tipo', cell: (v) => <TipoBadge tipo={v.tipo} /> },
+  clienta: { label: 'Clienta', cell: (v) => v.nombreClienta, getValue: (v) => v.nombreClienta },
+  tipo: {
+    label: 'Tipo',
+    cell: (v) => <TipoBadge tipo={v.tipo} />,
+    getValue: (v) => TIPO_LABELS[v.tipo],
+  },
   fechaVenta: {
     label: 'Fecha venta',
     cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaVenta)}</span>,
+    getValue: (v) => formatFecha(v.fechaVenta),
   },
   fechaEvento: {
     label: 'Fecha evento',
     cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaEvento)}</span>,
+    getValue: (v) => formatFecha(v.fechaEvento),
   },
   total: {
     label: 'Total',
     align: 'right',
     cell: (v) => <span className="font-medium">{formatCLP(v.precioTotal)}</span>,
+    getValue: (v) => formatCLP(v.precioTotal),
   },
   saldo: {
     label: 'Saldo',
@@ -99,6 +108,7 @@ const COLUMN_DEFS = {
         {formatCLP(v.saldoPendiente)}
       </span>
     ),
+    getValue: (v) => formatCLP(v.saldoPendiente),
   },
   cobrado: {
     label: '% Cobrado',
@@ -113,9 +123,18 @@ const COLUMN_DEFS = {
         <span className="text-xs text-[#2C2420]/60 w-9">{v.porcentajeCobrado}%</span>
       </div>
     ),
+    getValue: (v) => `${v.porcentajeCobrado}%`,
   },
-  estado: { label: 'Estado', cell: (v) => <EstadoBadge estado={v.estado} /> },
-  produccion: { label: 'Producción', cell: (v) => <KanbanBadge kanbanEstado={v.kanbanEstado} /> },
+  estado: {
+    label: 'Estado',
+    cell: (v) => <EstadoBadge estado={v.estado} />,
+    getValue: (v) => ESTADO_LABELS[v.estado],
+  },
+  produccion: {
+    label: 'Producción',
+    cell: (v) => <KanbanBadge kanbanEstado={v.kanbanEstado} />,
+    getValue: (v) => KANBAN_LABELS[v.kanbanEstado],
+  },
 };
 
 const ORDEN_COLUMNAS_DEFECTO = [
@@ -137,6 +156,18 @@ export default function VentasList() {
     'hsn-ventas-columnas',
     ORDEN_COLUMNAS_DEFECTO
   );
+  const filtroColumnas = useMemo(
+    () => ORDEN_COLUMNAS_DEFECTO.map((key) => ({ key, getValue: COLUMN_DEFS[key].getValue })),
+    []
+  );
+  const {
+    filteredRows: ventasFiltradas,
+    uniqueValuesByColumn,
+    excludedByColumn,
+    setColumnExcluded,
+    clearAllFilters: limpiarFiltrosColumna,
+    activeCount: filtrosColumnaActivos,
+  } = useColumnFilters(ventas, filtroColumnas);
 
   async function load() {
     setLoading(true);
@@ -177,7 +208,9 @@ export default function VentasList() {
   }
 
   function toggleSeleccionarTodas() {
-    setSeleccionadas((prev) => (prev.length === ventas.length ? [] : ventas.map((v) => v.id)));
+    setSeleccionadas((prev) =>
+      prev.length === ventasFiltradas.length ? [] : ventasFiltradas.map((v) => v.id)
+    );
   }
 
   async function handleBulkDelete() {
@@ -296,7 +329,16 @@ export default function VentasList() {
 
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end items-center gap-4 mb-2">
+        {filtrosColumnaActivos > 0 && (
+          <button
+            onClick={limpiarFiltrosColumna}
+            className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+          >
+            <X size={12} />
+            Limpiar filtros de columna ({filtrosColumnaActivos})
+          </button>
+        )}
         <button
           onClick={restablecerColumnas}
           className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
@@ -344,18 +386,22 @@ export default function VentasList() {
               <th className="px-3 py-2.5 font-medium w-9">
                 <input
                   type="checkbox"
-                  checked={ventas.length > 0 && seleccionadas.length === ventas.length}
+                  checked={ventasFiltradas.length > 0 && seleccionadas.length === ventasFiltradas.length}
                   onChange={toggleSeleccionarTodas}
                   className="accent-[#C9A96E]"
                 />
               </th>
               {ordenColumnas.map((key) => (
-                <DraggableColumnHeader
+                <FilterableHeader
                   key={key}
                   columnKey={key}
                   label={COLUMN_DEFS[key].label}
                   align={COLUMN_DEFS[key].align}
                   onMove={moverColumna}
+                  draggable
+                  options={uniqueValuesByColumn[key]}
+                  excluded={excludedByColumn[key]}
+                  onChange={(excl) => setColumnExcluded(key, excl)}
                 />
               ))}
             </tr>
@@ -375,8 +421,18 @@ export default function VentasList() {
                 </td>
               </tr>
             )}
+            {!loading && ventas.length > 0 && ventasFiltradas.length === 0 && (
+              <tr>
+                <td colSpan={11} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  Ningún resultado con los filtros de columna aplicados.{' '}
+                  <button onClick={limpiarFiltrosColumna} className="text-[#C9A96E] hover:underline">
+                    Limpiarlos
+                  </button>
+                </td>
+              </tr>
+            )}
             {!loading &&
-              ventas.map((v) => (
+              ventasFiltradas.map((v) => (
                 <tr
                   key={v.id}
                   onClick={() => navigate(`/ventas/${v.id}`)}

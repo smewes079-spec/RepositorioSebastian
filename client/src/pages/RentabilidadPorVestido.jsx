@@ -9,8 +9,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { ArrowUpDown } from 'lucide-react';
+import { X } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
+import FilterableHeader from '../components/FilterableHeader.jsx';
+import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { api } from '../lib/api.js';
 import { formatCLP, formatFecha, TIPO_LABELS, TIPO_COLORS } from '../lib/format.js';
 
@@ -28,22 +30,161 @@ function mergeTendencias(porTipo) {
   });
 }
 
-function SortHeader({ label, field, sort, setSort, align = 'left' }) {
-  const active = sort.field === field;
-  return (
-    <th
-      className={`px-3 py-2.5 font-medium cursor-pointer select-none whitespace-nowrap ${align === 'right' ? 'text-right' : 'text-left'}`}
-      onClick={() =>
-        setSort({ field, dir: active && sort.dir === 'desc' ? 'asc' : 'desc' })
-      }
-    >
-      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
-        {label}
-        <ArrowUpDown size={11} className={active ? 'text-[#C9A96E]' : 'text-[#2C2420]/20'} />
+const COLUMNAS_POR_TIPO = {
+  tipo: {
+    label: 'Tipo',
+    cell: (t) => (
+      <span className="font-medium" style={{ color: TIPO_COLORS[t.tipo]?.text }}>
+        {TIPO_LABELS[t.tipo]}
       </span>
-    </th>
-  );
-}
+    ),
+    getValue: (t) => TIPO_LABELS[t.tipo],
+  },
+  cantidad: { label: 'Cantidad', align: 'right', cell: (t) => t.cantidad, getValue: (t) => String(t.cantidad) },
+  precioMin: {
+    label: 'Precio mín',
+    align: 'right',
+    cell: (t) => <span className="text-[#2C2420]/70">{formatCLP(t.precioMin)}</span>,
+    getValue: (t) => formatCLP(t.precioMin),
+  },
+  precioProm: {
+    label: 'Precio prom',
+    align: 'right',
+    cell: (t) => <span className="font-medium">{formatCLP(t.precioProm)}</span>,
+    getValue: (t) => formatCLP(t.precioProm),
+  },
+  precioMax: {
+    label: 'Precio máx',
+    align: 'right',
+    cell: (t) => <span className="text-[#2C2420]/70">{formatCLP(t.precioMax)}</span>,
+    getValue: (t) => formatCLP(t.precioMax),
+  },
+  materialesProm: {
+    label: 'Materiales prom',
+    align: 'right',
+    cell: (t) => formatCLP(t.costoMaterialesProm),
+    getValue: (t) => formatCLP(t.costoMaterialesProm),
+  },
+  manoObraProm: {
+    label: 'Mano de obra prom',
+    align: 'right',
+    cell: (t) => formatCLP(t.manoObraProm),
+    getValue: (t) => formatCLP(t.manoObraProm),
+  },
+  margenProm: {
+    label: 'Margen prom',
+    align: 'right',
+    cell: (t) => (
+      <span className="font-medium" style={{ color: t.margenProm >= 0 ? '#5C8C6A' : '#A85C52' }}>
+        {formatCLP(t.margenProm)}
+      </span>
+    ),
+    getValue: (t) => formatCLP(t.margenProm),
+  },
+  margenPctProm: {
+    label: 'Margen % prom',
+    align: 'right',
+    cell: (t) => (
+      <span className="font-medium" style={{ color: t.margenPctProm >= 0 ? '#5C8C6A' : '#A85C52' }}>
+        {t.margenPctProm}%
+      </span>
+    ),
+    getValue: (t) => `${t.margenPctProm}%`,
+  },
+};
+const ORDEN_POR_TIPO = [
+  'tipo', 'cantidad', 'precioMin', 'precioProm', 'precioMax',
+  'materialesProm', 'manoObraProm', 'margenProm', 'margenPctProm',
+];
+
+const COLUMNAS_DETALLE = {
+  clienta: {
+    label: 'Clienta',
+    sortField: null,
+    cell: (v) => (
+      <>
+        <p className="font-medium text-[#2C2420]">{v.nombreClienta}</p>
+        <p className="text-xs text-[#2C2420]/40">{v.codigo}</p>
+      </>
+    ),
+    getValue: (v) => v.nombreClienta,
+  },
+  tipo: {
+    label: 'Tipo',
+    sortField: 'tipo',
+    cell: (v) => <span style={{ color: TIPO_COLORS[v.tipo]?.text }}>{TIPO_LABELS[v.tipo]}</span>,
+    getValue: (v) => TIPO_LABELS[v.tipo],
+  },
+  fechaVenta: {
+    label: 'Fecha venta',
+    sortField: 'fechaVenta',
+    cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaVenta)}</span>,
+    getValue: (v) => formatFecha(v.fechaVenta),
+  },
+  precioVenta: {
+    label: 'Precio',
+    align: 'right',
+    sortField: 'precioVenta',
+    cell: (v) => <span className="font-medium">{formatCLP(v.precioVenta)}</span>,
+    getValue: (v) => formatCLP(v.precioVenta),
+  },
+  costoMateriales: {
+    label: 'Materiales',
+    align: 'right',
+    sortField: null,
+    cell: (v) => formatCLP(v.costoMateriales),
+    getValue: (v) => formatCLP(v.costoMateriales),
+  },
+  manoDeObra: {
+    label: 'Mano de obra',
+    align: 'right',
+    sortField: null,
+    cell: (v) => formatCLP(v.manoDeObra),
+    getValue: (v) => formatCLP(v.manoDeObra),
+  },
+  margen: {
+    label: 'Margen',
+    align: 'right',
+    sortField: 'margen',
+    cell: (v) => (
+      <span className="font-medium" style={{ color: v.margen >= 0 ? '#5C8C6A' : '#A85C52' }}>
+        {formatCLP(v.margen)}
+      </span>
+    ),
+    getValue: (v) => formatCLP(v.margen),
+  },
+  margenPct: {
+    label: 'Margen %',
+    align: 'right',
+    sortField: 'margenPct',
+    cell: (v) => (
+      <span className="font-medium" style={{ color: v.margenPct >= 0 ? '#5C8C6A' : '#A85C52' }}>
+        {v.margenPct}%
+      </span>
+    ),
+    getValue: (v) => `${v.margenPct}%`,
+  },
+  origen: {
+    label: 'Origen',
+    sortField: null,
+    cell: (v) => (
+      <span
+        className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
+        style={{
+          backgroundColor: v.esEstimado ? '#F5E9E7' : '#E6EEEA',
+          color: v.esEstimado ? '#A85C52' : '#5C8C6A',
+        }}
+      >
+        {v.esEstimado ? 'Estimado' : 'Real'}
+      </span>
+    ),
+    getValue: (v) => (v.esEstimado ? 'Estimado' : 'Real'),
+  },
+};
+const ORDEN_DETALLE = [
+  'clienta', 'tipo', 'fechaVenta', 'precioVenta', 'costoMateriales',
+  'manoDeObra', 'margen', 'margenPct', 'origen',
+];
 
 export default function RentabilidadPorVestido() {
   const [porTipo, setPorTipo] = useState([]);
@@ -79,6 +220,18 @@ export default function RentabilidadPorVestido() {
     return copia;
   }, [detalle, sort]);
 
+  const columnasFiltroPorTipo = useMemo(
+    () => ORDEN_POR_TIPO.map((key) => ({ key, getValue: COLUMNAS_POR_TIPO[key].getValue })),
+    []
+  );
+  const porTipoFiltros = useColumnFilters(porTipo, columnasFiltroPorTipo);
+
+  const columnasFiltroDetalle = useMemo(
+    () => ORDEN_DETALLE.map((key) => ({ key, getValue: COLUMNAS_DETALLE[key].getValue })),
+    []
+  );
+  const detalleFiltros = useColumnFilters(detalleOrdenado, columnasFiltroDetalle);
+
   if (loading) {
     return (
       <Layout title="Rentabilidad por vestido">
@@ -94,53 +247,54 @@ export default function RentabilidadPorVestido() {
     >
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3">
-        Análisis por tipo de vestido
-      </p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40">
+          Análisis por tipo de vestido
+        </p>
+        {porTipoFiltros.activeCount > 0 && (
+          <button
+            onClick={porTipoFiltros.clearAllFilters}
+            className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+          >
+            <X size={12} />
+            Limpiar filtros ({porTipoFiltros.activeCount})
+          </button>
+        )}
+      </div>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-6">
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Tipo</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Cantidad</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Precio mín</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Precio prom</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Precio máx</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Materiales prom</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Mano de obra prom</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Margen prom</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Margen % prom</th>
-            </tr>
-          </thead>
-          <tbody>
-            {porTipo.map((t) => (
-              <tr key={t.tipo} className="border-b border-black/5 last:border-0">
-                <td className="px-3 py-2 font-medium whitespace-nowrap" style={{ color: TIPO_COLORS[t.tipo]?.text }}>
-                  {TIPO_LABELS[t.tipo]}
-                </td>
-                <td className="px-3 py-2 text-right">{t.cantidad}</td>
-                <td className="px-3 py-2 text-right text-[#2C2420]/70 whitespace-nowrap">{formatCLP(t.precioMin)}</td>
-                <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{formatCLP(t.precioProm)}</td>
-                <td className="px-3 py-2 text-right text-[#2C2420]/70 whitespace-nowrap">{formatCLP(t.precioMax)}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(t.costoMaterialesProm)}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(t.manoObraProm)}</td>
-                <td
-                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
-                  style={{ color: t.margenProm >= 0 ? '#5C8C6A' : '#A85C52' }}
-                >
-                  {formatCLP(t.margenProm)}
-                </td>
-                <td
-                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
-                  style={{ color: t.margenPctProm >= 0 ? '#5C8C6A' : '#A85C52' }}
-                >
-                  {t.margenPctProm}%
-                </td>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
+                {ORDEN_POR_TIPO.map((key) => (
+                  <FilterableHeader
+                    key={key}
+                    label={COLUMNAS_POR_TIPO[key].label}
+                    align={COLUMNAS_POR_TIPO[key].align}
+                    options={porTipoFiltros.uniqueValuesByColumn[key]}
+                    excluded={porTipoFiltros.excludedByColumn[key]}
+                    onChange={(excl) => porTipoFiltros.setColumnExcluded(key, excl)}
+                  />
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {porTipoFiltros.filteredRows.map((t) => (
+                <tr key={t.tipo} className="border-b border-black/5 last:border-0">
+                  {ORDEN_POR_TIPO.map((key) => (
+                    <td
+                      key={key}
+                      className={`px-3 py-2 whitespace-nowrap ${
+                        COLUMNAS_POR_TIPO[key].align === 'right' ? 'text-right' : ''
+                      }`}
+                    >
+                      {COLUMNAS_POR_TIPO[key].cell(t)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -172,66 +326,68 @@ export default function RentabilidadPorVestido() {
         )}
       </div>
 
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3">
-        Detalle individual
-      </p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40">
+          Detalle individual
+        </p>
+        {detalleFiltros.activeCount > 0 && (
+          <button
+            onClick={detalleFiltros.clearAllFilters}
+            className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+          >
+            <X size={12} />
+            Limpiar filtros ({detalleFiltros.activeCount})
+          </button>
+        )}
+      </div>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-3 py-2.5 font-medium">Clienta</th>
-              <SortHeader label="Tipo" field="tipo" sort={sort} setSort={setSort} />
-              <SortHeader label="Fecha venta" field="fechaVenta" sort={sort} setSort={setSort} />
-              <SortHeader label="Precio" field="precioVenta" sort={sort} setSort={setSort} align="right" />
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Materiales</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Mano de obra</th>
-              <SortHeader label="Margen" field="margen" sort={sort} setSort={setSort} align="right" />
-              <SortHeader label="Margen %" field="margenPct" sort={sort} setSort={setSort} align="right" />
-              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Origen</th>
-            </tr>
-          </thead>
-          <tbody>
-            {detalleOrdenado.map((v) => (
-              <tr key={v.ventaId} className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8]">
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <p className="font-medium text-[#2C2420]">{v.nombreClienta}</p>
-                  <p className="text-xs text-[#2C2420]/40">{v.codigo}</p>
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap" style={{ color: TIPO_COLORS[v.tipo]?.text }}>
-                  {TIPO_LABELS[v.tipo]}
-                </td>
-                <td className="px-3 py-2 text-[#2C2420]/70 whitespace-nowrap">{formatFecha(v.fechaVenta)}</td>
-                <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{formatCLP(v.precioVenta)}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(v.costoMateriales)}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(v.manoDeObra)}</td>
-                <td
-                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
-                  style={{ color: v.margen >= 0 ? '#5C8C6A' : '#A85C52' }}
-                >
-                  {formatCLP(v.margen)}
-                </td>
-                <td
-                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
-                  style={{ color: v.margenPct >= 0 ? '#5C8C6A' : '#A85C52' }}
-                >
-                  {v.margenPct}%
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <span
-                    className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: v.esEstimado ? '#F5E9E7' : '#E6EEEA',
-                      color: v.esEstimado ? '#A85C52' : '#5C8C6A',
-                    }}
-                  >
-                    {v.esEstimado ? 'Estimado' : 'Real'}
-                  </span>
-                </td>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
+                {ORDEN_DETALLE.map((key) => {
+                  const col = COLUMNAS_DETALLE[key];
+                  return (
+                    <FilterableHeader
+                      key={key}
+                      label={col.label}
+                      align={col.align}
+                      options={detalleFiltros.uniqueValuesByColumn[key]}
+                      excluded={detalleFiltros.excludedByColumn[key]}
+                      onChange={(excl) => detalleFiltros.setColumnExcluded(key, excl)}
+                      sortActive={col.sortField && sort.field === col.sortField}
+                      sortDir={sort.dir}
+                      onSortClick={
+                        col.sortField
+                          ? () =>
+                              setSort((s) => ({
+                                field: col.sortField,
+                                dir: s.field === col.sortField && s.dir === 'desc' ? 'asc' : 'desc',
+                              }))
+                          : undefined
+                      }
+                    />
+                  );
+                })}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {detalleFiltros.filteredRows.map((v) => (
+                <tr key={v.ventaId} className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8]">
+                  {ORDEN_DETALLE.map((key) => (
+                    <td
+                      key={key}
+                      className={`px-3 py-2 whitespace-nowrap ${
+                        COLUMNAS_DETALLE[key].align === 'right' ? 'text-right' : ''
+                      }`}
+                    >
+                      {COLUMNAS_DETALLE[key].cell(v)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </Layout>

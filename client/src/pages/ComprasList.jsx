@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Upload } from 'lucide-react';
+import { Plus, Trash2, Upload, X } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
+import FilterableHeader from '../components/FilterableHeader.jsx';
+import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { api } from '../lib/api.js';
 import {
   formatCLP,
@@ -28,6 +30,54 @@ const ASIGNACION_COLORS = {
   PRORRATEO: { bg: '#EFE7F1', text: '#6B4C7A' },
 };
 
+function AsignacionBadge({ tipoAsignacion }) {
+  const colors = ASIGNACION_COLORS[tipoAsignacion];
+  return (
+    <span
+      className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
+      style={{ backgroundColor: colors.bg, color: colors.text }}
+    >
+      {TIPO_ASIGNACION_CORTO[tipoAsignacion]}
+    </span>
+  );
+}
+
+const COLUMN_DEFS = {
+  fecha: {
+    label: 'Fecha',
+    cell: (c) => <span className="text-[#2C2420]/70">{formatFecha(c.fecha)}</span>,
+    getValue: (c) => formatFecha(c.fecha),
+  },
+  categoria: {
+    label: 'Categoría',
+    cell: (c) => CATEGORIA_LABELS[c.categoria],
+    getValue: (c) => CATEGORIA_LABELS[c.categoria],
+  },
+  descripcion: {
+    label: 'Descripción',
+    cell: (c) => <span className="font-medium text-[#2C2420]">{c.descripcion}</span>,
+    getValue: (c) => c.descripcion,
+  },
+  asignacion: {
+    label: 'Asignación',
+    cell: (c) => <AsignacionBadge tipoAsignacion={c.tipoAsignacion} />,
+    getValue: (c) => TIPO_ASIGNACION_CORTO[c.tipoAsignacion],
+  },
+  vestidos: {
+    label: 'Vestidos afectados',
+    cell: (c) => <span className="text-[#2C2420]/70">{c.cantidadVestidosAsignados}</span>,
+    getValue: (c) => String(c.cantidadVestidosAsignados),
+  },
+  monto: {
+    label: 'Monto',
+    align: 'right',
+    cell: (c) => <span className="font-medium">{formatCLP(c.montoTotal)}</span>,
+    getValue: (c) => formatCLP(c.montoTotal),
+  },
+};
+
+const ORDEN_COLUMNAS = ['fecha', 'categoria', 'descripcion', 'asignacion', 'vestidos', 'monto'];
+
 export default function ComprasList() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
@@ -36,6 +86,19 @@ export default function ComprasList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showImport, setShowImport] = useState(false);
+
+  const filtroColumnas = useMemo(
+    () => ORDEN_COLUMNAS.map((key) => ({ key, getValue: COLUMN_DEFS[key].getValue })),
+    []
+  );
+  const {
+    filteredRows: comprasFiltradas,
+    uniqueValuesByColumn,
+    excludedByColumn,
+    setColumnExcluded,
+    clearAllFilters: limpiarFiltrosColumna,
+    activeCount: filtrosColumnaActivos,
+  } = useColumnFilters(compras, filtroColumnas);
 
   async function load() {
     setLoading(true);
@@ -171,57 +234,78 @@ export default function ComprasList() {
 
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
+      {filtrosColumnaActivos > 0 && (
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={limpiarFiltrosColumna}
+            className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+          >
+            <X size={12} />
+            Limpiar filtros de columna ({filtrosColumnaActivos})
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Fecha</th>
-              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Categoría</th>
-              <th className="px-3 py-2.5 font-medium">Descripción</th>
-              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Asignación</th>
-              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Vestidos afectados</th>
-              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Monto</th>
-              <th className="px-3 py-2.5 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
-                  Cargando…
-                </td>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
+                {ORDEN_COLUMNAS.map((key) => (
+                  <FilterableHeader
+                    key={key}
+                    label={COLUMN_DEFS[key].label}
+                    align={COLUMN_DEFS[key].align}
+                    options={uniqueValuesByColumn[key]}
+                    excluded={excludedByColumn[key]}
+                    onChange={(excl) => setColumnExcluded(key, excl)}
+                  />
+                ))}
+                <th className="px-3 py-2.5 font-medium"></th>
               </tr>
-            )}
-            {!loading && compras.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
-                  No hay compras registradas todavía.
-                </td>
-              </tr>
-            )}
-            {!loading &&
-              compras.map((c) => {
-                const colors = ASIGNACION_COLORS[c.tipoAsignacion];
-                return (
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
+                    Cargando…
+                  </td>
+                </tr>
+              )}
+              {!loading && compras.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
+                    No hay compras registradas todavía.
+                  </td>
+                </tr>
+              )}
+              {!loading && compras.length > 0 && comprasFiltradas.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
+                    Ningún resultado con los filtros de columna aplicados.{' '}
+                    <button onClick={limpiarFiltrosColumna} className="text-[#C9A96E] hover:underline">
+                      Limpiarlos
+                    </button>
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                comprasFiltradas.map((c) => (
                   <tr
                     key={c.id}
                     onClick={() => navigate(`/costos/insumos/${c.id}`)}
                     className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer"
                   >
-                    <td className="px-3 py-2 text-[#2C2420]/70 whitespace-nowrap">{formatFecha(c.fecha)}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{CATEGORIA_LABELS[c.categoria]}</td>
-                    <td className="px-3 py-2 font-medium text-[#2C2420]">{c.descripcion}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      <span
-                        className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ backgroundColor: colors.bg, color: colors.text }}
+                    {ORDEN_COLUMNAS.map((key) => (
+                      <td
+                        key={key}
+                        className={`px-3 py-2 whitespace-nowrap ${
+                          COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''
+                        }`}
                       >
-                        {TIPO_ASIGNACION_CORTO[c.tipoAsignacion]}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-[#2C2420]/70 whitespace-nowrap">{c.cantidadVestidosAsignados}</td>
-                    <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{formatCLP(c.montoTotal)}</td>
+                        {COLUMN_DEFS[key].cell(c)}
+                      </td>
+                    ))}
                     <td className="px-3 py-2 text-right">
                       <button
                         onClick={(e) => {
@@ -234,10 +318,9 @@ export default function ComprasList() {
                       </button>
                     </td>
                   </tr>
-                );
-              })}
-          </tbody>
-        </table>
+                ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
