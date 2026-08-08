@@ -29,6 +29,14 @@ export function formatMesLargo(value) {
   return `${MESES_LARGOS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
+// Recibe una clave "YYYY-MM" (la que usan los servicios de dashboard) y la
+// muestra como "Ago-26", consistente con el formato DD-MMM-YY del resto de la app.
+export function formatMesCorto(mesKey) {
+  if (!mesKey) return '';
+  const [y, m] = mesKey.split('-').map(Number);
+  return `${MESES_CORTOS[m - 1]}-${String(y).slice(-2)}`;
+}
+
 export function toInputDate(value) {
   if (!value) return '';
   const d = new Date(value);

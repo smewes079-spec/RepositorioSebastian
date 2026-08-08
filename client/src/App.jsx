@@ -7,6 +7,7 @@ import ComprasList from './pages/ComprasList.jsx';
 import CompraForm from './pages/CompraForm.jsx';
 import RentabilidadPorVestido from './pages/RentabilidadPorVestido.jsx';
 import Configuracion from './pages/Configuracion.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 import ComingSoon from './components/ComingSoon.jsx';
 
 function PrivateRoute({ children }) {
@@ -95,10 +96,7 @@ export default function App() {
         path="/dashboard"
         element={
           <PrivateRoute>
-            <ComingSoon
-              title="Dashboard Financiero"
-              description="El estado de resultados, flujo de caja y presupuesto de ventas se habilitarán en la siguiente etapa."
-            />
+            <Dashboard />
           </PrivateRoute>
         }
       />

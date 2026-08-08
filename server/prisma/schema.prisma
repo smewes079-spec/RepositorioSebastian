@@ -126,6 +126,7 @@ model ConfigTipoVestido {
   tipo                TipoVestido @unique
   costoEstandar       Int
   consumoTelaEstimado Float
+  precioVentaEstandar Int         @default(0)
 
   updatedAt DateTime @updatedAt
 }
@@ -137,4 +138,52 @@ model ConfigSueldo {
   fechaInicio DateTime
 
   updatedAt DateTime @updatedAt
+}
+
+// Costos fijos mensuales del EERR / Flujo de Caja (arriendo, servicios, etc.)
+// Los sueldos de modistas viven en ConfigSueldo y se suman aparte porque
+// también se usan para la mano de obra estimada del módulo de Costeo.
+model ConfigCostoFijo {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  monto       Int
+  fechaInicio DateTime
+
+  updatedAt DateTime @updatedAt
+}
+
+// Fila única con supuestos generales del flujo de caja.
+model ConfigFinanciero {
+  id           String @id @default("main")
+  cajaInicial  Int    @default(9510917)
+  sueldoSocias Int    @default(0)
+
+  updatedAt DateTime @updatedAt
+}
+
+model PresupuestoVenta {
+  id          String      @id @default(cuid())
+  tipo        TipoVestido
+  mes         DateTime
+  cantidad    Int
+  montoTotal  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cuotas PresupuestoCuota[]
+
+  @@unique([tipo, mes])
+  @@index([mes])
+}
+
+model PresupuestoCuota {
+  id                 String           @id @default(cuid())
+  presupuestoVentaId String
+  presupuestoVenta   PresupuestoVenta @relation(fields: [presupuestoVentaId], references: [id], onDelete: Cascade)
+  numero             Int
+  monto              Int
+  fecha              DateTime
+
+  @@unique([presupuestoVentaId, numero])
 }
