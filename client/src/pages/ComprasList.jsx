@@ -172,29 +172,30 @@ export default function ComprasList() {
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-5 py-3 font-medium">Fecha</th>
-              <th className="px-5 py-3 font-medium">Categoría</th>
-              <th className="px-5 py-3 font-medium">Descripción</th>
-              <th className="px-5 py-3 font-medium">Asignación</th>
-              <th className="px-5 py-3 font-medium">Vestidos afectados</th>
-              <th className="px-5 py-3 font-medium text-right">Monto</th>
-              <th className="px-5 py-3 font-medium"></th>
+              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Fecha</th>
+              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Categoría</th>
+              <th className="px-3 py-2.5 font-medium">Descripción</th>
+              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Asignación</th>
+              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Vestidos afectados</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Monto</th>
+              <th className="px-3 py-2.5 font-medium"></th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
                   Cargando…
                 </td>
               </tr>
             )}
             {!loading && compras.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
                   No hay compras registradas todavía.
                 </td>
               </tr>
@@ -208,10 +209,10 @@ export default function ComprasList() {
                     onClick={() => navigate(`/costos/insumos/${c.id}`)}
                     className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer"
                   >
-                    <td className="px-5 py-3 text-[#2C2420]/70">{formatFecha(c.fecha)}</td>
-                    <td className="px-5 py-3">{CATEGORIA_LABELS[c.categoria]}</td>
-                    <td className="px-5 py-3 font-medium text-[#2C2420]">{c.descripcion}</td>
-                    <td className="px-5 py-3">
+                    <td className="px-3 py-2 text-[#2C2420]/70 whitespace-nowrap">{formatFecha(c.fecha)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{CATEGORIA_LABELS[c.categoria]}</td>
+                    <td className="px-3 py-2 font-medium text-[#2C2420]">{c.descripcion}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <span
                         className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
                         style={{ backgroundColor: colors.bg, color: colors.text }}
@@ -219,9 +220,9 @@ export default function ComprasList() {
                         {TIPO_ASIGNACION_CORTO[c.tipoAsignacion]}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-[#2C2420]/70">{c.cantidadVestidosAsignados}</td>
-                    <td className="px-5 py-3 text-right font-medium">{formatCLP(c.montoTotal)}</td>
-                    <td className="px-5 py-3 text-right">
+                    <td className="px-3 py-2 text-[#2C2420]/70 whitespace-nowrap">{c.cantidadVestidosAsignados}</td>
+                    <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{formatCLP(c.montoTotal)}</td>
+                    <td className="px-3 py-2 text-right">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -237,6 +238,7 @@ export default function ComprasList() {
               })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {showImport && (

@@ -8,7 +8,7 @@ export default function Layout({ title, subtitle, actions, backTo, children }) {
       <Sidebar />
       <main className="flex-1 min-w-0">
         {(title || actions) && (
-          <header className="flex items-center justify-between px-10 py-7 border-b border-black/5 bg-white/60">
+          <header className="flex items-center justify-between px-6 py-5 border-b border-black/5 bg-white/60">
             <div className="flex items-center gap-4">
               {backTo && (
                 <Link
@@ -27,7 +27,7 @@ export default function Layout({ title, subtitle, actions, backTo, children }) {
             {actions && <div className="flex items-center gap-3">{actions}</div>}
           </header>
         )}
-        <div className="px-10 py-8">{children}</div>
+        <div className="px-6 py-6">{children}</div>
       </main>
     </div>
   );

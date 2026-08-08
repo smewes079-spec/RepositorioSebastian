@@ -23,7 +23,7 @@ export default function DraggableColumnHeader({ columnKey, label, align, onMove,
         const origen = e.dataTransfer.getData('text/plain');
         if (origen) onMove(origen, columnKey);
       }}
-      className={`group px-5 py-3 font-medium cursor-grab active:cursor-grabbing select-none ${
+      className={`group px-3 py-2.5 font-medium cursor-grab active:cursor-grabbing select-none whitespace-nowrap ${
         align === 'right' ? 'text-right' : 'text-left'
       } ${sobreEsta ? 'bg-[#C9A96E]/15' : ''} ${className}`}
       title="Arrastra para reordenar esta columna"

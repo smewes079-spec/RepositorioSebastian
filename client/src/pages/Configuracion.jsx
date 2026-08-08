@@ -88,12 +88,13 @@ export default function Configuracion() {
         Costos estándar y consumo de tela por tipo de vestido
       </p>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-8">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-5 py-3 font-medium">Tipo</th>
-              <th className="px-5 py-3 font-medium">Costo estándar (CLP)</th>
-              <th className="px-5 py-3 font-medium">Consumo de tela estimado (metros)</th>
+              <th className="px-5 py-3 font-medium whitespace-nowrap">Tipo</th>
+              <th className="px-5 py-3 font-medium whitespace-nowrap">Costo estándar (CLP)</th>
+              <th className="px-5 py-3 font-medium whitespace-nowrap">Consumo de tela estimado (metros)</th>
               <th className="px-5 py-3 font-medium"></th>
             </tr>
           </thead>
@@ -134,18 +135,20 @@ export default function Configuracion() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3">
         Sueldos de modistas (mano de obra)
       </p>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-5 py-3 font-medium">Nombre</th>
-              <th className="px-5 py-3 font-medium">Monto mensual (CLP)</th>
-              <th className="px-5 py-3 font-medium">Vigente desde</th>
+              <th className="px-5 py-3 font-medium whitespace-nowrap">Nombre</th>
+              <th className="px-5 py-3 font-medium whitespace-nowrap">Monto mensual (CLP)</th>
+              <th className="px-5 py-3 font-medium whitespace-nowrap">Vigente desde</th>
               <th className="px-5 py-3 font-medium"></th>
             </tr>
           </thead>
@@ -184,6 +187,7 @@ export default function Configuracion() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <p className="text-xs text-[#2C2420]/40 mt-4 leading-relaxed max-w-2xl">

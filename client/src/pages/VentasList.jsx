@@ -103,7 +103,7 @@ const COLUMN_DEFS = {
   cobrado: {
     label: '% Cobrado',
     cell: (v) => (
-      <div className="flex items-center gap-2 w-28">
+      <div className="flex items-center gap-2 w-20">
         <div className="flex-1 h-1.5 rounded-full bg-black/5 overflow-hidden">
           <div
             className="h-full rounded-full"
@@ -337,10 +337,11 @@ export default function VentasList() {
       )}
 
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-4 py-3 font-medium w-10">
+              <th className="px-3 py-2.5 font-medium w-9">
                 <input
                   type="checkbox"
                   checked={ventas.length > 0 && seleccionadas.length === ventas.length}
@@ -362,14 +363,14 @@ export default function VentasList() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={11} className="px-5 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={11} className="px-3 py-10 text-center text-[#2C2420]/40">
                   Cargando…
                 </td>
               </tr>
             )}
             {!loading && ventas.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-5 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={11} className="px-3 py-10 text-center text-[#2C2420]/40">
                   No hay ventas registradas todavía.
                 </td>
               </tr>
@@ -383,7 +384,7 @@ export default function VentasList() {
                     seleccionadas.includes(v.id) ? 'bg-[#FAF6EF]' : ''
                   }`}
                 >
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={seleccionadas.includes(v.id)}
@@ -394,7 +395,7 @@ export default function VentasList() {
                   {ordenColumnas.map((key) => (
                     <td
                       key={key}
-                      className={`px-5 py-3 ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
+                      className={`px-3 py-2 whitespace-nowrap ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
                     >
                       {COLUMN_DEFS[key].cell(v)}
                     </td>
@@ -403,6 +404,7 @@ export default function VentasList() {
               ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {showImport && (

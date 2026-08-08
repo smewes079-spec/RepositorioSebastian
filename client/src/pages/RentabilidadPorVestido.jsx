@@ -32,7 +32,7 @@ function SortHeader({ label, field, sort, setSort, align = 'left' }) {
   const active = sort.field === field;
   return (
     <th
-      className={`px-5 py-3 font-medium cursor-pointer select-none ${align === 'right' ? 'text-right' : 'text-left'}`}
+      className={`px-3 py-2.5 font-medium cursor-pointer select-none whitespace-nowrap ${align === 'right' ? 'text-right' : 'text-left'}`}
       onClick={() =>
         setSort({ field, dir: active && sort.dir === 'desc' ? 'asc' : 'desc' })
       }
@@ -98,40 +98,41 @@ export default function RentabilidadPorVestido() {
         Análisis por tipo de vestido
       </p>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-6">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-5 py-3 font-medium">Tipo</th>
-              <th className="px-5 py-3 font-medium text-right">Cantidad</th>
-              <th className="px-5 py-3 font-medium text-right">Precio mín</th>
-              <th className="px-5 py-3 font-medium text-right">Precio prom</th>
-              <th className="px-5 py-3 font-medium text-right">Precio máx</th>
-              <th className="px-5 py-3 font-medium text-right">Materiales prom</th>
-              <th className="px-5 py-3 font-medium text-right">Mano de obra prom</th>
-              <th className="px-5 py-3 font-medium text-right">Margen prom</th>
-              <th className="px-5 py-3 font-medium text-right">Margen % prom</th>
+              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Tipo</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Cantidad</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Precio mín</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Precio prom</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Precio máx</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Materiales prom</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Mano de obra prom</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Margen prom</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Margen % prom</th>
             </tr>
           </thead>
           <tbody>
             {porTipo.map((t) => (
               <tr key={t.tipo} className="border-b border-black/5 last:border-0">
-                <td className="px-5 py-3 font-medium" style={{ color: TIPO_COLORS[t.tipo]?.text }}>
+                <td className="px-3 py-2 font-medium whitespace-nowrap" style={{ color: TIPO_COLORS[t.tipo]?.text }}>
                   {TIPO_LABELS[t.tipo]}
                 </td>
-                <td className="px-5 py-3 text-right">{t.cantidad}</td>
-                <td className="px-5 py-3 text-right text-[#2C2420]/70">{formatCLP(t.precioMin)}</td>
-                <td className="px-5 py-3 text-right font-medium">{formatCLP(t.precioProm)}</td>
-                <td className="px-5 py-3 text-right text-[#2C2420]/70">{formatCLP(t.precioMax)}</td>
-                <td className="px-5 py-3 text-right">{formatCLP(t.costoMaterialesProm)}</td>
-                <td className="px-5 py-3 text-right">{formatCLP(t.manoObraProm)}</td>
+                <td className="px-3 py-2 text-right">{t.cantidad}</td>
+                <td className="px-3 py-2 text-right text-[#2C2420]/70 whitespace-nowrap">{formatCLP(t.precioMin)}</td>
+                <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{formatCLP(t.precioProm)}</td>
+                <td className="px-3 py-2 text-right text-[#2C2420]/70 whitespace-nowrap">{formatCLP(t.precioMax)}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(t.costoMaterialesProm)}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(t.manoObraProm)}</td>
                 <td
-                  className="px-5 py-3 text-right font-medium"
+                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
                   style={{ color: t.margenProm >= 0 ? '#5C8C6A' : '#A85C52' }}
                 >
                   {formatCLP(t.margenProm)}
                 </td>
                 <td
-                  className="px-5 py-3 text-right font-medium"
+                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
                   style={{ color: t.margenPctProm >= 0 ? '#5C8C6A' : '#A85C52' }}
                 >
                   {t.margenPctProm}%
@@ -140,6 +141,7 @@ export default function RentabilidadPorVestido() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-black/5 p-6 mb-8">
@@ -174,47 +176,48 @@ export default function RentabilidadPorVestido() {
         Detalle individual
       </p>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-              <th className="px-5 py-3 font-medium">Clienta</th>
+              <th className="px-3 py-2.5 font-medium">Clienta</th>
               <SortHeader label="Tipo" field="tipo" sort={sort} setSort={setSort} />
               <SortHeader label="Fecha venta" field="fechaVenta" sort={sort} setSort={setSort} />
               <SortHeader label="Precio" field="precioVenta" sort={sort} setSort={setSort} align="right" />
-              <th className="px-5 py-3 font-medium text-right">Materiales</th>
-              <th className="px-5 py-3 font-medium text-right">Mano de obra</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Materiales</th>
+              <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Mano de obra</th>
               <SortHeader label="Margen" field="margen" sort={sort} setSort={setSort} align="right" />
               <SortHeader label="Margen %" field="margenPct" sort={sort} setSort={setSort} align="right" />
-              <th className="px-5 py-3 font-medium">Origen</th>
+              <th className="px-3 py-2.5 font-medium whitespace-nowrap">Origen</th>
             </tr>
           </thead>
           <tbody>
             {detalleOrdenado.map((v) => (
               <tr key={v.ventaId} className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8]">
-                <td className="px-5 py-3">
+                <td className="px-3 py-2 whitespace-nowrap">
                   <p className="font-medium text-[#2C2420]">{v.nombreClienta}</p>
                   <p className="text-xs text-[#2C2420]/40">{v.codigo}</p>
                 </td>
-                <td className="px-5 py-3" style={{ color: TIPO_COLORS[v.tipo]?.text }}>
+                <td className="px-3 py-2 whitespace-nowrap" style={{ color: TIPO_COLORS[v.tipo]?.text }}>
                   {TIPO_LABELS[v.tipo]}
                 </td>
-                <td className="px-5 py-3 text-[#2C2420]/70">{formatFecha(v.fechaVenta)}</td>
-                <td className="px-5 py-3 text-right font-medium">{formatCLP(v.precioVenta)}</td>
-                <td className="px-5 py-3 text-right">{formatCLP(v.costoMateriales)}</td>
-                <td className="px-5 py-3 text-right">{formatCLP(v.manoDeObra)}</td>
+                <td className="px-3 py-2 text-[#2C2420]/70 whitespace-nowrap">{formatFecha(v.fechaVenta)}</td>
+                <td className="px-3 py-2 text-right font-medium whitespace-nowrap">{formatCLP(v.precioVenta)}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(v.costoMateriales)}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{formatCLP(v.manoDeObra)}</td>
                 <td
-                  className="px-5 py-3 text-right font-medium"
+                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
                   style={{ color: v.margen >= 0 ? '#5C8C6A' : '#A85C52' }}
                 >
                   {formatCLP(v.margen)}
                 </td>
                 <td
-                  className="px-5 py-3 text-right font-medium"
+                  className="px-3 py-2 text-right font-medium whitespace-nowrap"
                   style={{ color: v.margenPct >= 0 ? '#5C8C6A' : '#A85C52' }}
                 >
                   {v.margenPct}%
                 </td>
-                <td className="px-5 py-3">
+                <td className="px-3 py-2 whitespace-nowrap">
                   <span
                     className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
                     style={{
@@ -229,6 +232,7 @@ export default function RentabilidadPorVestido() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </Layout>
   );
