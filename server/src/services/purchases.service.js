@@ -53,7 +53,19 @@ async function computeAssignments(data) {
   }
 
   if (data.tipoAsignacion === 'PRORRATEO') {
-    const ventasActivas = await prisma.venta.findMany({ where: { estado: 'NO_ENTREGADO' } });
+    // Si viene una lista explícita de vestidos (elegida a mano en el formulario),
+    // se prorratea solo entre esos. Si no viene (ej. import de Excel/CSV), se
+    // mantiene el comportamiento anterior: todos los vestidos "No entregado".
+    const ventaIds = Array.isArray(data.ventaIds) ? data.ventaIds.filter(Boolean) : null;
+    if (ventaIds && ventaIds.length === 0) {
+      throw new Error('Selecciona al menos un vestido para prorratear el costo');
+    }
+    const ventasActivas = ventaIds
+      ? await prisma.venta.findMany({ where: { id: { in: ventaIds } } })
+      : await prisma.venta.findMany({ where: { estado: 'NO_ENTREGADO' } });
+    if (ventaIds && ventasActivas.length === 0) {
+      throw new Error('Ninguno de los vestidos seleccionados existe');
+    }
     const montos = distribuirExacto(data.montoTotal, ventasActivas.length);
     return ventasActivas.map((venta, idx) => ({ ventaId: venta.id, montoAsignado: montos[idx] }));
   }
@@ -143,6 +155,7 @@ export async function updatePurchase(id, data) {
   const merged = {
     ...existente,
     ventaId: existente.asignaciones[0]?.ventaId,
+    ventaIds: existente.asignaciones.map((a) => a.ventaId),
     ...data,
   };
 

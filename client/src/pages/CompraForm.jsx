@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Trash2, Sparkles } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import VentaSearchSelect from '../components/VentaSearchSelect.jsx';
+import VentasMultiSelect from '../components/VentasMultiSelect.jsx';
 import { api } from '../lib/api.js';
 import { formatCLP, toInputDate, CATEGORIA_LABELS, TIPO_ASIGNACION_LABELS } from '../lib/format.js';
 
@@ -13,6 +14,7 @@ const VACIO = {
   montoTotal: '',
   tipoAsignacion: 'DIRECTO',
   ventaId: '',
+  ventaIds: [],
   unidadMedida: 'metros',
   cantidadComprada: '',
   consumoNovia: '',
@@ -25,7 +27,7 @@ const TIPO_ASIGNACION_DESC = {
   DIRECTO: 'El 100% del costo va a una venta específica.',
   CONSUMO_ESTIMADO:
     'Se calcula un costo unitario y se aplica según el consumo estimado a cada vestido No entregado del tipo correspondiente.',
-  PRORRATEO: 'El monto se divide en partes iguales entre todos los vestidos No entregado vigentes.',
+  PRORRATEO: 'El monto se divide en partes iguales entre los vestidos que elijas: uno, varios o todos.',
 };
 
 export default function CompraForm() {
@@ -38,7 +40,6 @@ export default function CompraForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [sugerencia, setSugerencia] = useState(null);
-  const [cantidadActivas, setCantidadActivas] = useState(null);
   const [asignacionesGuardadas, setAsignacionesGuardadas] = useState(null);
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function CompraForm() {
           montoTotal: c.montoTotal,
           tipoAsignacion: c.tipoAsignacion,
           ventaId: c.asignaciones[0]?.ventaId || '',
+          ventaIds: c.asignaciones.map((a) => a.ventaId),
           unidadMedida: c.unidadMedida || 'metros',
           cantidadComprada: c.cantidadComprada ?? '',
           consumoNovia: c.consumoNovia ?? '',
@@ -65,14 +67,6 @@ export default function CompraForm() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id, isEdit]);
-
-  useEffect(() => {
-    if (form.tipoAsignacion !== 'PRORRATEO') return;
-    api
-      .get('/ventas/resumen?estado=NO_ENTREGADO')
-      .then((r) => setCantidadActivas(r.cantidadVentas))
-      .catch(() => {});
-  }, [form.tipoAsignacion]);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -111,6 +105,10 @@ export default function CompraForm() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (form.tipoAsignacion === 'PRORRATEO' && form.ventaIds.length === 0) {
+      setError('Selecciona al menos un vestido para prorratear el costo.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -324,17 +322,19 @@ export default function CompraForm() {
           )}
 
           {form.tipoAsignacion === 'PRORRATEO' && (
-            <div className="bg-[#FAFAF8] rounded-lg border border-black/5 p-4 text-sm text-[#2C2420]/70">
-              El monto se dividirá en partes iguales entre los{' '}
-              <strong>
-                {cantidadActivas === null ? '…' : cantidadActivas} vestido
-                {cantidadActivas === 1 ? '' : 's'}
-              </strong>{' '}
-              con estado "No entregado" al momento de guardar. Esta asignación queda fija: no se
-              recalcula si llegan vestidos nuevos.
-              {form.montoTotal > 0 && cantidadActivas > 0 && (
-                <p className="mt-2">
-                  Monto por vestido: <strong>{formatCLP(form.montoTotal / cantidadActivas)}</strong>
+            <div>
+              <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+                Vestidos entre los que se prorratea el costo
+              </label>
+              <VentasMultiSelect
+                value={form.ventaIds}
+                onChange={(ventaIds) => set('ventaIds', ventaIds)}
+              />
+              {form.montoTotal > 0 && form.ventaIds.length > 0 && (
+                <p className="text-xs text-[#2C2420]/70 mt-2">
+                  Monto por vestido:{' '}
+                  <strong>{formatCLP(form.montoTotal / form.ventaIds.length)}</strong>. Esta
+                  asignación queda fija: no se recalcula si eliges otros vestidos más adelante.
                 </p>
               )}
             </div>
