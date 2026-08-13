@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import * as configService from './config.service.js';
+import * as costeoService from './costeo.service.js';
 import { monthKey, monthRangeKeys, round1 } from '../lib/monthUtils.js';
 
 const TOTAL_VACIO = {
@@ -40,6 +41,12 @@ export async function getFlujoCaja() {
 
   const ventasPorId = new Map(ventas.map((v) => [v.id, v]));
 
+  // CV real = costo de insumos realmente comprados y asignados a cada venta
+  // (Registro de insumos), no el supuesto de Configuración. El costo estándar
+  // solo se usa como respaldo para una venta puntual que aún no tiene insumos
+  // registrados.
+  const costoMaterialesPorVenta = await costeoService.getCostosMaterialesPorVenta(ventas);
+
   // Cobros realizados: cuotas efectivamente pagadas, por fecha de pago real.
   const cobrosPorMes = new Map();
   for (const c of cuotas) {
@@ -74,7 +81,7 @@ export async function getFlujoCaja() {
   const cvRealPorMes = new Map();
   for (const v of ventas) {
     const key = monthKey(v.fechaVenta);
-    const cv = costoEstandarPorTipo[v.tipo] || 0;
+    const cv = costoMaterialesPorVenta.get(v.id)?.monto ?? 0;
     cvRealPorMes.set(key, (cvRealPorMes.get(key) || 0) + cv);
   }
 

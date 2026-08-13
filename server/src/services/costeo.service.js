@@ -96,23 +96,46 @@ export async function getFichaCosto(ventaId) {
   };
 }
 
-async function calcularParaVentas(ventas) {
-  const manoObra = await getManoDeObraEstimada();
-  const costosEstandar = await configService.getCostoEstandarPorTipo();
+// Costo de materiales real (insumos registrados en Compras) por venta, con el
+// costo estándar por tipo como respaldo solo para las ventas que todavía no
+// tienen ningún insumo asignado. Se usa en Rentabilidad y en el Dashboard
+// Financiero (EERR / Flujo de Caja) para que el costo variable refleje lo
+// realmente comprado en vez de solo el supuesto de Configuración.
+export async function getCostosMaterialesPorVenta(ventas) {
+  if (ventas.length === 0) return new Map();
 
-  const ventaIds = ventas.map((v) => v.id);
-  const asignaciones = await prisma.purchaseAssignment.findMany({
-    where: { ventaId: { in: ventaIds } },
-  });
+  const [costosEstandar, asignaciones] = await Promise.all([
+    configService.getCostoEstandarPorTipo(),
+    prisma.purchaseAssignment.findMany({
+      where: { ventaId: { in: ventas.map((v) => v.id) } },
+    }),
+  ]);
+
   const porVenta = new Map();
   for (const a of asignaciones) {
     porVenta.set(a.ventaId, (porVenta.get(a.ventaId) || 0) + a.montoAsignado);
   }
 
-  return ventas.map((v) => {
+  const resultado = new Map();
+  for (const v of ventas) {
     const materialesReales = porVenta.get(v.id) || 0;
     const esEstimado = materialesReales === 0;
-    const costoMateriales = esEstimado ? costosEstandar[v.tipo] ?? 0 : materialesReales;
+    resultado.set(v.id, {
+      monto: esEstimado ? costosEstandar[v.tipo] ?? 0 : materialesReales,
+      esEstimado,
+    });
+  }
+  return resultado;
+}
+
+async function calcularParaVentas(ventas) {
+  const [manoObra, costoMaterialesPorVenta] = await Promise.all([
+    getManoDeObraEstimada(),
+    getCostosMaterialesPorVenta(ventas),
+  ]);
+
+  return ventas.map((v) => {
+    const { monto: costoMateriales, esEstimado } = costoMaterialesPorVenta.get(v.id);
     const margen = v.precioTotal - costoMateriales - manoObra.monto;
     const margenPct = v.precioTotal > 0 ? Math.round((margen / v.precioTotal) * 1000) / 10 : 0;
     return {

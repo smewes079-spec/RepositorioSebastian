@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import * as configService from './config.service.js';
+import * as costeoService from './costeo.service.js';
 import { monthKey, monthRangeKeys, round1 } from '../lib/monthUtils.js';
 
 const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
@@ -33,6 +34,12 @@ export async function getEERR() {
     return { meses: [], total: TOTAL_VACIO };
   }
 
+  // CV real = costo de insumos realmente comprados y asignados a cada venta
+  // (Registro de insumos), no el supuesto de Configuración. El costo estándar
+  // solo se usa como respaldo para una venta puntual que aún no tiene insumos
+  // registrados.
+  const costoMaterialesPorVenta = await costeoService.getCostosMaterialesPorVenta(ventas);
+
   const mesesVentas = ventas.map((v) => monthKey(v.fechaVenta));
   const mesesPresupuesto = presupuestos.map((p) => monthKey(p.mes));
   const mesesFechaInicio = costosFijosDetalle.map((c) => monthKey(c.fechaInicio));
@@ -58,7 +65,10 @@ export async function getEERR() {
     for (const tipo of TIPOS) {
       const ventasTipo = ventasDelMes.filter((v) => v.tipo === tipo);
       const ingresoReal = ventasTipo.reduce((s, v) => s + v.precioTotal, 0);
-      const cvReal = ventasTipo.length * (costoEstandarPorTipo[tipo] || 0);
+      const cvReal = ventasTipo.reduce(
+        (s, v) => s + (costoMaterialesPorVenta.get(v.id)?.monto ?? 0),
+        0
+      );
       ingresosPorTipo[tipo] = { real: ingresoReal, presupuestado: 0, cantidad: ventasTipo.length };
       cvPorTipo[tipo] = { real: cvReal, presupuestado: 0 };
       ingresosRealesTotal += ingresoReal;
