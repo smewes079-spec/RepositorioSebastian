@@ -38,7 +38,7 @@ export async function update(req, res) {
     const data = await purchasesService.updatePurchase(req.params.id, req.body);
     res.json(data);
   } catch (err) {
-    res.status(400).json({ error: err.message || 'No se pudo actualizar la compra' });
+    res.status(err.status || 400).json({ error: err.message || 'No se pudo actualizar la compra' });
   }
 }
 

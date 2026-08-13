@@ -127,14 +127,33 @@ export async function createPurchase(data) {
 }
 
 export async function updatePurchase(id, data) {
-  const asignaciones = await computeAssignments({ ...data, montoTotal: Number(data.montoTotal) });
+  const existente = await prisma.purchase.findUnique({
+    where: { id },
+    include: { asignaciones: true },
+  });
+  if (!existente) {
+    const err = new Error('Compra no encontrada');
+    err.status = 404;
+    throw err;
+  }
+
+  // Los campos que no vengan en `data` se completan con los valores actuales,
+  // para que una edición parcial (ej. solo cambiar la categoría) no borre el
+  // resto de la compra ni la reasignación a vestidos.
+  const merged = {
+    ...existente,
+    ventaId: existente.asignaciones[0]?.ventaId,
+    ...data,
+  };
+
+  const asignaciones = await computeAssignments({ ...merged, montoTotal: Number(merged.montoTotal) });
 
   return prisma.$transaction(async (tx) => {
     await tx.purchaseAssignment.deleteMany({ where: { purchaseId: id } });
     return tx.purchase.update({
       where: { id },
       data: {
-        ...baseData(data),
+        ...baseData(merged),
         asignaciones: { create: asignaciones },
       },
       include: { asignaciones: { include: { venta: true } } },

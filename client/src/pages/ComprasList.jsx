@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Upload, X, Pencil } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
+import BulkEditComprasModal from '../components/BulkEditComprasModal.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { api } from '../lib/api.js';
@@ -86,6 +87,8 @@ export default function ComprasList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showImport, setShowImport] = useState(false);
+  const [seleccionadas, setSeleccionadas] = useState([]);
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
 
   const filtroColumnas = useMemo(
     () => ORDEN_COLUMNAS.map((key) => ({ key, getValue: COLUMN_DEFS[key].getValue })),
@@ -103,6 +106,7 @@ export default function ComprasList() {
   async function load() {
     setLoading(true);
     setError('');
+    setSeleccionadas([]);
     try {
       const qs = buildQuery(filtros);
       const [comprasData, resumenData] = await Promise.all([
@@ -131,6 +135,36 @@ export default function ComprasList() {
       load();
     } catch (err) {
       setError(err.message || 'No se pudo eliminar la compra');
+    }
+  }
+
+  function toggleSeleccion(id) {
+    setSeleccionadas((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  }
+
+  function toggleSeleccionarTodas() {
+    setSeleccionadas((prev) =>
+      prev.length === comprasFiltradas.length ? [] : comprasFiltradas.map((c) => c.id)
+    );
+  }
+
+  async function handleBulkDelete() {
+    if (
+      !confirm(
+        `¿Eliminar ${seleccionadas.length} compra${seleccionadas.length === 1 ? '' : 's'} seleccionada${
+          seleccionadas.length === 1 ? '' : 's'
+        }? Se quitarán los costos asignados a los vestidos. Esta acción no se puede deshacer.`
+      )
+    )
+      return;
+    try {
+      await Promise.all(seleccionadas.map((id) => api.del(`/purchases/${id}`)));
+      setSeleccionadas([]);
+      load();
+    } catch (err) {
+      setError(err.message || 'No se pudieron eliminar algunas compras');
     }
   }
 
@@ -246,11 +280,48 @@ export default function ComprasList() {
         </div>
       )}
 
+      {seleccionadas.length > 0 && (
+        <div className="flex items-center gap-3 bg-[#1A1A2E] text-white rounded-xl px-4 py-2.5 mb-3">
+          <span className="text-sm font-medium">
+            {seleccionadas.length} seleccionada{seleccionadas.length === 1 ? '' : 's'}
+          </span>
+          <button
+            onClick={() => setShowBulkEdit(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 hover:bg-white/20"
+          >
+            <Pencil size={13} />
+            Editar ({seleccionadas.length})
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-[#F2B8B0] bg-white/10 hover:bg-white/20"
+          >
+            <Trash2 size={13} />
+            Eliminar
+          </button>
+          <button
+            onClick={() => setSeleccionadas([])}
+            className="flex items-center gap-1.5 ml-auto text-xs text-white/60 hover:text-white"
+          >
+            <X size={13} />
+            Deseleccionar
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
+                <th className="px-3 py-2.5 font-medium w-9">
+                  <input
+                    type="checkbox"
+                    checked={comprasFiltradas.length > 0 && seleccionadas.length === comprasFiltradas.length}
+                    onChange={toggleSeleccionarTodas}
+                    className="accent-[#C9A96E]"
+                  />
+                </th>
                 {ORDEN_COLUMNAS.map((key) => (
                   <FilterableHeader
                     key={key}
@@ -267,21 +338,21 @@ export default function ComprasList() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  <td colSpan={8} className="px-3 py-10 text-center text-[#2C2420]/40">
                     Cargando…
                   </td>
                 </tr>
               )}
               {!loading && compras.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  <td colSpan={8} className="px-3 py-10 text-center text-[#2C2420]/40">
                     No hay compras registradas todavía.
                   </td>
                 </tr>
               )}
               {!loading && compras.length > 0 && comprasFiltradas.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  <td colSpan={8} className="px-3 py-10 text-center text-[#2C2420]/40">
                     Ningún resultado con los filtros de columna aplicados.{' '}
                     <button onClick={limpiarFiltrosColumna} className="text-[#C9A96E] hover:underline">
                       Limpiarlos
@@ -294,8 +365,18 @@ export default function ComprasList() {
                   <tr
                     key={c.id}
                     onClick={() => navigate(`/costos/insumos/${c.id}`)}
-                    className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer"
+                    className={`border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer ${
+                      seleccionadas.includes(c.id) ? 'bg-[#FAF6EF]' : ''
+                    }`}
                   >
+                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={seleccionadas.includes(c.id)}
+                        onChange={() => toggleSeleccion(c.id)}
+                        className="accent-[#C9A96E]"
+                      />
+                    </td>
                     {ORDEN_COLUMNAS.map((key) => (
                       <td
                         key={key}
@@ -334,6 +415,14 @@ export default function ComprasList() {
           onImported={() => {
             load();
           }}
+        />
+      )}
+
+      {showBulkEdit && (
+        <BulkEditComprasModal
+          compraIds={seleccionadas}
+          onClose={() => setShowBulkEdit(false)}
+          onSaved={() => load()}
         />
       )}
     </Layout>
