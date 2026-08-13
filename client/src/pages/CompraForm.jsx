@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Trash2, Sparkles } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import VentaSearchSelect from '../components/VentaSearchSelect.jsx';
 import VentasMultiSelect from '../components/VentasMultiSelect.jsx';
@@ -15,18 +15,10 @@ const VACIO = {
   tipoAsignacion: 'DIRECTO',
   ventaId: '',
   ventaIds: [],
-  unidadMedida: 'metros',
-  cantidadComprada: '',
-  consumoNovia: '',
-  consumoMadrina: '',
-  consumoInvitada: '',
-  consumoCivil: '',
 };
 
 const TIPO_ASIGNACION_DESC = {
   DIRECTO: 'El 100% del costo va a una venta específica.',
-  CONSUMO_ESTIMADO:
-    'Se calcula un costo unitario y se aplica según el consumo estimado a cada vestido No entregado del tipo correspondiente.',
   PRORRATEO: 'El monto se divide en partes iguales entre los vestidos que elijas: uno, varios o todos.',
 };
 
@@ -39,7 +31,6 @@ export default function CompraForm() {
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [sugerencia, setSugerencia] = useState(null);
   const [asignacionesGuardadas, setAsignacionesGuardadas] = useState(null);
 
   useEffect(() => {
@@ -55,12 +46,6 @@ export default function CompraForm() {
           tipoAsignacion: c.tipoAsignacion,
           ventaId: c.asignaciones[0]?.ventaId || '',
           ventaIds: c.asignaciones.map((a) => a.ventaId),
-          unidadMedida: c.unidadMedida || 'metros',
-          cantidadComprada: c.cantidadComprada ?? '',
-          consumoNovia: c.consumoNovia ?? '',
-          consumoMadrina: c.consumoMadrina ?? '',
-          consumoInvitada: c.consumoInvitada ?? '',
-          consumoCivil: c.consumoCivil ?? '',
         });
         setAsignacionesGuardadas(c.asignaciones);
       })
@@ -71,37 +56,6 @@ export default function CompraForm() {
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
   }
-
-  async function buscarSugerencia() {
-    if (!form.categoria) return;
-    try {
-      const data = await api.get(
-        `/purchases/sugerencia?categoria=${form.categoria}&descripcion=${encodeURIComponent(
-          form.descripcion
-        )}`
-      );
-      setSugerencia(data);
-    } catch {
-      setSugerencia(null);
-    }
-  }
-
-  function aplicarSugerencia() {
-    if (!sugerencia) return;
-    setForm((f) => ({
-      ...f,
-      unidadMedida: sugerencia.unidadMedida || f.unidadMedida,
-      consumoNovia: sugerencia.consumoNovia ?? f.consumoNovia,
-      consumoMadrina: sugerencia.consumoMadrina ?? f.consumoMadrina,
-      consumoInvitada: sugerencia.consumoInvitada ?? f.consumoInvitada,
-      consumoCivil: sugerencia.consumoCivil ?? f.consumoCivil,
-    }));
-  }
-
-  const costoUnitario =
-    form.tipoAsignacion === 'CONSUMO_ESTIMADO' && Number(form.cantidadComprada) > 0
-      ? Number(form.montoTotal || 0) / Number(form.cantidadComprada)
-      : 0;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -193,7 +147,6 @@ export default function CompraForm() {
               required
               value={form.descripcion}
               onChange={(e) => set('descripcion', e.target.value)}
-              onBlur={() => form.tipoAsignacion === 'CONSUMO_ESTIMADO' && buscarSugerencia()}
               placeholder="ej: Tul bordado premium, encaje francés…"
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
@@ -215,7 +168,7 @@ export default function CompraForm() {
 
         <div className="bg-white rounded-xl border border-black/5 p-6">
           <p className="text-sm font-medium text-[#2C2420] mb-3">Tipo de asignación</p>
-          <div className="grid grid-cols-3 gap-3 mb-5">
+          <div className="grid grid-cols-2 gap-3 mb-5">
             {Object.entries(TIPO_ASIGNACION_LABELS).map(([key, label]) => (
               <button
                 type="button"
@@ -242,82 +195,6 @@ export default function CompraForm() {
                 value={asignacionesGuardadas?.[0]?.venta}
                 onChange={(ventaId) => set('ventaId', ventaId)}
               />
-            </div>
-          )}
-
-          {form.tipoAsignacion === 'CONSUMO_ESTIMADO' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
-                    Unidad de medida
-                  </label>
-                  <input
-                    value={form.unidadMedida}
-                    onChange={(e) => set('unidadMedida', e.target.value)}
-                    placeholder="metros / unidades / kg"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
-                    Cantidad total comprada
-                  </label>
-                  <input
-                    required
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.cantidadComprada}
-                    onChange={(e) => set('cantidadComprada', e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-[#2C2420]/60">
-                  Consumo estimado por tipo de vestido ({form.unidadMedida || 'unidad'})
-                </p>
-                {sugerencia && (
-                  <button
-                    type="button"
-                    onClick={aplicarSugerencia}
-                    className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
-                  >
-                    <Sparkles size={13} />
-                    Usar sugerencia de "{sugerencia.fuente}"
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {[
-                  ['consumoNovia', 'Novia'],
-                  ['consumoMadrina', 'Madrina'],
-                  ['consumoInvitada', 'Invitada'],
-                  ['consumoCivil', 'Civil'],
-                ].map(([field, label]) => (
-                  <div key={field}>
-                    <label className="block text-xs text-[#2C2420]/50 mb-1">{label}</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form[field]}
-                      onChange={(e) => set(field, e.target.value)}
-                      className="w-full px-2.5 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {costoUnitario > 0 && (
-                <div className="bg-[#FAFAF8] rounded-lg border border-black/5 p-3 text-xs text-[#2C2420]/70">
-                  Costo unitario: <strong>{formatCLP(costoUnitario)}</strong> por {form.unidadMedida || 'unidad'}.
-                  Se asignará a todos los vestidos <strong>No entregado</strong> vigentes cuyo tipo
-                  tenga un consumo &gt; 0 definido arriba.
-                </div>
-              )}
             </div>
           )}
 

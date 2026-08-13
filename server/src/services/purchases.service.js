@@ -1,13 +1,5 @@
 import { prisma } from '../lib/prisma.js';
 
-const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
-const CONSUMO_FIELD = {
-  NOVIA: 'consumoNovia',
-  MADRINA: 'consumoMadrina',
-  INVITADA: 'consumoInvitada',
-  CIVIL: 'consumoCivil',
-};
-
 function monthRange(monthStr) {
   const [y, m] = monthStr.split('-').map(Number);
   const start = new Date(Date.UTC(y, m - 1, 1));
@@ -29,27 +21,6 @@ async function computeAssignments(data) {
     const venta = await prisma.venta.findUnique({ where: { id: data.ventaId } });
     if (!venta) throw new Error('La venta seleccionada no existe');
     return [{ ventaId: data.ventaId, montoAsignado: data.montoTotal }];
-  }
-
-  if (data.tipoAsignacion === 'CONSUMO_ESTIMADO') {
-    const cantidad = Number(data.cantidadComprada);
-    if (!cantidad || cantidad <= 0) {
-      throw new Error('La cantidad comprada debe ser mayor a 0 para calcular el costo unitario');
-    }
-    const costoUnitario = data.montoTotal / cantidad;
-    const ventasActivas = await prisma.venta.findMany({ where: { estado: 'NO_ENTREGADO' } });
-
-    const asignaciones = [];
-    for (const venta of ventasActivas) {
-      const consumo = Number(data[CONSUMO_FIELD[venta.tipo]] || 0);
-      if (consumo > 0) {
-        asignaciones.push({
-          ventaId: venta.id,
-          montoAsignado: Math.round(costoUnitario * consumo),
-        });
-      }
-    }
-    return asignaciones;
   }
 
   if (data.tipoAsignacion === 'PRORRATEO') {
@@ -80,15 +51,6 @@ function baseData(data) {
     descripcion: data.descripcion,
     montoTotal: Number(data.montoTotal),
     tipoAsignacion: data.tipoAsignacion,
-    unidadMedida: data.tipoAsignacion === 'CONSUMO_ESTIMADO' ? data.unidadMedida || null : null,
-    cantidadComprada:
-      data.tipoAsignacion === 'CONSUMO_ESTIMADO' ? Number(data.cantidadComprada) || null : null,
-    consumoNovia: data.tipoAsignacion === 'CONSUMO_ESTIMADO' ? Number(data.consumoNovia) || null : null,
-    consumoMadrina:
-      data.tipoAsignacion === 'CONSUMO_ESTIMADO' ? Number(data.consumoMadrina) || null : null,
-    consumoInvitada:
-      data.tipoAsignacion === 'CONSUMO_ESTIMADO' ? Number(data.consumoInvitada) || null : null,
-    consumoCivil: data.tipoAsignacion === 'CONSUMO_ESTIMADO' ? Number(data.consumoCivil) || null : null,
   };
 }
 
@@ -195,45 +157,4 @@ export async function resumen(filters = {}) {
   }
 
   return { totalGeneral, cantidadCompras: purchases.length, porCategoria, porMes };
-}
-
-function normalize(str) {
-  return String(str || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
-}
-
-export async function sugerirConsumo(categoria, descripcion) {
-  if (!categoria) return null;
-  const candidatas = await prisma.purchase.findMany({
-    where: { categoria, tipoAsignacion: 'CONSUMO_ESTIMADO' },
-    orderBy: { fecha: 'desc' },
-    take: 30,
-  });
-
-  const palabras = normalize(descripcion).split(/\s+/).filter((w) => w.length > 2);
-
-  let mejor = null;
-  for (const c of candidatas) {
-    const desc = normalize(c.descripcion);
-    const coincide =
-      !descripcion || desc === normalize(descripcion) || palabras.some((w) => desc.includes(w));
-    if (coincide) {
-      mejor = c;
-      break;
-    }
-  }
-  if (!mejor) mejor = candidatas[0] || null;
-  if (!mejor) return null;
-
-  return {
-    fuente: mejor.descripcion,
-    unidadMedida: mejor.unidadMedida,
-    consumoNovia: mejor.consumoNovia,
-    consumoMadrina: mejor.consumoMadrina,
-    consumoInvitada: mejor.consumoInvitada,
-    consumoCivil: mejor.consumoCivil,
-  };
 }

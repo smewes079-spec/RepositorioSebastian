@@ -37,7 +37,6 @@ enum CategoriaInsumo {
 
 enum TipoAsignacion {
   DIRECTO
-  CONSUMO_ESTIMADO
   PRORRATEO
 }
 
@@ -83,20 +82,12 @@ model Cuota {
 }
 
 model Purchase {
-  id               String          @id @default(cuid())
-  fecha            DateTime
-  categoria        CategoriaInsumo
-  descripcion      String
-  montoTotal       Int
-  tipoAsignacion   TipoAsignacion
-
-  // Tipo B — por consumo estimado
-  unidadMedida     String?
-  cantidadComprada Float?
-  consumoNovia     Float?
-  consumoMadrina   Float?
-  consumoInvitada  Float?
-  consumoCivil     Float?
+  id             String          @id @default(cuid())
+  fecha          DateTime
+  categoria      CategoriaInsumo
+  descripcion    String
+  montoTotal     Int
+  tipoAsignacion TipoAsignacion
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

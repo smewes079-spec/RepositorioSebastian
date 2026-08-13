@@ -25,8 +25,6 @@ const CATEGORIA_MAP = {
 const TIPO_ASIGNACION_MAP = {
   directo: 'DIRECTO',
   directoaunvestido: 'DIRECTO',
-  consumoestimado: 'CONSUMO_ESTIMADO',
-  porconsumoestimado: 'CONSUMO_ESTIMADO',
   prorrateo: 'PRORRATEO',
   prorrateoentrevestidosactivos: 'PRORRATEO',
 };
@@ -37,13 +35,6 @@ function parseCategoria(value) {
 
 function parseTipoAsignacion(value) {
   return TIPO_ASIGNACION_MAP[normalizeLoose(value)] || null;
-}
-
-function parseNumero(value) {
-  if (value === '' || value === null || value === undefined) return 0;
-  const directo = Number(value);
-  if (!isNaN(directo)) return directo;
-  return parseMonto(value);
 }
 
 export async function importComprasRows(rows) {
@@ -61,12 +52,6 @@ export async function importComprasRows(rows) {
       const montoRaw = getField(row, 'MONTO TOTAL', 'MONTO');
       const tipoAsigRaw = getField(row, 'TIPO ASIGNACION', 'TIPO ASIGNACIÓN', 'TIPO DE ASIGNACION');
       const codigoVenta = getField(row, 'CODIGO VENTA', 'CÓDIGO VENTA');
-      const unidadMedida = getField(row, 'UNIDAD MEDIDA', 'UNIDAD');
-      const cantidadCompradaRaw = getField(row, 'CANTIDAD COMPRADA', 'CANTIDAD');
-      const consumoNoviaRaw = getField(row, 'CONSUMO NOVIA');
-      const consumoMadrinaRaw = getField(row, 'CONSUMO MADRINA');
-      const consumoInvitadaRaw = getField(row, 'CONSUMO INVITADA');
-      const consumoCivilRaw = getField(row, 'CONSUMO CIVIL');
 
       if (!descripcion) {
         errores.push({ linea: lineNum, error: 'Falta la descripción' });
@@ -92,7 +77,7 @@ export async function importComprasRows(rows) {
       if (!tipoAsignacion) {
         errores.push({
           linea: lineNum,
-          error: `Tipo de asignación inválido: "${tipoAsigRaw}" (usa: Directo, Consumo estimado o Prorrateo)`,
+          error: `Tipo de asignación inválido: "${tipoAsigRaw}" (usa: Directo o Prorrateo)`,
         });
         continue;
       }
@@ -122,15 +107,6 @@ export async function importComprasRows(rows) {
           continue;
         }
         data.ventaId = venta.id;
-      }
-
-      if (tipoAsignacion === 'CONSUMO_ESTIMADO') {
-        data.unidadMedida = unidadMedida ? String(unidadMedida).trim() : 'unidades';
-        data.cantidadComprada = parseNumero(cantidadCompradaRaw);
-        data.consumoNovia = parseNumero(consumoNoviaRaw);
-        data.consumoMadrina = parseNumero(consumoMadrinaRaw);
-        data.consumoInvitada = parseNumero(consumoInvitadaRaw);
-        data.consumoCivil = parseNumero(consumoCivilRaw);
       }
 
       await purchasesService.createPurchase(data);

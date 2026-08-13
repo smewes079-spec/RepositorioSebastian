@@ -71,9 +71,9 @@ export default function BulkEditComprasModal({ compraIds, onClose, onSaved }) {
           </div>
 
           <p className="text-xs text-[#2C2420]/40 leading-relaxed">
-            El tipo de asignación (Directo / Consumo estimado / Prorrateo) no se puede editar en
-            lote porque cada compra necesita sus propios datos (venta, consumos, etc.). Ábrela
-            individualmente para cambiarlo.
+            El tipo de asignación (Directo / Prorrateo) no se puede editar en lote porque cada
+            compra necesita sus propios datos (venta o vestidos elegidos). Ábrela individualmente
+            para cambiarlo.
           </p>
 
           {error && <p className="text-sm text-[#A85C52]">{error}</p>}

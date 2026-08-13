@@ -12,8 +12,8 @@ export default function VentasMultiSelect({ value, onChange }) {
     api
       .get('/ventas?estado=NO_ENTREGADO')
       .then((data) => {
-        const ordenadas = [...data].sort(
-          (a, b) => new Date(a.fechaEvento) - new Date(b.fechaEvento)
+        const ordenadas = [...data].sort((a, b) =>
+          a.nombreClienta.localeCompare(b.nombreClienta, 'es')
         );
         setVentas(ordenadas);
       })

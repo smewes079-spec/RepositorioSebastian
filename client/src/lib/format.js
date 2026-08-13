@@ -97,13 +97,11 @@ export const CATEGORIA_LABELS = {
 
 export const TIPO_ASIGNACION_LABELS = {
   DIRECTO: 'Directo a un vestido',
-  CONSUMO_ESTIMADO: 'Por consumo estimado',
-  PRORRATEO: 'Prorrateo entre vestidos activos',
+  PRORRATEO: 'Prorrateo entre vestidos',
 };
 
 export const TIPO_ASIGNACION_CORTO = {
   DIRECTO: 'Directo',
-  CONSUMO_ESTIMADO: 'Consumo est.',
   PRORRATEO: 'Prorrateo',
 };
 

@@ -9,7 +9,6 @@ const router = Router();
 
 router.get('/', purchasesController.index);
 router.get('/resumen', purchasesController.resumen);
-router.get('/sugerencia', purchasesController.sugerencia);
 
 router.post('/importar', upload.single('archivo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Debes adjuntar un archivo Excel o CSV' });

@@ -27,7 +27,6 @@ function buildQuery(filtros) {
 
 const ASIGNACION_COLORS = {
   DIRECTO: { bg: '#F3ECE4', text: '#8A6D3B' },
-  CONSUMO_ESTIMADO: { bg: '#E6EEEA', text: '#3E6350' },
   PRORRATEO: { bg: '#EFE7F1', text: '#6B4C7A' },
 };
 
@@ -410,7 +409,7 @@ export default function ComprasList() {
           titulo="Importar compras de insumos desde Excel o CSV"
           endpoint="/purchases/importar"
           plantillaHref="/plantilla-compras.xlsx"
-          descripcionColumnas="Completa la plantilla con las columnas: FECHA COMPRA, CATEGORIA, DESCRIPCION, MONTO TOTAL, TIPO ASIGNACION, CODIGO VENTA (solo si es Directo), UNIDAD MEDIDA, CANTIDAD COMPRADA, CONSUMO NOVIA, CONSUMO MADRINA, CONSUMO INVITADA, CONSUMO CIVIL (estas últimas 4 solo si es Consumo estimado)."
+          descripcionColumnas="Completa la plantilla con las columnas: FECHA COMPRA, CATEGORIA, DESCRIPCION, MONTO TOTAL, TIPO ASIGNACION (Directo o Prorrateo), CODIGO VENTA (solo si es Directo)."
           onClose={() => setShowImport(false)}
           onImported={() => {
             load();

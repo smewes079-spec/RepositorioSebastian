@@ -12,12 +12,6 @@ export async function resumen(req, res) {
   res.json(data);
 }
 
-export async function sugerencia(req, res) {
-  const { categoria, descripcion } = req.query;
-  const data = await purchasesService.sugerirConsumo(categoria, descripcion);
-  res.json(data);
-}
-
 export async function show(req, res) {
   const data = await purchasesService.getPurchase(req.params.id);
   if (!data) return res.status(404).json({ error: 'Compra no encontrada' });
