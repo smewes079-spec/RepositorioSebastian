@@ -3,8 +3,6 @@ import { NavLink } from 'react-router-dom';
 import {
   ShoppingBag,
   LayoutDashboard,
-  Shirt,
-  CalendarDays,
   LogOut,
   PackageSearch,
   TrendingUp,
@@ -18,8 +16,6 @@ import { useAuth } from '../lib/AuthContext.jsx';
 const NAV_ITEMS = [
   { to: '/ventas', label: 'Ventas', icon: ShoppingBag },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/produccion', label: 'Producción', icon: Shirt },
-  { to: '/agenda', label: 'Agenda', icon: CalendarDays },
 ];
 
 const COSTOS_ITEMS = [

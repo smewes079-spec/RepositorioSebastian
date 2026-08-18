@@ -8,7 +8,6 @@ import CompraForm from './pages/CompraForm.jsx';
 import RentabilidadPorVestido from './pages/RentabilidadPorVestido.jsx';
 import Configuracion from './pages/Configuracion.jsx';
 import Dashboard from './pages/Dashboard.jsx';
-import ComingSoon from './components/ComingSoon.jsx';
 
 function PrivateRoute({ children }) {
   const { authenticated } = useAuth();
@@ -97,28 +96,6 @@ export default function App() {
         element={
           <PrivateRoute>
             <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/produccion"
-        element={
-          <PrivateRoute>
-            <ComingSoon
-              title="Producción"
-              description="El tablero kanban de confección se habilitará en la siguiente etapa."
-            />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/agenda"
-        element={
-          <PrivateRoute>
-            <ComingSoon
-              title="Agenda"
-              description="El calendario de citas e integración con Google Calendar se habilitará en la siguiente etapa."
-            />
           </PrivateRoute>
         }
       />
