@@ -13,6 +13,7 @@ import purchasesRoutes from './routes/purchases.routes.js';
 import configRoutes from './routes/config.routes.js';
 import rentabilidadRoutes from './routes/rentabilidad.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import cotizacionesRoutes from './routes/cotizaciones.routes.js';
 import { requireAuth } from './middleware/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -71,6 +72,7 @@ app.use('/api/purchases', requireAuth, purchasesRoutes);
 app.use('/api/config', requireAuth, configRoutes);
 app.use('/api/rentabilidad', requireAuth, rentabilidadRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
+app.use('/api/cotizaciones', requireAuth, cotizacionesRoutes);
 
 if (serveClient) {
   app.use(express.static(clientDist));

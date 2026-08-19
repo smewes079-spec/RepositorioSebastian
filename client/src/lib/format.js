@@ -105,6 +105,20 @@ export const TIPO_ASIGNACION_CORTO = {
   PRORRATEO: 'Prorrateo',
 };
 
+export const COTIZACION_ESTADO_LABELS = {
+  PENDIENTE: 'Pendiente',
+  ENVIADA: 'Enviada',
+  ACEPTADA: 'Aceptada',
+  RECHAZADA: 'Rechazada',
+};
+
+export const COTIZACION_ESTADO_COLORS = {
+  PENDIENTE: { bg: '#EDEBE7', text: '#8A7F75' },
+  ENVIADA: { bg: '#E7EEF5', text: '#4A7A9E' },
+  ACEPTADA: { bg: '#E6EEEA', text: '#5C8C6A' },
+  RECHAZADA: { bg: '#F5E9E7', text: '#A85C52' },
+};
+
 export function formatNumero(value, decimales = 1) {
   const n = Number(value) || 0;
   return n.toLocaleString('es-CL', { maximumFractionDigits: decimales });

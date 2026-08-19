@@ -9,11 +9,13 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from 'lucide-react';
 import Logo from './Logo.jsx';
 import { useAuth } from '../lib/AuthContext.jsx';
 
 const NAV_ITEMS = [
+  { to: '/cotizaciones', label: 'Cotizaciones', icon: FileText },
   { to: '/ventas', label: 'Ventas', icon: ShoppingBag },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];

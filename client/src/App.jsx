@@ -3,6 +3,8 @@ import { useAuth } from './lib/AuthContext.jsx';
 import Login from './pages/Login.jsx';
 import VentasList from './pages/VentasList.jsx';
 import VentaForm from './pages/VentaForm.jsx';
+import CotizacionesList from './pages/CotizacionesList.jsx';
+import CotizacionForm from './pages/CotizacionForm.jsx';
 import ComprasList from './pages/ComprasList.jsx';
 import CompraForm from './pages/CompraForm.jsx';
 import RentabilidadPorVestido from './pages/RentabilidadPorVestido.jsx';
@@ -48,6 +50,30 @@ export default function App() {
         element={
           <PrivateRoute>
             <VentaForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/cotizaciones"
+        element={
+          <PrivateRoute>
+            <CotizacionesList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/cotizaciones/nueva"
+        element={
+          <PrivateRoute>
+            <CotizacionForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/cotizaciones/:id"
+        element={
+          <PrivateRoute>
+            <CotizacionForm />
           </PrivateRoute>
         }
       />

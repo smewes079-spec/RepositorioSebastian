@@ -40,6 +40,13 @@ enum TipoAsignacion {
   PRORRATEO
 }
 
+enum CotizacionEstado {
+  PENDIENTE
+  ENVIADA
+  ACEPTADA
+  RECHAZADA
+}
+
 model Venta {
   id              String       @id @default(cuid())
   codigo          String       @unique
@@ -58,6 +65,7 @@ model Venta {
 
   cuotas               Cuota[]
   purchaseAssignments  PurchaseAssignment[]
+  cotizacion           Cotizacion?
 
   @@index([tipo])
   @@index([estado])
@@ -177,4 +185,39 @@ model PresupuestoCuota {
   fecha              DateTime
 
   @@unique([presupuestoVentaId, numero])
+}
+
+model Cotizacion {
+  id                   String           @id @default(cuid())
+  nombreClienta        String
+  emailClienta         String
+  telefonoClienta      String?
+  tipo                 TipoVestido
+  fechaEventoTentativa DateTime?
+  validezDias          Int              @default(15)
+  notas                String?
+  estado               CotizacionEstado @default(PENDIENTE)
+  fechaEnvio           DateTime?
+  fechaRespuesta       DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  items   CotizacionItem[]
+  ventaId String?           @unique
+  venta   Venta?            @relation(fields: [ventaId], references: [id])
+
+  @@index([estado])
+  @@index([tipo])
+}
+
+model CotizacionItem {
+  id           String     @id @default(cuid())
+  cotizacionId String
+  cotizacion   Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  orden        Int
+  descripcion  String
+  cantidad     Int        @default(1)
+  monto        Int
+
+  @@index([cotizacionId])
 }
