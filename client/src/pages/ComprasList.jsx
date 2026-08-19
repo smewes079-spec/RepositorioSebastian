@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Upload, X, Pencil } from 'lucide-react';
+import { Plus, Trash2, Upload, Download, X, Pencil } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import BulkEditComprasModal from '../components/BulkEditComprasModal.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
+import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
+import { useColumnVisibility } from '../lib/useColumnVisibility.js';
+import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import {
   formatCLP,
@@ -88,7 +91,13 @@ export default function ComprasList() {
   const [showImport, setShowImport] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [exportando, setExportando] = useState(false);
 
+  const columnasVisibilidad = useColumnVisibility('hsn-compras-columnas-visibles', ORDEN_COLUMNAS);
+  const columnasMostradas = useMemo(
+    () => ORDEN_COLUMNAS.filter((key) => columnasVisibilidad.isVisible(key)),
+    [columnasVisibilidad]
+  );
   const filtroColumnas = useMemo(
     () => ORDEN_COLUMNAS.map((key) => ({ key, getValue: COLUMN_DEFS[key].getValue })),
     []
@@ -164,6 +173,22 @@ export default function ComprasList() {
       load();
     } catch (err) {
       setError(err.message || 'No se pudieron eliminar algunas compras');
+    }
+  }
+
+  async function handleExport() {
+    setExportando(true);
+    try {
+      await exportRowsToExcel({
+        filename: `insumos-${new Date().toISOString().slice(0, 10)}`,
+        sheetName: 'Compras',
+        columns: columnasMostradas.map((key) => ({ key, label: COLUMN_DEFS[key].label, getValue: COLUMN_DEFS[key].getValue })),
+        rows: comprasFiltradas,
+      });
+    } catch (err) {
+      setError(err.message || 'No se pudo generar el Excel');
+    } finally {
+      setExportando(false);
     }
   }
 
@@ -267,8 +292,8 @@ export default function ComprasList() {
 
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
-      {filtrosColumnaActivos > 0 && (
-        <div className="flex justify-end mb-2">
+      <div className="flex justify-end items-center gap-4 mb-2">
+        {filtrosColumnaActivos > 0 && (
           <button
             onClick={limpiarFiltrosColumna}
             className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
@@ -276,8 +301,23 @@ export default function ComprasList() {
             <X size={12} />
             Limpiar filtros de columna ({filtrosColumnaActivos})
           </button>
-        </div>
-      )}
+        )}
+        <button
+          onClick={handleExport}
+          disabled={exportando}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
+        >
+          <Download size={13} />
+          {exportando ? 'Generando…' : 'Excel'}
+        </button>
+        <ColumnVisibilityMenu
+          columns={ORDEN_COLUMNAS.map((key) => ({ key, label: COLUMN_DEFS[key].label }))}
+          hidden={columnasVisibilidad.hidden}
+          onToggle={columnasVisibilidad.toggle}
+          onShowAll={columnasVisibilidad.showAll}
+          onReset={columnasVisibilidad.reset}
+        />
+      </div>
 
       {seleccionadas.length > 0 && (
         <div className="flex items-center gap-3 bg-[#1A1A2E] text-white rounded-xl px-4 py-2.5 mb-3">
@@ -321,7 +361,7 @@ export default function ComprasList() {
                     className="accent-[#C9A96E]"
                   />
                 </th>
-                {ORDEN_COLUMNAS.map((key) => (
+                {columnasMostradas.map((key) => (
                   <FilterableHeader
                     key={key}
                     label={COLUMN_DEFS[key].label}
@@ -337,21 +377,21 @@ export default function ComprasList() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  <td colSpan={columnasMostradas.length + 2} className="px-3 py-10 text-center text-[#2C2420]/40">
                     Cargando…
                   </td>
                 </tr>
               )}
               {!loading && compras.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  <td colSpan={columnasMostradas.length + 2} className="px-3 py-10 text-center text-[#2C2420]/40">
                     No hay compras registradas todavía.
                   </td>
                 </tr>
               )}
               {!loading && compras.length > 0 && comprasFiltradas.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center text-[#2C2420]/40">
+                  <td colSpan={columnasMostradas.length + 2} className="px-3 py-10 text-center text-[#2C2420]/40">
                     Ningún resultado con los filtros de columna aplicados.{' '}
                     <button onClick={limpiarFiltrosColumna} className="text-[#C9A96E] hover:underline">
                       Limpiarlos
@@ -376,7 +416,7 @@ export default function ComprasList() {
                         className="accent-[#C9A96E]"
                       />
                     </td>
-                    {ORDEN_COLUMNAS.map((key) => (
+                    {columnasMostradas.map((key) => (
                       <td
                         key={key}
                         className={`px-3 py-2 whitespace-nowrap ${

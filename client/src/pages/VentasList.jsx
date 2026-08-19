@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Upload, Search, Pencil, Trash2, X, RotateCcw } from 'lucide-react';
+import { Plus, Upload, Download, Search, Pencil, Trash2, X, RotateCcw } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ResumenCards from '../components/ResumenCards.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import BulkEditVentasModal from '../components/BulkEditVentasModal.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
+import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnOrder } from '../lib/useColumnOrder.js';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
+import { useColumnVisibility } from '../lib/useColumnVisibility.js';
+import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import {
   formatCLP,
@@ -152,9 +155,15 @@ export default function VentasList() {
   const [showImport, setShowImport] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [exportando, setExportando] = useState(false);
   const { order: ordenColumnas, moverColumna, restablecer: restablecerColumnas } = useColumnOrder(
     'hsn-ventas-columnas',
     ORDEN_COLUMNAS_DEFECTO
+  );
+  const columnasVisibilidad = useColumnVisibility('hsn-ventas-columnas-visibles', ORDEN_COLUMNAS_DEFECTO);
+  const columnasMostradas = useMemo(
+    () => ordenColumnas.filter((key) => columnasVisibilidad.isVisible(key)),
+    [ordenColumnas, columnasVisibilidad]
   );
   const filtroColumnas = useMemo(
     () => ORDEN_COLUMNAS_DEFECTO.map((key) => ({ key, getValue: COLUMN_DEFS[key].getValue })),
@@ -228,6 +237,22 @@ export default function VentasList() {
       load();
     } catch (err) {
       setError(err.message || 'No se pudieron eliminar algunas ventas');
+    }
+  }
+
+  async function handleExport() {
+    setExportando(true);
+    try {
+      await exportRowsToExcel({
+        filename: `ventas-${new Date().toISOString().slice(0, 10)}`,
+        sheetName: 'Ventas',
+        columns: columnasMostradas.map((key) => ({ key, label: COLUMN_DEFS[key].label, getValue: COLUMN_DEFS[key].getValue })),
+        rows: ventasFiltradas,
+      });
+    } catch (err) {
+      setError(err.message || 'No se pudo generar el Excel');
+    } finally {
+      setExportando(false);
     }
   }
 
@@ -347,6 +372,21 @@ export default function VentasList() {
           <RotateCcw size={12} />
           Restablecer orden de columnas
         </button>
+        <button
+          onClick={handleExport}
+          disabled={exportando}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
+        >
+          <Download size={13} />
+          {exportando ? 'Generando…' : 'Excel'}
+        </button>
+        <ColumnVisibilityMenu
+          columns={ORDEN_COLUMNAS_DEFECTO.map((key) => ({ key, label: COLUMN_DEFS[key].label }))}
+          hidden={columnasVisibilidad.hidden}
+          onToggle={columnasVisibilidad.toggle}
+          onShowAll={columnasVisibilidad.showAll}
+          onReset={columnasVisibilidad.reset}
+        />
       </div>
 
       {seleccionadas.length > 0 && (
@@ -391,7 +431,7 @@ export default function VentasList() {
                   className="accent-[#C9A96E]"
                 />
               </th>
-              {ordenColumnas.map((key) => (
+              {columnasMostradas.map((key) => (
                 <FilterableHeader
                   key={key}
                   columnKey={key}
@@ -409,21 +449,21 @@ export default function VentasList() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={11} className="px-3 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={columnasMostradas.length + 1} className="px-3 py-10 text-center text-[#2C2420]/40">
                   Cargando…
                 </td>
               </tr>
             )}
             {!loading && ventas.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-3 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={columnasMostradas.length + 1} className="px-3 py-10 text-center text-[#2C2420]/40">
                   No hay ventas registradas todavía.
                 </td>
               </tr>
             )}
             {!loading && ventas.length > 0 && ventasFiltradas.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-3 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={columnasMostradas.length + 1} className="px-3 py-10 text-center text-[#2C2420]/40">
                   Ningún resultado con los filtros de columna aplicados.{' '}
                   <button onClick={limpiarFiltrosColumna} className="text-[#C9A96E] hover:underline">
                     Limpiarlos
@@ -448,7 +488,7 @@ export default function VentasList() {
                       className="accent-[#C9A96E]"
                     />
                   </td>
-                  {ordenColumnas.map((key) => (
+                  {columnasMostradas.map((key) => (
                     <td
                       key={key}
                       className={`px-3 py-2 whitespace-nowrap ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}

@@ -9,10 +9,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { X } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
+import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
+import { useColumnVisibility } from '../lib/useColumnVisibility.js';
+import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import { formatCLP, formatFecha, TIPO_LABELS, TIPO_COLORS } from '../lib/format.js';
 
@@ -192,6 +195,8 @@ export default function RentabilidadPorVestido() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sort, setSort] = useState({ field: 'fechaVenta', dir: 'desc' });
+  const [exportandoPorTipo, setExportandoPorTipo] = useState(false);
+  const [exportandoDetalle, setExportandoDetalle] = useState(false);
 
   useEffect(() => {
     Promise.all([api.get('/rentabilidad/por-tipo'), api.get('/rentabilidad/detalle')])
@@ -225,12 +230,62 @@ export default function RentabilidadPorVestido() {
     []
   );
   const porTipoFiltros = useColumnFilters(porTipo, columnasFiltroPorTipo);
+  const porTipoVisibilidad = useColumnVisibility('hsn-rentabilidad-portipo-columnas-visibles', ORDEN_POR_TIPO);
+  const columnasPorTipoMostradas = useMemo(
+    () => ORDEN_POR_TIPO.filter((key) => porTipoVisibilidad.isVisible(key)),
+    [porTipoVisibilidad]
+  );
 
   const columnasFiltroDetalle = useMemo(
     () => ORDEN_DETALLE.map((key) => ({ key, getValue: COLUMNAS_DETALLE[key].getValue })),
     []
   );
   const detalleFiltros = useColumnFilters(detalleOrdenado, columnasFiltroDetalle);
+  const detalleVisibilidad = useColumnVisibility('hsn-rentabilidad-detalle-columnas-visibles', ORDEN_DETALLE);
+  const columnasDetalleMostradas = useMemo(
+    () => ORDEN_DETALLE.filter((key) => detalleVisibilidad.isVisible(key)),
+    [detalleVisibilidad]
+  );
+
+  async function exportarPorTipo() {
+    setExportandoPorTipo(true);
+    try {
+      await exportRowsToExcel({
+        filename: `rentabilidad-por-tipo-${new Date().toISOString().slice(0, 10)}`,
+        sheetName: 'Por tipo',
+        columns: columnasPorTipoMostradas.map((key) => ({
+          key,
+          label: COLUMNAS_POR_TIPO[key].label,
+          getValue: COLUMNAS_POR_TIPO[key].getValue,
+        })),
+        rows: porTipoFiltros.filteredRows,
+      });
+    } catch (err) {
+      setError(err.message || 'No se pudo generar el Excel');
+    } finally {
+      setExportandoPorTipo(false);
+    }
+  }
+
+  async function exportarDetalle() {
+    setExportandoDetalle(true);
+    try {
+      await exportRowsToExcel({
+        filename: `rentabilidad-detalle-${new Date().toISOString().slice(0, 10)}`,
+        sheetName: 'Detalle',
+        columns: columnasDetalleMostradas.map((key) => ({
+          key,
+          label: COLUMNAS_DETALLE[key].label,
+          getValue: COLUMNAS_DETALLE[key].getValue,
+        })),
+        rows: detalleFiltros.filteredRows,
+      });
+    } catch (err) {
+      setError(err.message || 'No se pudo generar el Excel');
+    } finally {
+      setExportandoDetalle(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -251,22 +306,39 @@ export default function RentabilidadPorVestido() {
         <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40">
           Análisis por tipo de vestido
         </p>
-        {porTipoFiltros.activeCount > 0 && (
+        <div className="flex items-center gap-4">
+          {porTipoFiltros.activeCount > 0 && (
+            <button
+              onClick={porTipoFiltros.clearAllFilters}
+              className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+            >
+              <X size={12} />
+              Limpiar filtros ({porTipoFiltros.activeCount})
+            </button>
+          )}
           <button
-            onClick={porTipoFiltros.clearAllFilters}
-            className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+            onClick={exportarPorTipo}
+            disabled={exportandoPorTipo}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
           >
-            <X size={12} />
-            Limpiar filtros ({porTipoFiltros.activeCount})
+            <Download size={13} />
+            {exportandoPorTipo ? 'Generando…' : 'Excel'}
           </button>
-        )}
+          <ColumnVisibilityMenu
+            columns={ORDEN_POR_TIPO.map((key) => ({ key, label: COLUMNAS_POR_TIPO[key].label }))}
+            hidden={porTipoVisibilidad.hidden}
+            onToggle={porTipoVisibilidad.toggle}
+            onShowAll={porTipoVisibilidad.showAll}
+            onReset={porTipoVisibilidad.reset}
+          />
+        </div>
       </div>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-6">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-                {ORDEN_POR_TIPO.map((key) => (
+                {columnasPorTipoMostradas.map((key) => (
                   <FilterableHeader
                     key={key}
                     label={COLUMNAS_POR_TIPO[key].label}
@@ -281,7 +353,7 @@ export default function RentabilidadPorVestido() {
             <tbody>
               {porTipoFiltros.filteredRows.map((t) => (
                 <tr key={t.tipo} className="border-b border-black/5 last:border-0">
-                  {ORDEN_POR_TIPO.map((key) => (
+                  {columnasPorTipoMostradas.map((key) => (
                     <td
                       key={key}
                       className={`px-3 py-2 whitespace-nowrap ${
@@ -330,22 +402,39 @@ export default function RentabilidadPorVestido() {
         <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40">
           Detalle individual
         </p>
-        {detalleFiltros.activeCount > 0 && (
+        <div className="flex items-center gap-4">
+          {detalleFiltros.activeCount > 0 && (
+            <button
+              onClick={detalleFiltros.clearAllFilters}
+              className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+            >
+              <X size={12} />
+              Limpiar filtros ({detalleFiltros.activeCount})
+            </button>
+          )}
           <button
-            onClick={detalleFiltros.clearAllFilters}
-            className="flex items-center gap-1.5 text-xs text-[#A85C52] hover:underline"
+            onClick={exportarDetalle}
+            disabled={exportandoDetalle}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
           >
-            <X size={12} />
-            Limpiar filtros ({detalleFiltros.activeCount})
+            <Download size={13} />
+            {exportandoDetalle ? 'Generando…' : 'Excel'}
           </button>
-        )}
+          <ColumnVisibilityMenu
+            columns={ORDEN_DETALLE.map((key) => ({ key, label: COLUMNAS_DETALLE[key].label }))}
+            hidden={detalleVisibilidad.hidden}
+            onToggle={detalleVisibilidad.toggle}
+            onShowAll={detalleVisibilidad.showAll}
+            onReset={detalleVisibilidad.reset}
+          />
+        </div>
       </div>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
-                {ORDEN_DETALLE.map((key) => {
+                {columnasDetalleMostradas.map((key) => {
                   const col = COLUMNAS_DETALLE[key];
                   return (
                     <FilterableHeader
@@ -374,7 +463,7 @@ export default function RentabilidadPorVestido() {
             <tbody>
               {detalleFiltros.filteredRows.map((v) => (
                 <tr key={v.ventaId} className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8]">
-                  {ORDEN_DETALLE.map((key) => (
+                  {columnasDetalleMostradas.map((key) => (
                     <td
                       key={key}
                       className={`px-3 py-2 whitespace-nowrap ${
