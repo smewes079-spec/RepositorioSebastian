@@ -1,3 +1,4 @@
+import dns from 'dns';
 import nodemailer from 'nodemailer';
 
 let transporter = null;
@@ -6,16 +7,31 @@ function isConfigured() {
   return !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
 }
 
-function getTransporter() {
+// nodemailer resuelve smtp.gmail.com a IPv4 e IPv6 y elige una dirección al
+// azar; en hosts sin salida IPv6 (como Render) eso produce ENETUNREACH de
+// forma intermitente. Resolvemos nosotros mismos la IPv4 y la pasamos como
+// host literal para que nodemailer no intente IPv6.
+function resolveIPv4(hostname) {
+  return new Promise((resolve, reject) => {
+    dns.resolve4(hostname, (err, addresses) => {
+      if (err || !addresses?.length) return reject(err || new Error(`Sin registros IPv4 para ${hostname}`));
+      resolve(addresses[0]);
+    });
+  });
+}
+
+async function getTransporter() {
   if (!isConfigured()) return null;
   if (!transporter) {
+    const ip = await resolveIPv4('smtp.gmail.com');
     // Puerto 587 con STARTTLS en vez del 465/SSL por defecto de nodemailer:
     // algunos hosts (Render incluido) bloquean o cortan la salida por 465.
     transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: ip,
       port: 587,
       secure: false,
       requireTLS: true,
+      tls: { servername: 'smtp.gmail.com' },
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
@@ -27,7 +43,7 @@ function getTransporter() {
 }
 
 export async function sendCotizacionEmail({ cotizacion, pdfBuffer }) {
-  const tx = getTransporter();
+  const tx = await getTransporter();
   if (!tx) {
     throw new Error(
       'El envío de correo no está configurado. Pídele al administrador que agregue GMAIL_USER y GMAIL_APP_PASSWORD en las variables de entorno de Render.'
