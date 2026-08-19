@@ -9,12 +9,18 @@ function isConfigured() {
 function getTransporter() {
   if (!isConfigured()) return null;
   if (!transporter) {
+    // Puerto 587 con STARTTLS en vez del 465/SSL por defecto de nodemailer:
+    // algunos hosts (Render incluido) bloquean o cortan la salida por 465.
     transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      requireTLS: true,
       auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_APP_PASSWORD,
       },
+      connectionTimeout: 15000,
     });
   }
   return transporter;
