@@ -40,6 +40,11 @@ enum TipoAsignacion {
   PRORRATEO
 }
 
+enum CotizacionRemitente {
+  MARIA
+  CARO
+}
+
 enum CotizacionEstado {
   PENDIENTE
   ENVIADA
@@ -196,6 +201,7 @@ model Cotizacion {
   fechaEventoTentativa DateTime?
   validezDias          Int              @default(15)
   notas                String?
+  remitente            CotizacionRemitente?
   estado               CotizacionEstado @default(PENDIENTE)
   fechaEnvio           DateTime?
   fechaRespuesta       DateTime?

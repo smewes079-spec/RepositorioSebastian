@@ -119,6 +119,11 @@ export const COTIZACION_ESTADO_COLORS = {
   RECHAZADA: { bg: '#F5E9E7', text: '#A85C52' },
 };
 
+export const COTIZACION_REMITENTE_LABELS = {
+  MARIA: 'María',
+  CARO: 'Carolina',
+};
+
 export function formatNumero(value, decimales = 1) {
   const n = Number(value) || 0;
   return n.toLocaleString('es-CL', { maximumFractionDigits: decimales });

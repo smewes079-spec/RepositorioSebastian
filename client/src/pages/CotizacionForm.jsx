@@ -4,7 +4,14 @@ import { Trash2, Send, CheckCircle2, XCircle, FileDown } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CotizacionItemsEditor from '../components/CotizacionItemsEditor.jsx';
 import { api } from '../lib/api.js';
-import { formatFecha, toInputDate, TIPO_LABELS, COTIZACION_ESTADO_LABELS, COTIZACION_ESTADO_COLORS } from '../lib/format.js';
+import {
+  formatFecha,
+  toInputDate,
+  TIPO_LABELS,
+  COTIZACION_ESTADO_LABELS,
+  COTIZACION_ESTADO_COLORS,
+  COTIZACION_REMITENTE_LABELS,
+} from '../lib/format.js';
 
 const VACIO = {
   nombreClienta: '',
@@ -14,6 +21,7 @@ const VACIO = {
   fechaEventoTentativa: '',
   validezDias: 15,
   notas: '',
+  remitente: '',
 };
 
 function EstadoBadge({ estado }) {
@@ -56,6 +64,7 @@ export default function CotizacionForm() {
           fechaEventoTentativa: toInputDate(c.fechaEventoTentativa),
           validezDias: c.validezDias,
           notas: c.notas || '',
+          remitente: c.remitente || '',
         });
         setItems(c.items.map((it) => ({ id: it.id, orden: it.orden, descripcion: it.descripcion, cantidad: it.cantidad, monto: it.monto })));
       })
@@ -191,7 +200,8 @@ export default function CotizacionForm() {
           {!bloqueada && (
             <button
               onClick={handleEnviar}
-              disabled={actionLoading === 'enviar'}
+              disabled={actionLoading === 'enviar' || !cotizacion.remitente}
+              title={!cotizacion.remitente ? 'Elige quién envía (María o Carolina) y guarda antes de enviar' : undefined}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-black/10 text-[#2C2420]/80 hover:bg-black/5 disabled:opacity-50"
             >
               <Send size={15} />
@@ -288,6 +298,24 @@ export default function CotizacionForm() {
                 className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
               />
               <p className="text-[10px] text-[#2C2420]/40 mt-1">Necesaria para poder aceptar la cotización.</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Enviada por</label>
+              <select
+                value={form.remitente}
+                onChange={(e) => handleChange('remitente', e.target.value)}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+              >
+                <option value="">Elegir…</option>
+                {Object.entries(COTIZACION_REMITENTE_LABELS).map(([k, l]) => (
+                  <option key={k} value={k}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-[#2C2420]/40 mt-1">
+                El correo sale desde su cuenta, con la otra persona siempre en copia.
+              </p>
             </div>
             <div>
               <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Validez (días)</label>

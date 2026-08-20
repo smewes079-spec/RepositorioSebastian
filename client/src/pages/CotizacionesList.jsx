@@ -16,6 +16,7 @@ import {
   TIPO_COLORS,
   COTIZACION_ESTADO_LABELS,
   COTIZACION_ESTADO_COLORS,
+  COTIZACION_REMITENTE_LABELS,
 } from '../lib/format.js';
 
 const FILTROS_INICIALES = { estado: '', tipo: '', search: '' };
@@ -82,6 +83,11 @@ const COLUMN_DEFS = {
     cell: (c) => <EstadoBadge estado={c.estado} />,
     getValue: (c) => COTIZACION_ESTADO_LABELS[c.estado],
   },
+  remitente: {
+    label: 'Enviada por',
+    cell: (c) => <span className="text-[#2C2420]/70">{COTIZACION_REMITENTE_LABELS[c.remitente] || '—'}</span>,
+    getValue: (c) => COTIZACION_REMITENTE_LABELS[c.remitente] || '',
+  },
   fechaEnvio: {
     label: 'Enviada',
     cell: (c) => <span className="text-[#2C2420]/70">{formatFecha(c.fechaEnvio) || '—'}</span>,
@@ -95,7 +101,7 @@ const COLUMN_DEFS = {
 };
 
 const ORDEN_COLUMNAS_DEFECTO = [
-  'numero', 'clienta', 'contacto', 'tipo', 'fechaEvento', 'total', 'estado', 'fechaEnvio', 'venta',
+  'numero', 'clienta', 'contacto', 'tipo', 'fechaEvento', 'total', 'estado', 'remitente', 'fechaEnvio', 'venta',
 ];
 
 export default function CotizacionesList() {

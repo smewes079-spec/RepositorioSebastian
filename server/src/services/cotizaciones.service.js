@@ -53,6 +53,7 @@ export async function createCotizacion(data) {
       fechaEventoTentativa: rest.fechaEventoTentativa ? new Date(rest.fechaEventoTentativa) : null,
       validezDias: rest.validezDias ?? 15,
       notas: rest.notas || null,
+      remitente: rest.remitente || null,
       items: { create: itemsCreateData(items) },
     },
     include,
@@ -72,6 +73,7 @@ export async function updateCotizacion(id, data) {
   }
   if (rest.validezDias !== undefined) updateData.validezDias = rest.validezDias;
   if (rest.notas !== undefined) updateData.notas = rest.notas || null;
+  if (rest.remitente !== undefined) updateData.remitente = rest.remitente || null;
 
   await prisma.$transaction(async (tx) => {
     await tx.cotizacion.update({ where: { id }, data: updateData });
@@ -112,6 +114,9 @@ export async function enviarCotizacion(id) {
   if (!cotizacion) throw new Error('Cotización no encontrada');
   if (cotizacion.estado === 'ACEPTADA' || cotizacion.estado === 'RECHAZADA') {
     throw new Error('Esta cotización ya fue respondida y no se puede reenviar');
+  }
+  if (!cotizacion.remitente) {
+    throw new Error('Elige quién envía la cotización (María o Carolina) antes de enviarla.');
   }
 
   const pdfBuffer = await buildCotizacionPdf(cotizacion);
