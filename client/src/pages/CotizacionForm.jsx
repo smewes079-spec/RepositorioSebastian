@@ -49,6 +49,8 @@ export default function CotizacionForm() {
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  const [mostrarMensaje, setMostrarMensaje] = useState(false);
+  const [mensajeCorreo, setMensajeCorreo] = useState('');
 
   useEffect(() => {
     if (!isEdit) return;
@@ -111,14 +113,21 @@ export default function CotizacionForm() {
     }
   }
 
+  function abrirEditorMensaje() {
+    const numero = id.slice(-8).toUpperCase();
+    setMensajeCorreo(`Adjuntamos tu cotización N° ${numero}.\n\nCualquier consulta, respóndenos a este correo.`);
+    setMostrarMensaje(true);
+  }
+
   async function handleEnviar() {
     setActionLoading('enviar');
     setError('');
     setInfo('');
     try {
-      const actualizada = await api.post(`/cotizaciones/${id}/enviar`);
+      const actualizada = await api.post(`/cotizaciones/${id}/enviar`, { mensaje: mensajeCorreo });
       setCotizacion(actualizada);
       setInfo(`Cotización enviada a ${actualizada.emailClienta}.`);
+      setMostrarMensaje(false);
     } catch (err) {
       setError(err.message || 'No se pudo enviar la cotización');
     } finally {
@@ -197,15 +206,15 @@ export default function CotizacionForm() {
             <FileDown size={15} />
             Ver PDF
           </a>
-          {!bloqueada && (
+          {!bloqueada && !mostrarMensaje && (
             <button
-              onClick={handleEnviar}
-              disabled={actionLoading === 'enviar' || !cotizacion.remitente}
+              onClick={abrirEditorMensaje}
+              disabled={!cotizacion.remitente}
               title={!cotizacion.remitente ? 'Elige quién envía (María o Carolina) y guarda antes de enviar' : undefined}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border border-black/10 text-[#2C2420]/80 hover:bg-black/5 disabled:opacity-50"
             >
               <Send size={15} />
-              {actionLoading === 'enviar' ? 'Enviando…' : cotizacion.estado === 'ENVIADA' ? 'Reenviar por correo' : 'Enviar por correo'}
+              {cotizacion.estado === 'ENVIADA' ? 'Reenviar por correo' : 'Enviar por correo'}
             </button>
           )}
           {!bloqueada && (
@@ -237,6 +246,44 @@ export default function CotizacionForm() {
               Venta creada: <strong>{cotizacion.venta.codigo}</strong>
             </span>
           )}
+        </div>
+      )}
+
+      {isEdit && cotizacion && mostrarMensaje && (
+        <div className="bg-white rounded-xl border border-black/5 p-4 mb-6">
+          <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+            Mensaje del correo (puedes editarlo antes de enviar)
+          </label>
+          <textarea
+            value={mensajeCorreo}
+            onChange={(e) => setMensajeCorreo(e.target.value)}
+            rows={5}
+            className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+          />
+          <p className="text-[10px] text-[#2C2420]/40 mt-1">
+            Va precedido por "Hola {form.nombreClienta}," y firmado por{' '}
+            {cotizacion.remitente ? (cotizacion.remitente === 'MARIA' ? 'María' : 'Carolina') : 'quien envía'} - Hatton
+            Schultz Novias, con el PDF adjunto.
+          </p>
+          <div className="flex justify-end gap-3 mt-3">
+            <button
+              type="button"
+              onClick={() => setMostrarMensaje(false)}
+              className="px-4 py-2 text-sm rounded-lg text-[#2C2420]/70 hover:bg-black/5"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleEnviar}
+              disabled={actionLoading === 'enviar'}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg text-white hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: '#1A1A2E' }}
+            >
+              <Send size={15} />
+              {actionLoading === 'enviar' ? 'Enviando…' : 'Confirmar envío'}
+            </button>
+          </div>
         </div>
       )}
 

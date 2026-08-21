@@ -109,7 +109,7 @@ export async function deleteCotizacion(id) {
   await prisma.cotizacion.delete({ where: { id } });
 }
 
-export async function enviarCotizacion(id) {
+export async function enviarCotizacion(id, mensaje) {
   const cotizacion = await getCotizacion(id);
   if (!cotizacion) throw new Error('Cotización no encontrada');
   if (cotizacion.estado === 'ACEPTADA' || cotizacion.estado === 'RECHAZADA') {
@@ -120,7 +120,7 @@ export async function enviarCotizacion(id) {
   }
 
   const pdfBuffer = await buildCotizacionPdf(cotizacion);
-  await sendCotizacionEmail({ cotizacion, pdfBuffer });
+  await sendCotizacionEmail({ cotizacion, pdfBuffer, mensaje });
 
   const actualizada = await prisma.cotizacion.update({
     where: { id },

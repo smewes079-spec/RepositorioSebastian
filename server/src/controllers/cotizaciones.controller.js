@@ -43,7 +43,7 @@ export async function destroy(req, res) {
 
 export async function enviar(req, res) {
   try {
-    const cotizacion = await cotizacionesService.enviarCotizacion(req.params.id);
+    const cotizacion = await cotizacionesService.enviarCotizacion(req.params.id, req.body?.mensaje);
     res.json(cotizacion);
   } catch (err) {
     console.error(err);

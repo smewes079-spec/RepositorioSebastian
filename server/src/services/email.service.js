@@ -20,7 +20,16 @@ function ensureClient() {
   }
 }
 
-export async function sendCotizacionEmail({ cotizacion, pdfBuffer }) {
+export function mensajeCorreoPorDefecto(cotizacion) {
+  const numero = cotizacion.id.slice(-8).toUpperCase();
+  return `Adjuntamos tu cotización N° ${numero}.\n\nCualquier consulta, respóndenos a este correo.`;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+export async function sendCotizacionEmail({ cotizacion, pdfBuffer, mensaje }) {
   if (!isConfigured()) {
     throw new Error(
       'El envío de correo no está configurado. Pídele al administrador que agregue SENDGRID_API_KEY en las variables de entorno de Render.'
@@ -34,6 +43,8 @@ export async function sendCotizacionEmail({ cotizacion, pdfBuffer }) {
   ensureClient();
 
   const numero = cotizacion.id.slice(-8).toUpperCase();
+  const cuerpo = (mensaje && mensaje.trim()) || mensajeCorreoPorDefecto(cotizacion);
+  const cuerpoHtml = escapeHtml(cuerpo).replace(/\n/g, '<br/>');
 
   try {
     await sgMail.send({
@@ -41,8 +52,8 @@ export async function sendCotizacionEmail({ cotizacion, pdfBuffer }) {
       cc: copia.email,
       from: { email: remitente.email, name: `${remitente.name} - Hatton Schultz Novias` },
       subject: `Cotización N° ${numero} - Hatton Schultz Novias`,
-      text: `Hola ${cotizacion.nombreClienta},\n\nAdjuntamos tu cotización N° ${numero}.\n\nCualquier consulta, respóndenos a este correo.\n\nSaludos,\n${remitente.name}\nHatton Schultz Novias`,
-      html: `<p>Hola ${cotizacion.nombreClienta},</p><p>Adjuntamos tu cotización N° ${numero}.</p><p>Cualquier consulta, respóndenos a este correo.</p><p>Saludos,<br/>${remitente.name}<br/>Hatton Schultz Novias</p>`,
+      text: `Hola ${cotizacion.nombreClienta},\n\n${cuerpo}\n\nSaludos,\n${remitente.name}\nHatton Schultz Novias`,
+      html: `<p>Hola ${cotizacion.nombreClienta},</p><p>${cuerpoHtml}</p><p>Saludos,<br/>${remitente.name}<br/>Hatton Schultz Novias</p>`,
       attachments: [
         {
           filename: `cotizacion-${numero}.pdf`,
