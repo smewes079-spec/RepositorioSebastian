@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Download, Search, X, RotateCcw } from 'lucide-react';
+import { Plus, Download, Search, X, RotateCcw, Pencil, Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
 import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
+import BulkEditCotizacionesModal from '../components/BulkEditCotizacionesModal.jsx';
 import { useColumnOrder } from '../lib/useColumnOrder.js';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { useColumnVisibility } from '../lib/useColumnVisibility.js';
@@ -111,6 +112,8 @@ export default function CotizacionesList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exportando, setExportando] = useState(false);
+  const [seleccionadas, setSeleccionadas] = useState([]);
+  const [showBulkEdit, setShowBulkEdit] = useState(false);
   const { order: ordenColumnas, moverColumna, restablecer: restablecerColumnas } = useColumnOrder(
     'hsn-cotizaciones-columnas',
     ORDEN_COLUMNAS_DEFECTO
@@ -136,6 +139,7 @@ export default function CotizacionesList() {
   async function load() {
     setLoading(true);
     setError('');
+    setSeleccionadas([]);
     try {
       const qs = buildQuery(filtros);
       const data = await api.get(`/cotizaciones${qs ? `?${qs}` : ''}`);
@@ -157,6 +161,36 @@ export default function CotizacionesList() {
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtros.search]);
+
+  function toggleSeleccion(id) {
+    setSeleccionadas((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  }
+
+  function toggleSeleccionarTodas() {
+    setSeleccionadas((prev) =>
+      prev.length === cotizacionesFiltradas.length ? [] : cotizacionesFiltradas.map((c) => c.id)
+    );
+  }
+
+  async function handleBulkDelete() {
+    if (
+      !confirm(
+        `¿Eliminar ${seleccionadas.length} ${
+          seleccionadas.length === 1 ? 'cotización' : 'cotizaciones'
+        } seleccionada${seleccionadas.length === 1 ? '' : 's'}? Esta acción no se puede deshacer.`
+      )
+    )
+      return;
+    try {
+      await Promise.all(seleccionadas.map((id) => api.del(`/cotizaciones/${id}`)));
+      setSeleccionadas([]);
+      load();
+    } catch (err) {
+      setError(err.message || 'No se pudieron eliminar algunas cotizaciones');
+    }
+  }
 
   async function handleExport() {
     setExportando(true);
@@ -270,11 +304,48 @@ export default function CotizacionesList() {
         />
       </div>
 
+      {seleccionadas.length > 0 && (
+        <div className="flex items-center gap-3 bg-[#1A1A2E] text-white rounded-xl px-4 py-2.5 mb-3">
+          <span className="text-sm font-medium">
+            {seleccionadas.length} seleccionada{seleccionadas.length === 1 ? '' : 's'}
+          </span>
+          <button
+            onClick={() => setShowBulkEdit(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 hover:bg-white/20"
+          >
+            <Pencil size={13} />
+            Editar ({seleccionadas.length})
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-[#F2B8B0] bg-white/10 hover:bg-white/20"
+          >
+            <Trash2 size={13} />
+            Eliminar
+          </button>
+          <button
+            onClick={() => setSeleccionadas([])}
+            className="flex items-center gap-1.5 ml-auto text-xs text-white/60 hover:text-white"
+          >
+            <X size={13} />
+            Deseleccionar
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
+              <th className="px-3 py-2.5 font-medium w-9">
+                <input
+                  type="checkbox"
+                  checked={cotizacionesFiltradas.length > 0 && seleccionadas.length === cotizacionesFiltradas.length}
+                  onChange={toggleSeleccionarTodas}
+                  className="accent-[#C9A96E]"
+                />
+              </th>
               {columnasMostradas.map((key) => (
                 <FilterableHeader
                   key={key}
@@ -293,21 +364,21 @@ export default function CotizacionesList() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={columnasMostradas.length} className="px-3 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={columnasMostradas.length + 1} className="px-3 py-10 text-center text-[#2C2420]/40">
                   Cargando…
                 </td>
               </tr>
             )}
             {!loading && cotizaciones.length === 0 && (
               <tr>
-                <td colSpan={columnasMostradas.length} className="px-3 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={columnasMostradas.length + 1} className="px-3 py-10 text-center text-[#2C2420]/40">
                   No hay cotizaciones registradas todavía.
                 </td>
               </tr>
             )}
             {!loading && cotizaciones.length > 0 && cotizacionesFiltradas.length === 0 && (
               <tr>
-                <td colSpan={columnasMostradas.length} className="px-3 py-10 text-center text-[#2C2420]/40">
+                <td colSpan={columnasMostradas.length + 1} className="px-3 py-10 text-center text-[#2C2420]/40">
                   Ningún resultado con los filtros de columna aplicados.{' '}
                   <button onClick={limpiarFiltrosColumna} className="text-[#C9A96E] hover:underline">
                     Limpiarlos
@@ -320,8 +391,18 @@ export default function CotizacionesList() {
                 <tr
                   key={c.id}
                   onClick={() => navigate(`/cotizaciones/${c.id}`)}
-                  className="border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer"
+                  className={`border-b border-black/5 last:border-0 hover:bg-[#FAFAF8] cursor-pointer ${
+                    seleccionadas.includes(c.id) ? 'bg-[#FAF6EF]' : ''
+                  }`}
                 >
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={seleccionadas.includes(c.id)}
+                      onChange={() => toggleSeleccion(c.id)}
+                      className="accent-[#C9A96E]"
+                    />
+                  </td>
                   {columnasMostradas.map((key) => (
                     <td
                       key={key}
@@ -336,6 +417,14 @@ export default function CotizacionesList() {
         </table>
         </div>
       </div>
+
+      {showBulkEdit && (
+        <BulkEditCotizacionesModal
+          cotizacionIds={seleccionadas}
+          onClose={() => setShowBulkEdit(false)}
+          onSaved={() => load()}
+        />
+      )}
     </Layout>
   );
 }
