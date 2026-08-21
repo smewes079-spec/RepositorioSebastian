@@ -66,6 +66,23 @@ app.use(
 );
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+// Endpoint temporal de diagnóstico: pregunta directamente a SendGrid, usando
+// la misma API key configurada acá, qué remitentes ve como verificados.
+app.get('/api/debug/sendgrid-senders', requireAuth, async (req, res) => {
+  if (!process.env.SENDGRID_API_KEY) {
+    return res.status(400).json({ error: 'SENDGRID_API_KEY no está configurada' });
+  }
+  try {
+    const r = await fetch('https://api.sendgrid.com/v3/verified_senders', {
+      headers: { Authorization: `Bearer ${process.env.SENDGRID_API_KEY}` },
+    });
+    const data = await r.json();
+    res.status(r.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.use('/api/auth', authRoutes);
 app.use('/api/ventas', requireAuth, ventasRoutes);
 app.use('/api/purchases', requireAuth, purchasesRoutes);
