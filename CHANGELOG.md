@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda marcada en el repositorio de GitHub (un "tag"), así que nunca se pierde una versión anterior.
 
+## v1.1.0 — 2026-09-15
+
+- Se puede importar cotizaciones desde una planilla Excel/CSV (igual que ya se podía con Ventas y Compras). Botón "Importar Excel" en el listado de Cotizaciones.
+
 ## v1.0.0 — 2026-09-15
 
 Punto de partida: todo lo construido hasta hoy.

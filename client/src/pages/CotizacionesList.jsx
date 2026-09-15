@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Download, Search, X, RotateCcw, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Download, Upload, Search, X, RotateCcw, Pencil, Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
 import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import BulkEditCotizacionesModal from '../components/BulkEditCotizacionesModal.jsx';
+import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import { useColumnOrder } from '../lib/useColumnOrder.js';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { useColumnVisibility } from '../lib/useColumnVisibility.js';
@@ -114,6 +115,7 @@ export default function CotizacionesList() {
   const [exportando, setExportando] = useState(false);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const { order: ordenColumnas, moverColumna, restablecer: restablecerColumnas } = useColumnOrder(
     'hsn-cotizaciones-columnas',
     ORDEN_COLUMNAS_DEFECTO
@@ -213,14 +215,23 @@ export default function CotizacionesList() {
       title="Cotizaciones"
       subtitle="Prospectos, seguimiento de envíos y conversión a ventas"
       actions={
-        <Link
-          to="/cotizaciones/nueva"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
-          style={{ backgroundColor: '#1A1A2E' }}
-        >
-          <Plus size={16} />
-          Nueva cotización
-        </Link>
+        <>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-black/10 text-[#2C2420]/80 hover:bg-black/5"
+          >
+            <Upload size={16} />
+            Importar Excel
+          </button>
+          <Link
+            to="/cotizaciones/nueva"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
+            style={{ backgroundColor: '#1A1A2E' }}
+          >
+            <Plus size={16} />
+            Nueva cotización
+          </Link>
+        </>
       }
     >
       <div className="bg-white rounded-xl border border-black/5 p-4 mb-6 flex flex-wrap gap-3 items-center">
@@ -423,6 +434,19 @@ export default function CotizacionesList() {
           cotizacionIds={seleccionadas}
           onClose={() => setShowBulkEdit(false)}
           onSaved={() => load()}
+        />
+      )}
+
+      {showImport && (
+        <ImportCsvModal
+          titulo="Importar cotizaciones desde Excel o CSV"
+          endpoint="/cotizaciones/importar"
+          plantillaHref="/plantilla-cotizaciones.xlsx"
+          descripcionColumnas="Completa la plantilla con las columnas: NOMBRE CLIENTA, EMAIL CLIENTA, TELEFONO, TIPO (Novia, Madrina, Invitada o Civil), FECHA EVENTO, VALIDEZ DIAS, REMITENTE (María o Carolina, opcional), NOTAS, e ITEM 1 DESCRIPCION / ITEM 1 CANTIDAD / ITEM 1 MONTO (hasta 3 ítems por cotización)."
+          onClose={() => setShowImport(false)}
+          onImported={() => {
+            load();
+          }}
         />
       )}
     </Layout>
