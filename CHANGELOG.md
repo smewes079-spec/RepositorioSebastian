@@ -6,7 +6,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 
 - El número de versión (ej. `v1.2.0`) se ve abajo del menú lateral de la app, para saber cuál está en línea.
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
-- Cada versión queda marcada en el repositorio de GitHub (un "tag"), así que nunca se pierde una versión anterior.
+- Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
+
+## v1.1.1 — 2026-09-15
+
+- Se actualiza `render.yaml` para reflejar que la base de datos pasa a un plan pago de Render (el usuario decidió pagar para poder seguir probando la app con datos reales).
 
 ## v1.1.0 — 2026-09-15
 

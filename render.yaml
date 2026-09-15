@@ -1,6 +1,9 @@
+# Nota: este archivo es solo referencia/documentación de la infraestructura.
+# Cambiarlo aquí no mueve nada en el dashboard de Render por sí solo — el
+# upgrade real de plan (y el pago) se hace manualmente ahí.
 databases:
   - name: hatton-schultz-db
-    plan: free
+    plan: starter
     databaseName: hsn_db
     user: hsn_user
 
