@@ -117,6 +117,9 @@ export default function Sidebar() {
           <LogOut size={18} className="shrink-0" />
           {!collapsed && 'Cerrar sesión'}
         </button>
+        {!collapsed && (
+          <p className="px-4 pt-2 text-[10px] text-white/30">v{__APP_VERSION__}</p>
+        )}
       </div>
     </aside>
   );
