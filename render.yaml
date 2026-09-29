@@ -24,4 +24,4 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: APP_PASSWORD
-        value: hattonschultz2026
+        sync: false
