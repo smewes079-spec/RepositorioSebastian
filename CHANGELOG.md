@@ -8,6 +8,12 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.3.0 — 2026-09-29
+
+- Seguridad: se bloquean los intentos de inicio de sesión después de 10 intentos fallidos en 15 minutos, para que nadie pueda probar contraseñas al voleo.
+- El servidor ahora revisa que estén configuradas todas las variables necesarias (base de datos, clave de sesión, contraseña) antes de arrancar, y avisa claramente cuál falta en vez de fallar de forma confusa.
+- Se elimina una clave de sesión insegura que quedaba como respaldo si faltaba la configuración.
+
 ## v1.2.0 — 2026-09-29
 
 - Seguridad: la contraseña de acceso ya no queda escrita en el código (`render.yaml`); ahora se administra solo desde el panel de Render. **Se recomienda cambiar la contraseña actual**, porque quedó expuesta en versiones anteriores del código.

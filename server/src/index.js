@@ -15,6 +15,9 @@ import rentabilidadRoutes from './routes/rentabilidad.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import cotizacionesRoutes from './routes/cotizaciones.routes.js';
 import { requireAuth } from './middleware/auth.js';
+import { checkRequiredEnv } from './lib/checkEnv.js';
+
+checkRequiredEnv();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
@@ -53,7 +56,7 @@ app.use(
       createTableIfMissing: true,
     }),
     name: 'hsn.sid',
-    secret: process.env.SESSION_SECRET || 'dev-secret',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
