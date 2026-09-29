@@ -4,6 +4,10 @@ Aplicación de gestión para el taller de vestidos de novia Hatton Schultz
 Novias (Santiago, Chile). Un solo nivel de acceso: todas las usuarias ven
 todo. Aplicación de escritorio (desktop-first).
 
+¿Encontraste un error o necesitas una función nueva? Ver
+[`COMO-PEDIR-CAMBIOS.md`](./COMO-PEDIR-CAMBIOS.md). Historial de versiones
+en [`CHANGELOG.md`](./CHANGELOG.md).
+
 ## Stack
 
 - **Frontend:** React + Vite + Tailwind CSS, React Router, lucide-react
