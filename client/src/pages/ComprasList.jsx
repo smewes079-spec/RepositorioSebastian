@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Upload, Download, X, Pencil } from 'lucide-react';
+import { Plus, Trash2, Upload, Download, X, Pencil, RotateCcw } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import BulkEditComprasModal from '../components/BulkEditComprasModal.jsx';
@@ -8,6 +8,7 @@ import FilterableHeader from '../components/FilterableHeader.jsx';
 import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { useColumnVisibility } from '../lib/useColumnVisibility.js';
+import { useColumnWidths } from '../lib/useColumnWidths.js';
 import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import {
@@ -81,6 +82,15 @@ const COLUMN_DEFS = {
 
 const ORDEN_COLUMNAS = ['fecha', 'categoria', 'descripcion', 'asignacion', 'vestidos', 'monto'];
 
+const ANCHOS_COLUMNAS_DEFECTO = {
+  fecha: 100,
+  categoria: 140,
+  descripcion: 260,
+  asignacion: 130,
+  vestidos: 130,
+  monto: 110,
+};
+
 export default function ComprasList() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
@@ -94,6 +104,10 @@ export default function ComprasList() {
   const [exportando, setExportando] = useState(false);
 
   const columnasVisibilidad = useColumnVisibility('hsn-compras-columnas-visibles', ORDEN_COLUMNAS);
+  const { widths: anchosColumnas, setWidth: setAnchoColumna, restablecer: restablecerAnchos } = useColumnWidths(
+    'hsn-compras-columnas-anchos',
+    ANCHOS_COLUMNAS_DEFECTO
+  );
   const columnasMostradas = useMemo(
     () => ORDEN_COLUMNAS.filter((key) => columnasVisibilidad.isVisible(key)),
     [columnasVisibilidad]
@@ -303,6 +317,14 @@ export default function ComprasList() {
           </button>
         )}
         <button
+          onClick={restablecerAnchos}
+          className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
+          title="Vuelve las columnas a su ancho original"
+        >
+          <RotateCcw size={12} />
+          Restablecer anchos de columnas
+        </button>
+        <button
           onClick={handleExport}
           disabled={exportando}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
@@ -350,7 +372,14 @@ export default function ComprasList() {
 
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: 36 }} />
+              {columnasMostradas.map((key) => (
+                <col key={key} style={{ width: anchosColumnas[key] ?? 120 }} />
+              ))}
+              <col style={{ width: 50 }} />
+            </colgroup>
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
                 <th className="px-3 py-2.5 font-medium w-9">
@@ -364,11 +393,14 @@ export default function ComprasList() {
                 {columnasMostradas.map((key) => (
                   <FilterableHeader
                     key={key}
+                    columnKey={key}
                     label={COLUMN_DEFS[key].label}
                     align={COLUMN_DEFS[key].align}
                     options={uniqueValuesByColumn[key]}
                     excluded={excludedByColumn[key]}
                     onChange={(excl) => setColumnExcluded(key, excl)}
+                    width={anchosColumnas[key]}
+                    onResize={setAnchoColumna}
                   />
                 ))}
                 <th className="px-3 py-2.5 font-medium"></th>
@@ -419,7 +451,7 @@ export default function ComprasList() {
                     {columnasMostradas.map((key) => (
                       <td
                         key={key}
-                        className={`px-3 py-2 whitespace-nowrap ${
+                        className={`px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis ${
                           COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''
                         }`}
                       >

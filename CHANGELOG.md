@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.6.0 — 2026-10-02
+
+- **Columnas redimensionables**: en Ventas, Compras, Cotizaciones y Rentabilidad por vestido ahora se puede ajustar el ancho de cada columna arrastrando su borde derecho (igual que en Excel). El ancho elegido queda guardado y persiste al recargar la página. Botón "Restablecer anchos de columnas" para volver a los valores por defecto.
+- **Proporción pantalla/menú**: el contenido ya no se estira sin límite en monitores grandes — se corrigió para que mantenga una proporción equilibrada frente al menú lateral en cualquier tamaño de pantalla.
+
 ## v1.5.0 — 2026-10-02
 
 - **Ventas**: nuevo campo "Fecha de entrega comprometida" — la fecha objetivo para tener el vestido terminado, pensada para planificar producción. Es editable y distinta de la fecha real de entrega (que sigue siendo automática al marcar "Entregado"; ahora también se muestra como referencia). Se puede ver, ordenar y filtrar como columna nueva en el listado de Ventas.

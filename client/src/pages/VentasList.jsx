@@ -8,6 +8,7 @@ import BulkEditVentasModal from '../components/BulkEditVentasModal.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
 import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnOrder } from '../lib/useColumnOrder.js';
+import { useColumnWidths } from '../lib/useColumnWidths.js';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { useColumnVisibility } from '../lib/useColumnVisibility.js';
 import { exportRowsToExcel } from '../lib/exportExcel.js';
@@ -150,6 +151,20 @@ const ORDEN_COLUMNAS_DEFECTO = [
   'total', 'saldo', 'cobrado', 'estado', 'produccion',
 ];
 
+const ANCHOS_COLUMNAS_DEFECTO = {
+  codigo: 110,
+  clienta: 170,
+  tipo: 110,
+  fechaVenta: 100,
+  fechaEvento: 100,
+  fechaEntregaComprometida: 150,
+  total: 110,
+  saldo: 110,
+  cobrado: 110,
+  estado: 120,
+  produccion: 120,
+};
+
 export default function VentasList() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
@@ -166,6 +181,10 @@ export default function VentasList() {
     ORDEN_COLUMNAS_DEFECTO
   );
   const columnasVisibilidad = useColumnVisibility('hsn-ventas-columnas-visibles', ORDEN_COLUMNAS_DEFECTO);
+  const { widths: anchosColumnas, setWidth: setAnchoColumna, restablecer: restablecerAnchos } = useColumnWidths(
+    'hsn-ventas-columnas-anchos',
+    ANCHOS_COLUMNAS_DEFECTO
+  );
   const columnasMostradas = useMemo(
     () => ordenColumnas.filter((key) => columnasVisibilidad.isVisible(key)),
     [ordenColumnas, columnasVisibilidad]
@@ -378,6 +397,14 @@ export default function VentasList() {
           Restablecer orden de columnas
         </button>
         <button
+          onClick={restablecerAnchos}
+          className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
+          title="Vuelve las columnas a su ancho original"
+        >
+          <RotateCcw size={12} />
+          Restablecer anchos de columnas
+        </button>
+        <button
           onClick={handleExport}
           disabled={exportando}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
@@ -425,7 +452,13 @@ export default function VentasList() {
 
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: 36 }} />
+            {columnasMostradas.map((key) => (
+              <col key={key} style={{ width: anchosColumnas[key] ?? 120 }} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
               <th className="px-3 py-2.5 font-medium w-9">
@@ -447,6 +480,8 @@ export default function VentasList() {
                   options={uniqueValuesByColumn[key]}
                   excluded={excludedByColumn[key]}
                   onChange={(excl) => setColumnExcluded(key, excl)}
+                  width={anchosColumnas[key]}
+                  onResize={setAnchoColumna}
                 />
               ))}
             </tr>
@@ -496,7 +531,7 @@ export default function VentasList() {
                   {columnasMostradas.map((key) => (
                     <td
                       key={key}
-                      className={`px-3 py-2 whitespace-nowrap ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
+                      className={`px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
                     >
                       {COLUMN_DEFS[key].cell(v)}
                     </td>

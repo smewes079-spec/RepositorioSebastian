@@ -7,6 +7,7 @@ import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import BulkEditCotizacionesModal from '../components/BulkEditCotizacionesModal.jsx';
 import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import { useColumnOrder } from '../lib/useColumnOrder.js';
+import { useColumnWidths } from '../lib/useColumnWidths.js';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { useColumnVisibility } from '../lib/useColumnVisibility.js';
 import { exportRowsToExcel } from '../lib/exportExcel.js';
@@ -106,6 +107,19 @@ const ORDEN_COLUMNAS_DEFECTO = [
   'numero', 'clienta', 'contacto', 'tipo', 'fechaEvento', 'total', 'estado', 'remitente', 'fechaEnvio', 'venta',
 ];
 
+const ANCHOS_COLUMNAS_DEFECTO = {
+  numero: 100,
+  clienta: 160,
+  contacto: 190,
+  tipo: 110,
+  fechaEvento: 110,
+  total: 110,
+  estado: 110,
+  remitente: 110,
+  fechaEnvio: 110,
+  venta: 120,
+};
+
 export default function CotizacionesList() {
   const navigate = useNavigate();
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
@@ -121,6 +135,10 @@ export default function CotizacionesList() {
     ORDEN_COLUMNAS_DEFECTO
   );
   const columnasVisibilidad = useColumnVisibility('hsn-cotizaciones-columnas-visibles', ORDEN_COLUMNAS_DEFECTO);
+  const { widths: anchosColumnas, setWidth: setAnchoColumna, restablecer: restablecerAnchos } = useColumnWidths(
+    'hsn-cotizaciones-columnas-anchos',
+    ANCHOS_COLUMNAS_DEFECTO
+  );
   const columnasMostradas = useMemo(
     () => ordenColumnas.filter((key) => columnasVisibilidad.isVisible(key)),
     [ordenColumnas, columnasVisibilidad]
@@ -299,6 +317,14 @@ export default function CotizacionesList() {
           Restablecer orden de columnas
         </button>
         <button
+          onClick={restablecerAnchos}
+          className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
+          title="Vuelve las columnas a su ancho original"
+        >
+          <RotateCcw size={12} />
+          Restablecer anchos de columnas
+        </button>
+        <button
           onClick={handleExport}
           disabled={exportando}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
@@ -346,7 +372,13 @@ export default function CotizacionesList() {
 
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: 36 }} />
+            {columnasMostradas.map((key) => (
+              <col key={key} style={{ width: anchosColumnas[key] ?? 120 }} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
               <th className="px-3 py-2.5 font-medium w-9">
@@ -368,6 +400,8 @@ export default function CotizacionesList() {
                   options={uniqueValuesByColumn[key]}
                   excluded={excludedByColumn[key]}
                   onChange={(excl) => setColumnExcluded(key, excl)}
+                  width={anchosColumnas[key]}
+                  onResize={setAnchoColumna}
                 />
               ))}
             </tr>
@@ -417,7 +451,7 @@ export default function CotizacionesList() {
                   {columnasMostradas.map((key) => (
                     <td
                       key={key}
-                      className={`px-3 py-2 whitespace-nowrap ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
+                      className={`px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
                     >
                       {COLUMN_DEFS[key].cell(c)}
                     </td>

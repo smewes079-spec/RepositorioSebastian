@@ -9,12 +9,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { X, Download } from 'lucide-react';
+import { X, Download, RotateCcw } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
 import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
 import { useColumnVisibility } from '../lib/useColumnVisibility.js';
+import { useColumnWidths } from '../lib/useColumnWidths.js';
 import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import { formatCLP, formatFecha, TIPO_LABELS, TIPO_COLORS } from '../lib/format.js';
@@ -99,6 +100,18 @@ const ORDEN_POR_TIPO = [
   'tipo', 'cantidad', 'precioMin', 'precioProm', 'precioMax',
   'materialesProm', 'manoObraProm', 'margenProm', 'margenPctProm',
 ];
+
+const ANCHOS_POR_TIPO_DEFECTO = {
+  tipo: 110,
+  cantidad: 100,
+  precioMin: 120,
+  precioProm: 120,
+  precioMax: 120,
+  materialesProm: 140,
+  manoObraProm: 150,
+  margenProm: 120,
+  margenPctProm: 130,
+};
 
 const COLUMNAS_DETALLE = {
   clienta: {
@@ -189,6 +202,18 @@ const ORDEN_DETALLE = [
   'manoDeObra', 'margen', 'margenPct', 'origen',
 ];
 
+const ANCHOS_DETALLE_DEFECTO = {
+  clienta: 180,
+  tipo: 110,
+  fechaVenta: 110,
+  precioVenta: 120,
+  costoMateriales: 120,
+  manoDeObra: 130,
+  margen: 120,
+  margenPct: 110,
+  origen: 110,
+};
+
 export default function RentabilidadPorVestido() {
   const [porTipo, setPorTipo] = useState([]);
   const [detalle, setDetalle] = useState([]);
@@ -235,6 +260,10 @@ export default function RentabilidadPorVestido() {
     () => ORDEN_POR_TIPO.filter((key) => porTipoVisibilidad.isVisible(key)),
     [porTipoVisibilidad]
   );
+  const { widths: anchosPorTipo, setWidth: setAnchoPorTipo, restablecer: restablecerAnchosPorTipo } = useColumnWidths(
+    'hsn-rentabilidad-portipo-columnas-anchos',
+    ANCHOS_POR_TIPO_DEFECTO
+  );
 
   const columnasFiltroDetalle = useMemo(
     () => ORDEN_DETALLE.map((key) => ({ key, getValue: COLUMNAS_DETALLE[key].getValue })),
@@ -245,6 +274,10 @@ export default function RentabilidadPorVestido() {
   const columnasDetalleMostradas = useMemo(
     () => ORDEN_DETALLE.filter((key) => detalleVisibilidad.isVisible(key)),
     [detalleVisibilidad]
+  );
+  const { widths: anchosDetalle, setWidth: setAnchoDetalle, restablecer: restablecerAnchosDetalle } = useColumnWidths(
+    'hsn-rentabilidad-detalle-columnas-anchos',
+    ANCHOS_DETALLE_DEFECTO
   );
 
   async function exportarPorTipo() {
@@ -317,6 +350,14 @@ export default function RentabilidadPorVestido() {
             </button>
           )}
           <button
+            onClick={restablecerAnchosPorTipo}
+            className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
+            title="Vuelve las columnas a su ancho original"
+          >
+            <RotateCcw size={12} />
+            Restablecer anchos
+          </button>
+          <button
             onClick={exportarPorTipo}
             disabled={exportandoPorTipo}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
@@ -335,17 +376,25 @@ export default function RentabilidadPorVestido() {
       </div>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-6">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              {columnasPorTipoMostradas.map((key) => (
+                <col key={key} style={{ width: anchosPorTipo[key] ?? 120 }} />
+              ))}
+            </colgroup>
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
                 {columnasPorTipoMostradas.map((key) => (
                   <FilterableHeader
                     key={key}
+                    columnKey={key}
                     label={COLUMNAS_POR_TIPO[key].label}
                     align={COLUMNAS_POR_TIPO[key].align}
                     options={porTipoFiltros.uniqueValuesByColumn[key]}
                     excluded={porTipoFiltros.excludedByColumn[key]}
                     onChange={(excl) => porTipoFiltros.setColumnExcluded(key, excl)}
+                    width={anchosPorTipo[key]}
+                    onResize={setAnchoPorTipo}
                   />
                 ))}
               </tr>
@@ -356,7 +405,7 @@ export default function RentabilidadPorVestido() {
                   {columnasPorTipoMostradas.map((key) => (
                     <td
                       key={key}
-                      className={`px-3 py-2 whitespace-nowrap ${
+                      className={`px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis ${
                         COLUMNAS_POR_TIPO[key].align === 'right' ? 'text-right' : ''
                       }`}
                     >
@@ -413,6 +462,14 @@ export default function RentabilidadPorVestido() {
             </button>
           )}
           <button
+            onClick={restablecerAnchosDetalle}
+            className="flex items-center gap-1.5 text-xs text-[#2C2420]/40 hover:text-[#2C2420]/70"
+            title="Vuelve las columnas a su ancho original"
+          >
+            <RotateCcw size={12} />
+            Restablecer anchos
+          </button>
+          <button
             onClick={exportarDetalle}
             disabled={exportandoDetalle}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-black/10 text-[#2C2420]/70 hover:bg-black/5 disabled:opacity-50"
@@ -431,7 +488,12 @@ export default function RentabilidadPorVestido() {
       </div>
       <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              {columnasDetalleMostradas.map((key) => (
+                <col key={key} style={{ width: anchosDetalle[key] ?? 120 }} />
+              ))}
+            </colgroup>
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
                 {columnasDetalleMostradas.map((key) => {
@@ -439,6 +501,7 @@ export default function RentabilidadPorVestido() {
                   return (
                     <FilterableHeader
                       key={key}
+                      columnKey={key}
                       label={col.label}
                       align={col.align}
                       options={detalleFiltros.uniqueValuesByColumn[key]}
@@ -455,6 +518,8 @@ export default function RentabilidadPorVestido() {
                               }))
                           : undefined
                       }
+                      width={anchosDetalle[key]}
+                      onResize={setAnchoDetalle}
                     />
                   );
                 })}
@@ -466,7 +531,7 @@ export default function RentabilidadPorVestido() {
                   {columnasDetalleMostradas.map((key) => (
                     <td
                       key={key}
-                      className={`px-3 py-2 whitespace-nowrap ${
+                      className={`px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis ${
                         COLUMNAS_DETALLE[key].align === 'right' ? 'text-right' : ''
                       }`}
                     >

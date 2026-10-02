@@ -14,11 +14,30 @@ export default function FilterableHeader({
   sortActive,
   sortDir,
   onSortClick,
+  width,
+  onResize,
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const ref = useRef(null);
+
+  function startResize(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startWidth = ref.current?.offsetWidth || width || 150;
+
+    function onMouseMove(ev) {
+      onResize(columnKey, startWidth + (ev.clientX - startX));
+    }
+    function onMouseUp() {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    }
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
 
   useEffect(() => {
     function onClickOutside(e) {
@@ -80,7 +99,7 @@ export default function FilterableHeader({
       } ${className}`}
     >
       <span
-        className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''} ${
+        className={`inline-flex items-center gap-1 max-w-full ${align === 'right' ? 'flex-row-reverse' : ''} ${
           onSortClick ? 'cursor-pointer' : ''
         }`}
         onClick={onSortClick}
@@ -88,14 +107,14 @@ export default function FilterableHeader({
         {draggable && (
           <GripVertical
             size={12}
-            className="text-[#2C2420]/0 group-hover:text-[#2C2420]/30 transition-colors"
+            className="text-[#2C2420]/0 group-hover:text-[#2C2420]/30 transition-colors shrink-0"
           />
         )}
-        {label}
+        <span className="truncate">{label}</span>
         {onSortClick && (
           <ArrowUpDown
             size={11}
-            className={sortActive ? 'text-[#C9A96E]' : 'text-[#2C2420]/20'}
+            className={`shrink-0 ${sortActive ? 'text-[#C9A96E]' : 'text-[#2C2420]/20'}`}
           />
         )}
         {options && (
@@ -105,7 +124,7 @@ export default function FilterableHeader({
               e.stopPropagation();
               setOpen((o) => !o);
             }}
-            className={`ml-0.5 rounded p-0.5 hover:bg-black/10 ${
+            className={`ml-0.5 rounded p-0.5 hover:bg-black/10 shrink-0 ${
               isActive ? 'text-[#C9A96E]' : 'text-[#2C2420]/30'
             }`}
             title="Filtrar"
@@ -159,6 +178,15 @@ export default function FilterableHeader({
             ))}
           </div>
         </div>
+      )}
+
+      {onResize && (
+        <div
+          onMouseDown={startResize}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize select-none hover:bg-[#C9A96E]/40 active:bg-[#C9A96E]/60"
+          title="Arrastra para ajustar el ancho"
+        />
       )}
     </th>
   );
