@@ -14,7 +14,7 @@ export async function show(req, res) {
 
 export async function create(req, res) {
   try {
-    const venta = await ventasService.createVenta(req.body);
+    const venta = await ventasService.createVenta(req.body, req.user.id);
     res.status(201).json(venta);
   } catch (err) {
     if (err.code === 'P2002') {
@@ -27,7 +27,7 @@ export async function create(req, res) {
 
 export async function update(req, res) {
   try {
-    const venta = await ventasService.updateVenta(req.params.id, req.body);
+    const venta = await ventasService.updateVenta(req.params.id, req.body, req.user.id);
     res.json(venta);
   } catch (err) {
     if (err.code === 'P2002') {
@@ -49,7 +49,7 @@ export async function destroy(req, res) {
 
 export async function moveKanban(req, res) {
   try {
-    const venta = await ventasService.moveKanban(req.params.id, req.body.kanbanEstado);
+    const venta = await ventasService.moveKanban(req.params.id, req.body.kanbanEstado, req.user.id);
     res.json(venta);
   } catch (err) {
     console.error(err);

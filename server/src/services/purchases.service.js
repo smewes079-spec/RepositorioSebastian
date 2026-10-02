@@ -65,7 +65,7 @@ export async function listPurchases(filters = {}) {
 
   const purchases = await prisma.purchase.findMany({
     where,
-    include: { asignaciones: { include: { venta: true } } },
+    include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
     orderBy: { fecha: 'desc' },
   });
 
@@ -79,7 +79,7 @@ export async function listPurchases(filters = {}) {
 export async function getPurchase(id) {
   const purchase = await prisma.purchase.findUnique({
     where: { id },
-    include: { asignaciones: { include: { venta: true } } },
+    include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
   });
   if (!purchase) return null;
   return {
@@ -88,19 +88,26 @@ export async function getPurchase(id) {
   };
 }
 
-export async function createPurchase(data) {
+const includeAuditoria = {
+  creadoPor: { select: { nombre: true } },
+  actualizadoPor: { select: { nombre: true } },
+};
+
+export async function createPurchase(data, usuarioId) {
   const asignaciones = await computeAssignments({ ...data, montoTotal: Number(data.montoTotal) });
 
   return prisma.purchase.create({
     data: {
       ...baseData(data),
+      creadoPorId: usuarioId,
+      actualizadoPorId: usuarioId,
       asignaciones: { create: asignaciones },
     },
-    include: { asignaciones: { include: { venta: true } } },
+    include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
   });
 }
 
-export async function updatePurchase(id, data) {
+export async function updatePurchase(id, data, usuarioId) {
   const existente = await prisma.purchase.findUnique({
     where: { id },
     include: { asignaciones: true },
@@ -129,9 +136,10 @@ export async function updatePurchase(id, data) {
       where: { id },
       data: {
         ...baseData(merged),
+        actualizadoPorId: usuarioId,
         asignaciones: { create: asignaciones },
       },
-      include: { asignaciones: { include: { venta: true } } },
+      include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
     });
   });
 }

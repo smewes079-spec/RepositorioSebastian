@@ -4,6 +4,7 @@ import { Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CuotasEditor from '../components/CuotasEditor.jsx';
 import FichaCosto from '../components/FichaCosto.jsx';
+import InfoAuditoria from '../components/InfoAuditoria.jsx';
 import { api } from '../lib/api.js';
 import { formatCLP, toInputDate, TIPO_LABELS, ESTADO_LABELS, KANBAN_LABELS } from '../lib/format.js';
 
@@ -31,6 +32,7 @@ export default function VentaForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [computed, setComputed] = useState(null);
+  const [auditoria, setAuditoria] = useState(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -65,6 +67,7 @@ export default function VentaForm() {
           porcentajeCobrado: v.porcentajeCobrado,
           totalPagado: v.totalPagado,
         });
+        setAuditoria({ creadoPor: v.creadoPor?.nombre, actualizadoPor: v.actualizadoPor?.nombre });
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -153,6 +156,8 @@ export default function VentaForm() {
           </div>
         </div>
       )}
+
+      <InfoAuditoria auditoria={auditoria} />
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         <div className="bg-white rounded-xl border border-black/5 p-6 grid grid-cols-2 gap-5">

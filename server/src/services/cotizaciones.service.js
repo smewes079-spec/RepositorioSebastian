@@ -2,7 +2,12 @@ import { prisma } from '../lib/prisma.js';
 import { buildCotizacionPdf } from './pdf.service.js';
 import { sendCotizacionEmail } from './email.service.js';
 
-const include = { items: { orderBy: { orden: 'asc' } }, venta: { select: { id: true, codigo: true } } };
+const include = {
+  items: { orderBy: { orden: 'asc' } },
+  venta: { select: { id: true, codigo: true } },
+  creadoPor: { select: { nombre: true } },
+  actualizadoPor: { select: { nombre: true } },
+};
 
 function withComputed(cotizacion) {
   const montoTotal = cotizacion.items.reduce((sum, it) => sum + it.cantidad * it.monto, 0);
@@ -42,7 +47,7 @@ function itemsCreateData(items = []) {
   }));
 }
 
-export async function createCotizacion(data) {
+export async function createCotizacion(data, usuarioId) {
   const { items = [], ...rest } = data;
   const cotizacion = await prisma.cotizacion.create({
     data: {
@@ -54,6 +59,8 @@ export async function createCotizacion(data) {
       validezDias: rest.validezDias ?? 15,
       notas: rest.notas || null,
       remitente: rest.remitente || null,
+      creadoPorId: usuarioId,
+      actualizadoPorId: usuarioId,
       items: { create: itemsCreateData(items) },
     },
     include,
@@ -61,9 +68,9 @@ export async function createCotizacion(data) {
   return withComputed(cotizacion);
 }
 
-export async function updateCotizacion(id, data) {
+export async function updateCotizacion(id, data, usuarioId) {
   const { items, ...rest } = data;
-  const updateData = {};
+  const updateData = { actualizadoPorId: usuarioId };
   if (rest.nombreClienta !== undefined) updateData.nombreClienta = rest.nombreClienta;
   if (rest.emailClienta !== undefined) updateData.emailClienta = rest.emailClienta;
   if (rest.telefonoClienta !== undefined) updateData.telefonoClienta = rest.telefonoClienta || null;
@@ -109,7 +116,7 @@ export async function deleteCotizacion(id) {
   await prisma.cotizacion.delete({ where: { id } });
 }
 
-export async function enviarCotizacion(id, mensaje) {
+export async function enviarCotizacion(id, mensaje, usuarioId) {
   const cotizacion = await getCotizacion(id);
   if (!cotizacion) throw new Error('Cotización no encontrada');
   if (cotizacion.estado === 'ACEPTADA' || cotizacion.estado === 'RECHAZADA') {
@@ -124,7 +131,7 @@ export async function enviarCotizacion(id, mensaje) {
 
   const actualizada = await prisma.cotizacion.update({
     where: { id },
-    data: { estado: 'ENVIADA', fechaEnvio: new Date() },
+    data: { estado: 'ENVIADA', fechaEnvio: new Date(), actualizadoPorId: usuarioId },
     include,
   });
   return withComputed(actualizada);
@@ -140,7 +147,7 @@ function generarCodigoVenta(cotizacionId) {
   return `COT-${cotizacionId.slice(-6).toUpperCase()}`;
 }
 
-export async function aceptarCotizacion(id) {
+export async function aceptarCotizacion(id, usuarioId) {
   const cotizacion = await getCotizacion(id);
   if (!cotizacion) throw new Error('Cotización no encontrada');
   if (cotizacion.estado === 'ACEPTADA') throw new Error('Esta cotización ya fue aceptada');
@@ -162,11 +169,13 @@ export async function aceptarCotizacion(id) {
         fechaEvento: cotizacion.fechaEventoTentativa,
         precioTotal: cotizacion.montoTotal,
         notas: cotizacion.notas || null,
+        creadoPorId: usuarioId,
+        actualizadoPorId: usuarioId,
       },
     });
     await tx.cotizacion.update({
       where: { id },
-      data: { estado: 'ACEPTADA', fechaRespuesta: new Date(), ventaId: nuevaVenta.id },
+      data: { estado: 'ACEPTADA', fechaRespuesta: new Date(), ventaId: nuevaVenta.id, actualizadoPorId: usuarioId },
     });
     return nuevaVenta;
   });
@@ -175,14 +184,14 @@ export async function aceptarCotizacion(id) {
   return { cotizacion: actualizada, venta };
 }
 
-export async function rechazarCotizacion(id) {
+export async function rechazarCotizacion(id, usuarioId) {
   const cotizacion = await prisma.cotizacion.findUnique({ where: { id } });
   if (!cotizacion) throw new Error('Cotización no encontrada');
   if (cotizacion.estado === 'ACEPTADA') throw new Error('Esta cotización ya fue aceptada, no se puede rechazar');
 
   const actualizada = await prisma.cotizacion.update({
     where: { id },
-    data: { estado: 'RECHAZADA', fechaRespuesta: new Date() },
+    data: { estado: 'RECHAZADA', fechaRespuesta: new Date(), actualizadoPorId: usuarioId },
     include,
   });
   return withComputed(actualizada);

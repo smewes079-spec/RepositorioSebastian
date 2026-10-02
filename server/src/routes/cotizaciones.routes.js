@@ -11,7 +11,7 @@ router.post('/importar', upload.single('archivo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Debes adjuntar un archivo Excel o CSV' });
   try {
     const rows = await parseArchivoRows(req.file.buffer, req.file.originalname);
-    const resultado = await importCotizacionesRows(rows);
+    const resultado = await importCotizacionesRows(rows, req.user.id);
     res.json(resultado);
   } catch (err) {
     console.error(err);

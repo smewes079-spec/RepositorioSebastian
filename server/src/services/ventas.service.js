@@ -1,6 +1,10 @@
 import { prisma } from '../lib/prisma.js';
 
 const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
+const includeAuditoria = {
+  creadoPor: { select: { nombre: true } },
+  actualizadoPor: { select: { nombre: true } },
+};
 
 function withComputed(venta) {
   const totalPagado = venta.cuotas
@@ -40,7 +44,7 @@ export async function listVentas(filters = {}) {
 
   const ventas = await prisma.venta.findMany({
     where,
-    include: { cuotas: { orderBy: { numero: 'asc' } } },
+    include: { cuotas: { orderBy: { numero: 'asc' } }, ...includeAuditoria },
     orderBy: { fechaVenta: 'desc' },
   });
 
@@ -50,19 +54,21 @@ export async function listVentas(filters = {}) {
 export async function getVenta(id) {
   const venta = await prisma.venta.findUnique({
     where: { id },
-    include: { cuotas: { orderBy: { numero: 'asc' } } },
+    include: { cuotas: { orderBy: { numero: 'asc' } }, ...includeAuditoria },
   });
   if (!venta) return null;
   return withComputed(venta);
 }
 
-export async function createVenta(data) {
+export async function createVenta(data, usuarioId) {
   const { cuotas = [], ...ventaData } = data;
   const venta = await prisma.venta.create({
     data: {
       ...ventaData,
       fechaVenta: new Date(ventaData.fechaVenta),
       fechaEvento: new Date(ventaData.fechaEvento),
+      creadoPorId: usuarioId,
+      actualizadoPorId: usuarioId,
       cuotas: {
         create: cuotas.map((c, idx) => ({
           numero: c.numero ?? idx + 1,
@@ -74,14 +80,14 @@ export async function createVenta(data) {
         })),
       },
     },
-    include: { cuotas: { orderBy: { numero: 'asc' } } },
+    include: { cuotas: { orderBy: { numero: 'asc' } }, ...includeAuditoria },
   });
   return withComputed(venta);
 }
 
-export async function updateVenta(id, data) {
+export async function updateVenta(id, data, usuarioId) {
   const { cuotas, ...ventaData } = data;
-  const updateData = { ...ventaData };
+  const updateData = { ...ventaData, actualizadoPorId: usuarioId };
   if (ventaData.fechaVenta) updateData.fechaVenta = new Date(ventaData.fechaVenta);
   if (ventaData.fechaEvento) updateData.fechaEvento = new Date(ventaData.fechaEvento);
 
@@ -130,8 +136,8 @@ export async function deleteVenta(id) {
   await prisma.venta.delete({ where: { id } });
 }
 
-export async function moveKanban(id, kanbanEstado) {
-  const data = { kanbanEstado };
+export async function moveKanban(id, kanbanEstado, usuarioId) {
+  const data = { kanbanEstado, actualizadoPorId: usuarioId };
   if (kanbanEstado === 'ENTREGADO') {
     const previa = await prisma.venta.findUnique({ where: { id }, select: { estado: true } });
     data.estado = 'ENTREGADO';
@@ -140,7 +146,7 @@ export async function moveKanban(id, kanbanEstado) {
   const venta = await prisma.venta.update({
     where: { id },
     data,
-    include: { cuotas: { orderBy: { numero: 'asc' } } },
+    include: { cuotas: { orderBy: { numero: 'asc' } }, ...includeAuditoria },
   });
   return withComputed(venta);
 }

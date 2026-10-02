@@ -37,7 +37,7 @@ function parseTipoAsignacion(value) {
   return TIPO_ASIGNACION_MAP[normalizeLoose(value)] || null;
 }
 
-export async function importComprasRows(rows) {
+export async function importComprasRows(rows, usuarioId) {
   const creadas = [];
   const errores = [];
 
@@ -109,7 +109,7 @@ export async function importComprasRows(rows) {
         data.ventaId = venta.id;
       }
 
-      await purchasesService.createPurchase(data);
+      await purchasesService.createPurchase(data, usuarioId);
       creadas.push(String(descripcion));
     } catch (err) {
       errores.push({ linea: lineNum, error: err.message });

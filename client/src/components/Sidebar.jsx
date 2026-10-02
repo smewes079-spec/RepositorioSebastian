@@ -45,7 +45,7 @@ function NavItem({ to, label, icon: Icon, collapsed }) {
 }
 
 export default function Sidebar() {
-  const { logout } = useAuth();
+  const { logout, usuario } = useAuth();
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem('hsn-sidebar-collapsed') === '1'
   );
@@ -106,6 +106,11 @@ export default function Sidebar() {
       </nav>
 
       <div className={`pb-6 space-y-1 ${collapsed ? 'px-2' : 'px-3'}`}>
+        {!collapsed && usuario && (
+          <p className="px-4 pb-2 text-xs text-white/50 truncate" title={usuario.email}>
+            {usuario.nombre}
+          </p>
+        )}
         <NavItem to="/configuracion" label="Configuración" icon={Settings} collapsed={collapsed} />
         <button
           onClick={logout}

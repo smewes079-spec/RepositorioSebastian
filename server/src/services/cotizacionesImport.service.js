@@ -41,7 +41,7 @@ function itemsFromRow(row) {
   return items;
 }
 
-export async function importCotizacionesRows(rows) {
+export async function importCotizacionesRows(rows, usuarioId) {
   const creadas = [];
   const errores = [];
 
@@ -102,7 +102,7 @@ export async function importCotizacionesRows(rows) {
         notas: notas ? String(notas).trim() : null,
         remitente,
         items,
-      });
+      }, usuarioId);
       creadas.push(String(nombreClienta));
     } catch (err) {
       errores.push({ linea: lineNum, error: err.message });

@@ -52,6 +52,23 @@ enum CotizacionEstado {
   RECHAZADA
 }
 
+model Usuario {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  nombre       String
+  passwordHash String
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ventasCreadas       Venta[]      @relation("VentaCreadoPor")
+  ventasActualizadas  Venta[]      @relation("VentaActualizadoPor")
+  comprasCreadas      Purchase[]   @relation("PurchaseCreadoPor")
+  comprasActualizadas Purchase[]   @relation("PurchaseActualizadoPor")
+  cotizCreadas        Cotizacion[] @relation("CotizacionCreadoPor")
+  cotizActualizadas   Cotizacion[] @relation("CotizacionActualizadoPor")
+}
+
 model Venta {
   id              String       @id @default(cuid())
   codigo          String       @unique
@@ -67,6 +84,11 @@ model Venta {
   notasProduccion String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  creadoPorId      String?
+  creadoPor        Usuario?  @relation("VentaCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  actualizadoPorId String?
+  actualizadoPor   Usuario?  @relation("VentaActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
 
   cuotas               Cuota[]
   purchaseAssignments  PurchaseAssignment[]
@@ -104,6 +126,11 @@ model Purchase {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  creadoPorId      String?
+  creadoPor        Usuario? @relation("PurchaseCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  actualizadoPorId String?
+  actualizadoPor   Usuario? @relation("PurchaseActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
 
   asignaciones PurchaseAssignment[]
 
@@ -207,6 +234,11 @@ model Cotizacion {
   fechaRespuesta       DateTime?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
+
+  creadoPorId      String?
+  creadoPor        Usuario? @relation("CotizacionCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  actualizadoPorId String?
+  actualizadoPor   Usuario? @relation("CotizacionActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
 
   items   CotizacionItem[]
   ventaId String?           @unique

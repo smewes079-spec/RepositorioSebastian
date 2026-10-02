@@ -1,8 +1,9 @@
 # Hatton Schultz Novias
 
 Aplicación de gestión para el taller de vestidos de novia Hatton Schultz
-Novias (Santiago, Chile). Un solo nivel de acceso: todas las usuarias ven
-todo. Aplicación de escritorio (desktop-first).
+Novias (Santiago, Chile). Cuentas individuales por persona, pero un solo
+nivel de permisos: todas las usuarias ven y pueden editar todo. Aplicación
+de escritorio (desktop-first).
 
 ¿Encontraste un error o necesitas una función nueva? Ver
 [`COMO-PEDIR-CAMBIOS.md`](./COMO-PEDIR-CAMBIOS.md). Historial de versiones
@@ -13,7 +14,7 @@ en [`CHANGELOG.md`](./CHANGELOG.md).
 - **Frontend:** React + Vite + Tailwind CSS, React Router, lucide-react
 - **Backend:** Node.js + Express
 - **Base de datos:** PostgreSQL + Prisma ORM
-- **Autenticación:** sesión única compartida (sin roles), `express-session`
+- **Autenticación:** cuentas individuales (correo + contraseña, `bcryptjs`), sesión en `express-session`. Sin roles: cualquier cuenta activa puede hacer cualquier cosa.
 
 ## Estado del proyecto
 
@@ -62,7 +63,7 @@ CREATE DATABASE hsn_db OWNER hsn_user;
 
 ```bash
 cd server
-cp .env.example .env   # ajusta DATABASE_URL, APP_PASSWORD, etc.
+cp .env.example .env   # ajusta DATABASE_URL, SESSION_SECRET, etc.
 npm install
 npm run prisma:migrate  # crea las tablas
 npm run dev              # http://localhost:4000
@@ -75,8 +76,12 @@ Variables de entorno relevantes (`server/.env`):
 | `DATABASE_URL` | conexión a PostgreSQL |
 | `PORT` | puerto de la API (default 4000) |
 | `SESSION_SECRET` | secreto de las cookies de sesión |
-| `APP_PASSWORD` | contraseña única de acceso a la app |
 | `CLIENT_ORIGIN` | origen permitido para CORS |
+
+No hay ninguna cuenta precargada: la primera vez que se abre la app (sin
+ningún `Usuario` en la base de datos) la pantalla de login pide crear la
+cuenta del administrador. Las demás cuentas se crean después desde
+Configuración → Usuarios.
 
 ### 3. Frontend
 

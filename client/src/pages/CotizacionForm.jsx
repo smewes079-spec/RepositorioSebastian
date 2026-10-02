@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Trash2, Send, CheckCircle2, XCircle, FileDown } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CotizacionItemsEditor from '../components/CotizacionItemsEditor.jsx';
+import InfoAuditoria from '../components/InfoAuditoria.jsx';
 import { api } from '../lib/api.js';
 import {
   formatFecha,
@@ -285,6 +286,12 @@ export default function CotizacionForm() {
             </button>
           </div>
         </div>
+      )}
+
+      {isEdit && cotizacion && (
+        <InfoAuditoria
+          auditoria={{ creadoPor: cotizacion.creadoPor?.nombre, actualizadoPor: cotizacion.actualizadoPor?.nombre }}
+        />
       )}
 
       {info && <p className="text-sm text-[#5C8C6A] mb-4">{info}</p>}

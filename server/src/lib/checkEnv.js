@@ -1,4 +1,4 @@
-const REQUIRED_VARS = ['DATABASE_URL', 'SESSION_SECRET', 'APP_PASSWORD'];
+const REQUIRED_VARS = ['DATABASE_URL', 'SESSION_SECRET'];
 
 export function checkRequiredEnv() {
   const faltantes = REQUIRED_VARS.filter((key) => !process.env[key]);

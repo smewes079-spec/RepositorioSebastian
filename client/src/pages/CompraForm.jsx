@@ -4,6 +4,7 @@ import { Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import VentaSearchSelect from '../components/VentaSearchSelect.jsx';
 import VentasMultiSelect from '../components/VentasMultiSelect.jsx';
+import InfoAuditoria from '../components/InfoAuditoria.jsx';
 import { api } from '../lib/api.js';
 import { formatCLP, toInputDate, CATEGORIA_LABELS, TIPO_ASIGNACION_LABELS } from '../lib/format.js';
 
@@ -32,6 +33,7 @@ export default function CompraForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [asignacionesGuardadas, setAsignacionesGuardadas] = useState(null);
+  const [auditoria, setAuditoria] = useState(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -48,6 +50,7 @@ export default function CompraForm() {
           ventaIds: c.asignaciones.map((a) => a.ventaId),
         });
         setAsignacionesGuardadas(c.asignaciones);
+        setAuditoria({ creadoPor: c.creadoPor?.nombre, actualizadoPor: c.actualizadoPor?.nombre });
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -115,6 +118,8 @@ export default function CompraForm() {
         )
       }
     >
+      <InfoAuditoria auditoria={auditoria} />
+
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
         <div className="bg-white rounded-xl border border-black/5 p-6 grid grid-cols-2 gap-5">
           <div>

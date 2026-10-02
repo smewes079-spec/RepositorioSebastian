@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Check, Plus, Trash2 } from 'lucide-react';
+import { Check, Plus, Trash2, KeyRound, UserPlus } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import { api } from '../lib/api.js';
 import { toInputDate, TIPO_LABELS } from '../lib/format.js';
+import { useAuth } from '../lib/AuthContext.jsx';
 
 function SavedBadge({ show }) {
   if (!show) return null;
@@ -14,12 +15,20 @@ function SavedBadge({ show }) {
 }
 
 const COSTO_FIJO_VACIO = { nombre: '', monto: 0, fechaInicio: '' };
+const NUEVO_USUARIO_VACIO = { nombre: '', email: '' };
+const CAMBIAR_PASSWORD_VACIO = { passwordActual: '', passwordNueva: '', passwordNueva2: '' };
 
 export default function Configuracion() {
+  const { usuario: usuarioActual } = useAuth();
   const [tipos, setTipos] = useState([]);
   const [sueldos, setSueldos] = useState([]);
   const [costosFijos, setCostosFijos] = useState([]);
   const [financiero, setFinanciero] = useState(null);
+  const [usuarios, setUsuarios] = useState([]);
+  const [nuevoUsuario, setNuevoUsuario] = useState(NUEVO_USUARIO_VACIO);
+  const [passwordTemporal, setPasswordTemporal] = useState(null); // { email, password }
+  const [cambiarPassword, setCambiarPassword] = useState(CAMBIAR_PASSWORD_VACIO);
+  const [cambiarPasswordMsg, setCambiarPasswordMsg] = useState('');
   const [nuevoCostoFijo, setNuevoCostoFijo] = useState(COSTO_FIJO_VACIO);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,15 +41,66 @@ export default function Configuracion() {
       api.get('/config/sueldos'),
       api.get('/config/costos-fijos'),
       api.get('/config/financiero'),
+      api.get('/usuarios'),
     ])
-      .then(([t, s, c, f]) => {
+      .then(([t, s, c, f, u]) => {
         setTipos(t);
         setSueldos(s);
         setCostosFijos(c);
         setFinanciero(f);
+        setUsuarios(u);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }
+
+  async function crearUsuario() {
+    if (!nuevoUsuario.nombre.trim() || !nuevoUsuario.email.trim()) return;
+    try {
+      const { usuario, passwordTemporal: pw } = await api.post('/usuarios', nuevoUsuario);
+      setUsuarios((prev) => [...prev, usuario]);
+      setNuevoUsuario(NUEVO_USUARIO_VACIO);
+      setPasswordTemporal({ email: usuario.email, password: pw });
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function toggleActivoUsuario(u) {
+    try {
+      const actualizado = await api.put(`/usuarios/${u.id}`, { activo: !u.activo });
+      setUsuarios((prev) => prev.map((x) => (x.id === u.id ? actualizado : x)));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function resetearPasswordUsuario(u) {
+    if (!confirm(`¿Restablecer la contraseña de ${u.nombre}? Se generará una nueva contraseña temporal.`)) return;
+    try {
+      const { passwordTemporal: pw } = await api.post(`/usuarios/${u.id}/resetear-password`);
+      setPasswordTemporal({ email: u.email, password: pw });
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function handleCambiarPassword() {
+    setCambiarPasswordMsg('');
+    if (cambiarPassword.passwordNueva !== cambiarPassword.passwordNueva2) {
+      setCambiarPasswordMsg('Las dos contraseñas nuevas no coinciden');
+      return;
+    }
+    try {
+      await api.post('/usuarios/cambiar-password', {
+        passwordActual: cambiarPassword.passwordActual,
+        passwordNueva: cambiarPassword.passwordNueva,
+      });
+      setCambiarPassword(CAMBIAR_PASSWORD_VACIO);
+      setCambiarPasswordMsg('Contraseña actualizada.');
+    } catch (err) {
+      setCambiarPasswordMsg(err.message);
+    }
   }
 
   useEffect(load, []);
@@ -411,6 +471,171 @@ export default function Configuracion() {
           <SavedBadge show={savedKey === 'financiero'} />
         </div>
       )}
+
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3 mt-8">
+        Usuarios
+      </p>
+
+      {passwordTemporal && (
+        <div className="bg-[#FAF6EF] border border-[#C9A96E]/30 rounded-xl p-4 mb-4 text-sm">
+          <p className="font-medium text-[#2C2420] mb-1">
+            Contraseña temporal para {passwordTemporal.email}
+          </p>
+          <p className="text-[#2C2420]/80">
+            <code className="bg-white px-2 py-1 rounded border border-black/10">
+              {passwordTemporal.password}
+            </code>
+          </p>
+          <p className="text-xs text-[#2C2420]/50 mt-2">
+            Cópiala y envíasela por otro medio (WhatsApp, etc.) — no queda guardada en ningún
+            lado, así que si la pierdes tendrás que restablecerla de nuevo. Puede cambiarla
+            después desde "Cambiar mi contraseña", abajo.
+          </p>
+          <button
+            onClick={() => setPasswordTemporal(null)}
+            className="text-xs text-[#C9A96E] hover:underline mt-2"
+          >
+            Entendido, ocultar
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-3">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
+                <th className="px-5 py-3 font-medium whitespace-nowrap">Nombre</th>
+                <th className="px-5 py-3 font-medium whitespace-nowrap">Correo</th>
+                <th className="px-5 py-3 font-medium whitespace-nowrap">Estado</th>
+                <th className="px-5 py-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {usuarios.map((u) => (
+                <tr key={u.id} className="border-b border-black/5 last:border-0">
+                  <td className="px-5 py-3 font-medium">
+                    {u.nombre} {u.id === usuarioActual?.id && <span className="text-[#C9A96E]">(tú)</span>}
+                  </td>
+                  <td className="px-5 py-3 text-[#2C2420]/70">{u.email}</td>
+                  <td className="px-5 py-3">
+                    <span
+                      className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium"
+                      style={
+                        u.activo
+                          ? { backgroundColor: '#E8F0E9', color: '#5C8C6A' }
+                          : { backgroundColor: '#F3E8E6', color: '#A85C52' }
+                      }
+                    >
+                      {u.activo ? 'Activo' : 'Desactivado'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => resetearPasswordUsuario(u)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-[#2C2420]/70 hover:text-[#2C2420]"
+                        title="Restablecer contraseña"
+                      >
+                        <KeyRound size={13} />
+                        Restablecer contraseña
+                      </button>
+                      {u.id !== usuarioActual?.id && (
+                        <button
+                          onClick={() => toggleActivoUsuario(u)}
+                          className="ml-auto text-xs font-medium text-[#A85C52]/80 hover:text-[#A85C52]"
+                        >
+                          {u.activo ? 'Desactivar' : 'Reactivar'}
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              <tr>
+                <td className="px-5 py-3">
+                  <input
+                    value={nuevoUsuario.nombre}
+                    onChange={(e) => setNuevoUsuario((f) => ({ ...f, nombre: e.target.value }))}
+                    placeholder="Nombre"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                  />
+                </td>
+                <td className="px-5 py-3">
+                  <input
+                    type="email"
+                    value={nuevoUsuario.email}
+                    onChange={(e) => setNuevoUsuario((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="correo@hattonschultz.com"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                  />
+                </td>
+                <td className="px-5 py-3" colSpan={2}>
+                  <button
+                    onClick={crearUsuario}
+                    className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
+                  >
+                    <UserPlus size={14} />
+                    Crear cuenta
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p className="text-xs text-[#2C2420]/40 mb-8 leading-relaxed max-w-2xl">
+        Al crear una cuenta se genera una contraseña temporal que debes copiar y enviarle a esa
+        persona por otro medio; ella puede cambiarla después desde su propia sesión.
+      </p>
+
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3">
+        Cambiar mi contraseña
+      </p>
+      <div className="bg-white rounded-xl border border-black/5 p-6 flex flex-wrap items-end gap-4 max-w-2xl">
+        <div>
+          <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Contraseña actual</label>
+          <input
+            type="password"
+            value={cambiarPassword.passwordActual}
+            onChange={(e) => setCambiarPassword((f) => ({ ...f, passwordActual: e.target.value }))}
+            className="w-44 px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Contraseña nueva</label>
+          <input
+            type="password"
+            value={cambiarPassword.passwordNueva}
+            onChange={(e) => setCambiarPassword((f) => ({ ...f, passwordNueva: e.target.value }))}
+            className="w-44 px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Repite la nueva</label>
+          <input
+            type="password"
+            value={cambiarPassword.passwordNueva2}
+            onChange={(e) => setCambiarPassword((f) => ({ ...f, passwordNueva2: e.target.value }))}
+            className="w-44 px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+          />
+        </div>
+        <button
+          onClick={handleCambiarPassword}
+          className="px-4 py-2 text-sm rounded-lg text-white hover:opacity-90"
+          style={{ backgroundColor: '#1A1A2E' }}
+        >
+          Cambiar
+        </button>
+        {cambiarPasswordMsg && (
+          <p
+            className="text-xs w-full"
+            style={{ color: cambiarPasswordMsg === 'Contraseña actualizada.' ? '#5C8C6A' : '#A85C52' }}
+          >
+            {cambiarPasswordMsg}
+          </p>
+        )}
+      </div>
     </Layout>
   );
 }

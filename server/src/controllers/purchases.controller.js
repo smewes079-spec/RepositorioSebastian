@@ -20,7 +20,7 @@ export async function show(req, res) {
 
 export async function create(req, res) {
   try {
-    const data = await purchasesService.createPurchase(req.body);
+    const data = await purchasesService.createPurchase(req.body, req.user.id);
     res.status(201).json(data);
   } catch (err) {
     res.status(400).json({ error: err.message || 'No se pudo registrar la compra' });
@@ -29,7 +29,7 @@ export async function create(req, res) {
 
 export async function update(req, res) {
   try {
-    const data = await purchasesService.updatePurchase(req.params.id, req.body);
+    const data = await purchasesService.updatePurchase(req.params.id, req.body, req.user.id);
     res.json(data);
   } catch (err) {
     res.status(err.status || 400).json({ error: err.message || 'No se pudo actualizar la compra' });

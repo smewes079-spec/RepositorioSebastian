@@ -14,7 +14,7 @@ export async function show(req, res) {
 
 export async function create(req, res) {
   try {
-    const cotizacion = await cotizacionesService.createCotizacion(req.body);
+    const cotizacion = await cotizacionesService.createCotizacion(req.body, req.user.id);
     res.status(201).json(cotizacion);
   } catch (err) {
     console.error(err);
@@ -24,7 +24,7 @@ export async function create(req, res) {
 
 export async function update(req, res) {
   try {
-    const cotizacion = await cotizacionesService.updateCotizacion(req.params.id, req.body);
+    const cotizacion = await cotizacionesService.updateCotizacion(req.params.id, req.body, req.user.id);
     res.json(cotizacion);
   } catch (err) {
     console.error(err);
@@ -43,7 +43,7 @@ export async function destroy(req, res) {
 
 export async function enviar(req, res) {
   try {
-    const cotizacion = await cotizacionesService.enviarCotizacion(req.params.id, req.body?.mensaje);
+    const cotizacion = await cotizacionesService.enviarCotizacion(req.params.id, req.body?.mensaje, req.user.id);
     res.json(cotizacion);
   } catch (err) {
     console.error(err);
@@ -53,7 +53,7 @@ export async function enviar(req, res) {
 
 export async function aceptar(req, res) {
   try {
-    const resultado = await cotizacionesService.aceptarCotizacion(req.params.id);
+    const resultado = await cotizacionesService.aceptarCotizacion(req.params.id, req.user.id);
     res.json(resultado);
   } catch (err) {
     console.error(err);
@@ -63,7 +63,7 @@ export async function aceptar(req, res) {
 
 export async function rechazar(req, res) {
   try {
-    const cotizacion = await cotizacionesService.rechazarCotizacion(req.params.id);
+    const cotizacion = await cotizacionesService.rechazarCotizacion(req.params.id, req.user.id);
     res.json(cotizacion);
   } catch (err) {
     console.error(err);
