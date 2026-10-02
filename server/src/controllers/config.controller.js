@@ -28,6 +28,32 @@ export async function updateSueldo(req, res) {
   }
 }
 
+export async function createSueldo(req, res) {
+  try {
+    const { nombre } = req.body;
+    if (!nombre || !nombre.trim()) {
+      return res.status(400).json({ error: 'El nombre es obligatorio' });
+    }
+    const data = await configService.updateSueldo(nombre.trim(), req.body);
+    res.status(201).json(data);
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'Ya existe un sueldo con ese nombre' });
+    }
+    res.status(400).json({ error: 'No se pudo agregar la modista' });
+  }
+}
+
+export async function deleteSueldo(req, res) {
+  try {
+    await configService.deleteSueldo(req.params.nombre);
+    res.status(204).end();
+  } catch (err) {
+    res.status(404).json({ error: 'Sueldo no encontrado' });
+  }
+}
+
 export async function costosFijos(req, res) {
   res.json(await configService.listCostosFijos());
 }

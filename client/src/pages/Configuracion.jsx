@@ -15,6 +15,7 @@ function SavedBadge({ show }) {
 }
 
 const COSTO_FIJO_VACIO = { nombre: '', monto: 0, fechaInicio: '' };
+const SUELDO_VACIO = { nombre: '', monto: 0, fechaInicio: '' };
 const NUEVO_USUARIO_VACIO = { nombre: '', email: '' };
 const CAMBIAR_PASSWORD_VACIO = { passwordActual: '', passwordNueva: '', passwordNueva2: '' };
 
@@ -30,6 +31,7 @@ export default function Configuracion() {
   const [cambiarPassword, setCambiarPassword] = useState(CAMBIAR_PASSWORD_VACIO);
   const [cambiarPasswordMsg, setCambiarPasswordMsg] = useState('');
   const [nuevoCostoFijo, setNuevoCostoFijo] = useState(COSTO_FIJO_VACIO);
+  const [nuevoSueldo, setNuevoSueldo] = useState(SUELDO_VACIO);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [savedKey, setSavedKey] = useState('');
@@ -137,6 +139,31 @@ export default function Configuracion() {
       });
       setSavedKey(`sueldo-${nombre}`);
       setTimeout(() => setSavedKey(''), 1500);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function eliminarSueldo(nombre) {
+    if (!confirm(`¿Eliminar a "${nombre}" de los sueldos?`)) return;
+    try {
+      await api.del(`/config/sueldos/${encodeURIComponent(nombre)}`);
+      setSueldos((prev) => prev.filter((s) => s.nombre !== nombre));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function agregarSueldo() {
+    if (!nuevoSueldo.nombre.trim()) return;
+    try {
+      const creado = await api.post('/config/sueldos', {
+        nombre: nuevoSueldo.nombre.trim(),
+        monto: Number(nuevoSueldo.monto),
+        fechaInicio: nuevoSueldo.fechaInicio || new Date().toISOString().slice(0, 10),
+      });
+      setSueldos((prev) => [...prev, creado]);
+      setNuevoSueldo(SUELDO_VACIO);
     } catch (err) {
       setError(err.message);
     }
@@ -313,18 +340,63 @@ export default function Configuracion() {
                     className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
                   />
                 </td>
-                <td className="px-5 py-3 flex items-center gap-3">
-                  <button
-                    onClick={() => saveSueldo(s.nombre)}
-                    className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
-                    style={{ backgroundColor: '#1A1A2E' }}
-                  >
-                    Guardar
-                  </button>
-                  <SavedBadge show={savedKey === `sueldo-${s.nombre}`} />
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => saveSueldo(s.nombre)}
+                      className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
+                      style={{ backgroundColor: '#1A1A2E' }}
+                    >
+                      Guardar
+                    </button>
+                    <SavedBadge show={savedKey === `sueldo-${s.nombre}`} />
+                    <button
+                      onClick={() => eliminarSueldo(s.nombre)}
+                      className="ml-auto text-[#A85C52]/70 hover:text-[#A85C52]"
+                      title="Eliminar"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
+            <tr>
+              <td className="px-5 py-3">
+                <input
+                  value={nuevoSueldo.nombre}
+                  onChange={(e) => setNuevoSueldo((f) => ({ ...f, nombre: e.target.value }))}
+                  placeholder="Nombre de la modista"
+                  className="w-full px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                />
+              </td>
+              <td className="px-5 py-3">
+                <input
+                  type="number"
+                  min="0"
+                  value={nuevoSueldo.monto}
+                  onChange={(e) => setNuevoSueldo((f) => ({ ...f, monto: e.target.value }))}
+                  className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                />
+              </td>
+              <td className="px-5 py-3">
+                <input
+                  type="date"
+                  value={nuevoSueldo.fechaInicio}
+                  onChange={(e) => setNuevoSueldo((f) => ({ ...f, fechaInicio: e.target.value }))}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                />
+              </td>
+              <td className="px-5 py-3">
+                <button
+                  onClick={agregarSueldo}
+                  className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
+                >
+                  <Plus size={14} />
+                  Agregar
+                </button>
+              </td>
+            </tr>
           </tbody>
         </table>
         </div>

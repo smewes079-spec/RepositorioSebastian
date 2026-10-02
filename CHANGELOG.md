@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.4.1 — 2026-10-02
+
+- Configuración → Sueldos de modistas: ahora se puede agregar una modista nueva o eliminar una existente, igual que ya se podía con los costos fijos.
+
 ## v1.4.0 — 2026-10-02
 
 - **Cuentas individuales**: cada persona entra con su propio correo y contraseña en vez de compartir una sola clave. La primera vez que se abre la app, la pantalla de login pide crear la cuenta del administrador; las demás se crean después desde Configuración → Usuarios (se genera una contraseña temporal que hay que enviarle a esa persona; ella puede cambiarla después desde su propia sesión).

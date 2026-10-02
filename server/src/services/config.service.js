@@ -91,6 +91,10 @@ export async function updateSueldo(nombre, data) {
   });
 }
 
+export async function deleteSueldo(nombre) {
+  await prisma.configSueldo.delete({ where: { nombre } });
+}
+
 export async function listCostosFijos() {
   const existentes = await prisma.configCostoFijo.findMany();
   const faltantes = COSTOS_FIJOS_DEFAULT.filter(
