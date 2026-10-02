@@ -9,7 +9,7 @@ export default function Layout({ title, subtitle, actions, backTo, children }) {
       <main className="flex-1 min-w-0">
         {(title || actions) && (
           <header className="border-b border-black/5 bg-white/60">
-            <div className="flex items-center justify-between px-6 py-5 max-w-[1600px] mx-auto">
+            <div className="flex items-center justify-between px-6 py-5 max-w-[1600px]">
               <div className="flex items-center gap-4">
                 {backTo && (
                   <Link
@@ -29,7 +29,7 @@ export default function Layout({ title, subtitle, actions, backTo, children }) {
             </div>
           </header>
         )}
-        <div className="px-6 py-6 max-w-[1600px] mx-auto">{children}</div>
+        <div className="px-6 py-6 max-w-[1600px]">{children}</div>
       </main>
     </div>
   );
