@@ -67,6 +67,9 @@ export async function createVenta(data, usuarioId) {
       ...ventaData,
       fechaVenta: new Date(ventaData.fechaVenta),
       fechaEvento: new Date(ventaData.fechaEvento),
+      fechaEntregaComprometida: ventaData.fechaEntregaComprometida
+        ? new Date(ventaData.fechaEntregaComprometida)
+        : null,
       creadoPorId: usuarioId,
       actualizadoPorId: usuarioId,
       cuotas: {
@@ -90,6 +93,11 @@ export async function updateVenta(id, data, usuarioId) {
   const updateData = { ...ventaData, actualizadoPorId: usuarioId };
   if (ventaData.fechaVenta) updateData.fechaVenta = new Date(ventaData.fechaVenta);
   if (ventaData.fechaEvento) updateData.fechaEvento = new Date(ventaData.fechaEvento);
+  if (ventaData.fechaEntregaComprometida !== undefined) {
+    updateData.fechaEntregaComprometida = ventaData.fechaEntregaComprometida
+      ? new Date(ventaData.fechaEntregaComprometida)
+      : null;
+  }
 
   if (ventaData.estado) {
     const previa = await prisma.venta.findUnique({ where: { id }, select: { estado: true } });

@@ -6,7 +6,7 @@ import CuotasEditor from '../components/CuotasEditor.jsx';
 import FichaCosto from '../components/FichaCosto.jsx';
 import InfoAuditoria from '../components/InfoAuditoria.jsx';
 import { api } from '../lib/api.js';
-import { formatCLP, toInputDate, TIPO_LABELS, ESTADO_LABELS, KANBAN_LABELS } from '../lib/format.js';
+import { formatCLP, formatFecha, toInputDate, TIPO_LABELS, ESTADO_LABELS, KANBAN_LABELS } from '../lib/format.js';
 
 const VACIO = {
   codigo: '',
@@ -14,6 +14,7 @@ const VACIO = {
   tipo: 'NOVIA',
   fechaVenta: '',
   fechaEvento: '',
+  fechaEntregaComprometida: '',
   precioTotal: 0,
   estado: 'NO_ENTREGADO',
   kanbanEstado: 'PENDIENTE',
@@ -33,6 +34,7 @@ export default function VentaForm() {
   const [error, setError] = useState('');
   const [computed, setComputed] = useState(null);
   const [auditoria, setAuditoria] = useState(null);
+  const [fechaEntregaReal, setFechaEntregaReal] = useState(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -45,6 +47,7 @@ export default function VentaForm() {
           tipo: v.tipo,
           fechaVenta: toInputDate(v.fechaVenta),
           fechaEvento: toInputDate(v.fechaEvento),
+          fechaEntregaComprometida: toInputDate(v.fechaEntregaComprometida),
           precioTotal: v.precioTotal,
           estado: v.estado,
           kanbanEstado: v.kanbanEstado,
@@ -68,6 +71,7 @@ export default function VentaForm() {
           totalPagado: v.totalPagado,
         });
         setAuditoria({ creadoPor: v.creadoPor?.nombre, actualizadoPor: v.actualizadoPor?.nombre });
+        setFechaEntregaReal(v.fechaEntrega);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -227,6 +231,22 @@ export default function VentaForm() {
               onChange={(e) => handleChange('fechaEvento', e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+              Fecha de entrega comprometida
+            </label>
+            <input
+              type="date"
+              value={form.fechaEntregaComprometida}
+              onChange={(e) => handleChange('fechaEntregaComprometida', e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+            />
+            <p className="text-[10px] text-[#2C2420]/40 mt-1">
+              Fecha objetivo para tener el vestido terminado (para planificar producción), no la
+              fecha real de entrega.
+              {fechaEntregaReal && <> El vestido quedó entregado el {formatFecha(fechaEntregaReal)}.</>}
+            </p>
           </div>
           <div>
             <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">

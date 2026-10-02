@@ -76,6 +76,7 @@ model Venta {
   tipo            TipoVestido
   fechaVenta      DateTime
   fechaEvento     DateTime
+  fechaEntregaComprometida DateTime?
   fechaEntrega    DateTime?
   precioTotal     Int
   estado          EstadoVenta  @default(NO_ENTREGADO)

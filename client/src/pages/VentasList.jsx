@@ -94,6 +94,11 @@ const COLUMN_DEFS = {
     cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaEvento)}</span>,
     getValue: (v) => formatFecha(v.fechaEvento),
   },
+  fechaEntregaComprometida: {
+    label: 'Entrega comprometida',
+    cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaEntregaComprometida) || '—'}</span>,
+    getValue: (v) => formatFecha(v.fechaEntregaComprometida),
+  },
   total: {
     label: 'Total',
     align: 'right',
@@ -141,7 +146,7 @@ const COLUMN_DEFS = {
 };
 
 const ORDEN_COLUMNAS_DEFECTO = [
-  'codigo', 'clienta', 'tipo', 'fechaVenta', 'fechaEvento',
+  'codigo', 'clienta', 'tipo', 'fechaVenta', 'fechaEvento', 'fechaEntregaComprometida',
   'total', 'saldo', 'cobrado', 'estado', 'produccion',
 ];
 
