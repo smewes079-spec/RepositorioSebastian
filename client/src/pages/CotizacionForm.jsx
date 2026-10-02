@@ -61,7 +61,7 @@ export default function CotizacionForm() {
         setCotizacion(c);
         setForm({
           nombreClienta: c.nombreClienta,
-          emailClienta: c.emailClienta,
+          emailClienta: c.emailClienta || '',
           telefonoClienta: c.telefonoClienta || '',
           tipo: c.tipo,
           fechaEventoTentativa: toInputDate(c.fechaEventoTentativa),
@@ -312,12 +312,12 @@ export default function CotizacionForm() {
             <div>
               <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Correo de la clienta</label>
               <input
-                required
                 type="email"
                 value={form.emailClienta}
                 onChange={(e) => handleChange('emailClienta', e.target.value)}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
               />
+              <p className="text-[10px] text-[#2C2420]/40 mt-1">Necesario para poder enviarla por correo.</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Teléfono (opcional)</label>

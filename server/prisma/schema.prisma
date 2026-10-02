@@ -223,7 +223,7 @@ model PresupuestoCuota {
 model Cotizacion {
   id                   String           @id @default(cuid())
   nombreClienta        String
-  emailClienta         String
+  emailClienta         String?
   telefonoClienta      String?
   tipo                 TipoVestido
   fechaEventoTentativa DateTime?

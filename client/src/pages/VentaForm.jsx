@@ -35,7 +35,6 @@ export default function VentaForm() {
   const [computed, setComputed] = useState(null);
   const [auditoria, setAuditoria] = useState(null);
   const [fechaEntregaReal, setFechaEntregaReal] = useState(null);
-  const [cotizacionOrigenId, setCotizacionOrigenId] = useState(null);
   const [revirtiendo, setRevirtiendo] = useState(false);
 
   useEffect(() => {
@@ -74,7 +73,6 @@ export default function VentaForm() {
         });
         setAuditoria({ creadoPor: v.creadoPor?.nombre, actualizadoPor: v.actualizadoPor?.nombre });
         setFechaEntregaReal(v.fechaEntrega);
-        setCotizacionOrigenId(v.cotizacion?.id || null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -124,8 +122,8 @@ export default function VentaForm() {
   async function handleRevertir() {
     if (
       !confirm(
-        'La clienta se retractó y quieres volver esta venta a Cotizaciones?\n\n' +
-          'Esto eliminará el registro de esta venta (incluyendo sus cuotas y cualquier compra de insumos asignada a ella) y la cotización original quedará marcada como Rechazada, editable para gestionarla de nuevo.\n\n' +
+        '¿Mover esta venta a Cotizaciones (por ejemplo, porque la clienta se retractó)?\n\n' +
+          'Se eliminará el registro de esta venta (incluyendo sus cuotas y cualquier compra de insumos asignada a ella) y quedará como una cotización marcada Rechazada, editable para gestionarla de nuevo.\n\n' +
           'Esta acción no se puede deshacer. ¿Continuar?'
       )
     )
@@ -157,17 +155,15 @@ export default function VentaForm() {
       actions={
         isEdit && (
           <>
-            {cotizacionOrigenId && (
-              <button
-                onClick={handleRevertir}
-                disabled={revirtiendo}
-                title="La clienta se retractó: vuelve esta venta a Cotizaciones"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#2C2420]/70 border border-black/10 hover:bg-black/5 disabled:opacity-50"
-              >
-                <Undo2 size={15} />
-                {revirtiendo ? 'Revirtiendo…' : 'Volver a Cotización'}
-              </button>
-            )}
+            <button
+              onClick={handleRevertir}
+              disabled={revirtiendo}
+              title="La clienta se retractó: mueve esta venta a Cotizaciones"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#2C2420]/70 border border-black/10 hover:bg-black/5 disabled:opacity-50"
+            >
+              <Undo2 size={15} />
+              {revirtiendo ? 'Moviendo…' : 'Mover a Cotización'}
+            </button>
             <button
               onClick={handleDelete}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#A85C52] border border-[#A85C52]/30 hover:bg-[#A85C52]/5"

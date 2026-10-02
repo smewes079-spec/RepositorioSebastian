@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 
 const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
+const TIPO_LABELS_ES = { NOVIA: 'Novia', MADRINA: 'Madrina', INVITADA: 'Invitada', CIVIL: 'Civil' };
 const includeAuditoria = {
   creadoPor: { select: { nombre: true } },
   actualizadoPor: { select: { nombre: true } },
@@ -146,19 +147,50 @@ export async function deleteVenta(id) {
 }
 
 export async function revertirACotizacion(id, usuarioId) {
-  const cotizacion = await prisma.cotizacion.findUnique({ where: { ventaId: id } });
-  if (!cotizacion) {
-    throw new Error('Esta venta no proviene de ninguna cotización, no se puede revertir');
-  }
+  const venta = await prisma.venta.findUnique({ where: { id } });
+  if (!venta) throw new Error('Venta no encontrada');
+
+  const cotizacionExistente = await prisma.cotizacion.findUnique({ where: { ventaId: id } });
 
   return prisma.$transaction(async (tx) => {
-    // El FK Cotizacion.ventaId es ON DELETE SET NULL, así que al borrar la
-    // venta la cotización queda automáticamente sin venta vinculada; solo
-    // falta marcarla como Rechazada.
+    if (cotizacionExistente) {
+      // El FK Cotizacion.ventaId es ON DELETE SET NULL, así que al borrar la
+      // venta la cotización queda automáticamente sin venta vinculada; solo
+      // falta marcarla como Rechazada.
+      await tx.venta.delete({ where: { id } });
+      return tx.cotizacion.update({
+        where: { id: cotizacionExistente.id },
+        data: { estado: 'RECHAZADA', fechaRespuesta: new Date(), actualizadoPorId: usuarioId },
+      });
+    }
+
+    // La venta nunca pasó por Cotizaciones (ej. viene de una importación):
+    // se reconstruye una cotización con lo que sí sabemos de ella.
+    const notasOrigen = [`Convertida desde la venta ${venta.codigo}.`, venta.notas]
+      .filter(Boolean)
+      .join(' ');
     await tx.venta.delete({ where: { id } });
-    return tx.cotizacion.update({
-      where: { id: cotizacion.id },
-      data: { estado: 'RECHAZADA', fechaRespuesta: new Date(), actualizadoPorId: usuarioId },
+    return tx.cotizacion.create({
+      data: {
+        nombreClienta: venta.nombreClienta,
+        tipo: venta.tipo,
+        fechaEventoTentativa: venta.fechaEvento,
+        notas: notasOrigen,
+        estado: 'RECHAZADA',
+        fechaRespuesta: new Date(),
+        creadoPorId: usuarioId,
+        actualizadoPorId: usuarioId,
+        items: {
+          create: [
+            {
+              orden: 1,
+              descripcion: `Vestido de ${TIPO_LABELS_ES[venta.tipo] || venta.tipo}`,
+              cantidad: 1,
+              monto: venta.precioTotal,
+            },
+          ],
+        },
+      },
     });
   });
 }

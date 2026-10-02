@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.8.0 — 2026-10-02
+
+- **"Mover a Cotización" ahora funciona para cualquier venta**, no solo las que vinieron de una cotización aceptada — incluidas las ventas de la base de datos importada. Si la venta nunca tuvo cotización, se crea una nueva automáticamente con sus datos (nombre, tipo, fecha de evento, monto) marcada como Rechazada; el correo de la clienta queda vacío y se puede completar después si hace falta reenviarla.
+- El correo de la clienta en Cotizaciones ya no es obligatorio para guardar — solo se pide al momento de enviarla por correo, con un aviso claro si falta.
+
 ## v1.7.0 — 2026-10-02
 
 - **Ventas**: nuevo botón "Volver a Cotización" para cuando una clienta se retracta después de haber aceptado. Solo aparece en ventas que vienen de una cotización aceptada. Elimina el registro de la venta (cuotas y compras de insumos asignadas incluidas, con advertencia clara antes de confirmar) y la cotización original vuelve a quedar activa, marcada como Rechazada, lista para editarse o gestionarse de nuevo.

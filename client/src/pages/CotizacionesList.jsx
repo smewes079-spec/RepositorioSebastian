@@ -64,7 +64,11 @@ const COLUMN_DEFS = {
     getValue: (c) => c.id.slice(-8).toUpperCase(),
   },
   clienta: { label: 'Clienta', cell: (c) => c.nombreClienta, getValue: (c) => c.nombreClienta },
-  contacto: { label: 'Contacto', cell: (c) => c.emailClienta, getValue: (c) => c.emailClienta },
+  contacto: {
+    label: 'Contacto',
+    cell: (c) => <span className={c.emailClienta ? '' : 'text-[#2C2420]/30'}>{c.emailClienta || '—'}</span>,
+    getValue: (c) => c.emailClienta || '',
+  },
   tipo: {
     label: 'Tipo',
     cell: (c) => <TipoBadge tipo={c.tipo} />,

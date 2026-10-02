@@ -125,6 +125,9 @@ export async function enviarCotizacion(id, mensaje, usuarioId) {
   if (!cotizacion.remitente) {
     throw new Error('Elige quién envía la cotización (María o Carolina) antes de enviarla.');
   }
+  if (!cotizacion.emailClienta) {
+    throw new Error('Agrega el correo de la clienta antes de enviar la cotización.');
+  }
 
   const pdfBuffer = await buildCotizacionPdf(cotizacion);
   await sendCotizacionEmail({ cotizacion, pdfBuffer, mensaje });
