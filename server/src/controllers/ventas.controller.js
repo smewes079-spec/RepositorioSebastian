@@ -57,6 +57,15 @@ export async function moveKanban(req, res) {
   }
 }
 
+export async function revertirACotizacion(req, res) {
+  try {
+    const cotizacion = await ventasService.revertirACotizacion(req.params.id, req.user.id);
+    res.json(cotizacion);
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'No se pudo revertir la venta a cotización' });
+  }
+}
+
 export async function resumen(req, res) {
   const { tipo, estado, mesVenta, mesEvento, search } = req.query;
   const data = await ventasService.resumen({ tipo, estado, mesVenta, mesEvento, search });

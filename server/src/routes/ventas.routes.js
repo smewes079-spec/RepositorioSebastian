@@ -19,6 +19,7 @@ router.post('/', ventasController.create);
 router.put('/:id', ventasController.update);
 router.delete('/:id', ventasController.destroy);
 router.patch('/:id/kanban', ventasController.moveKanban);
+router.post('/:id/revertir-a-cotizacion', ventasController.revertirACotizacion);
 
 router.post('/importar', upload.single('archivo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Debes adjuntar un archivo Excel o CSV' });

@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.7.0 — 2026-10-02
+
+- **Ventas**: nuevo botón "Volver a Cotización" para cuando una clienta se retracta después de haber aceptado. Solo aparece en ventas que vienen de una cotización aceptada. Elimina el registro de la venta (cuotas y compras de insumos asignadas incluidas, con advertencia clara antes de confirmar) y la cotización original vuelve a quedar activa, marcada como Rechazada, lista para editarse o gestionarse de nuevo.
+
 ## v1.6.1 — 2026-10-02
 
 - Corrige un espacio vacío grande entre el menú lateral y el contenido que apareció en monitores anchos con el cambio de v1.6.0. El contenido ahora queda pegado al menú (a la distancia normal de siempre) y, si sobra espacio en pantallas muy grandes, se acumula al lado derecho en vez de separar el contenido del menú.

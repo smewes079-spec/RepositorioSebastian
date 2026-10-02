@@ -4,6 +4,7 @@ const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
 const includeAuditoria = {
   creadoPor: { select: { nombre: true } },
   actualizadoPor: { select: { nombre: true } },
+  cotizacion: { select: { id: true } },
 };
 
 function withComputed(venta) {
@@ -142,6 +143,24 @@ export async function updateVenta(id, data, usuarioId) {
 
 export async function deleteVenta(id) {
   await prisma.venta.delete({ where: { id } });
+}
+
+export async function revertirACotizacion(id, usuarioId) {
+  const cotizacion = await prisma.cotizacion.findUnique({ where: { ventaId: id } });
+  if (!cotizacion) {
+    throw new Error('Esta venta no proviene de ninguna cotización, no se puede revertir');
+  }
+
+  return prisma.$transaction(async (tx) => {
+    // El FK Cotizacion.ventaId es ON DELETE SET NULL, así que al borrar la
+    // venta la cotización queda automáticamente sin venta vinculada; solo
+    // falta marcarla como Rechazada.
+    await tx.venta.delete({ where: { id } });
+    return tx.cotizacion.update({
+      where: { id: cotizacion.id },
+      data: { estado: 'RECHAZADA', fechaRespuesta: new Date(), actualizadoPorId: usuarioId },
+    });
+  });
 }
 
 export async function moveKanban(id, kanbanEstado, usuarioId) {
