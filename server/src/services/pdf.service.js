@@ -1,9 +1,13 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pdfMake from 'pdfmake';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FONTS_DIR = path.join(__dirname, '../assets/fonts');
+const LOGO_ICONO_BLANCO =
+  'data:image/png;base64,' +
+  fs.readFileSync(path.join(__dirname, '../assets/logo/logo-icono-blanco.png')).toString('base64');
 
 pdfMake.setFonts({
   Helvetica: {
@@ -82,29 +86,13 @@ function wordmark(color, opts = {}) {
   };
 }
 
-// Monograma aproximado (no tenemos el archivo vectorial original de la marca):
-// una "H" serif y una "A" en script superpuestas, mismo espíritu que el logo real.
-function monograma(color, opts = {}) {
+// Ícono real de la marca (recortado del logo provisto por el taller).
+function logoIcono(opts = {}) {
+  const width = opts.width ?? 140;
   return {
-    absolutePosition: { x: 0, y: opts.y },
-    stack: [
-      {
-        text: 'H',
-        font: 'CormorantGaramond',
-        bold: true,
-        fontSize: 78,
-        color,
-        alignment: 'center',
-      },
-      {
-        text: 'A',
-        font: 'GreatVibes',
-        fontSize: 64,
-        color,
-        alignment: 'center',
-        relativePosition: { x: 0, y: -58 },
-      },
-    ],
+    image: LOGO_ICONO_BLANCO,
+    width,
+    absolutePosition: { x: (PAGE_WIDTH - width) / 2, y: opts.y },
   };
 }
 
@@ -139,13 +127,13 @@ export function buildCotizacionPdf(cotizacion) {
     content: [
       // Página 1 — portada
       fullBleedRect(ROSE),
-      monograma('#FFFFFF', { y: 300 }),
+      logoIcono({ y: 300, width: 150 }),
       wordmark('#FFFFFF', { y: 430 }),
 
       // Página 2 — datos de la clienta y detalle de la cotización
       { text: '', pageBreak: 'before' },
       topBand(ROSE),
-      monograma('#FFFFFF', { y: 24 }),
+      logoIcono({ y: 24, width: 100 }),
       {
         text: [{ text: 'Fecha: ', color: MUTED }, { text: formatFecha(cotizacion.createdAt), color: INK }],
         alignment: 'right',
@@ -219,7 +207,7 @@ export function buildCotizacionPdf(cotizacion) {
       // Página 3 — condiciones de pago
       { text: '', pageBreak: 'before' },
       topBand(ROSE),
-      monograma('#FFFFFF', { y: 24 }),
+      logoIcono({ y: 24, width: 100 }),
       { text: 'Pago', font: 'GreatVibes', fontSize: 30, color: ROSE, margin: [0, 130, 0, 14] },
       {
         text: 'Los pagos se realizarán en el siguiente orden:',
@@ -257,7 +245,7 @@ export function buildCotizacionPdf(cotizacion) {
       // Página 4 — contraportada
       { text: '', pageBreak: 'before' },
       fullBleedRect(ROSE),
-      monograma('#FFFFFF', { y: 300 }),
+      logoIcono({ y: 300, width: 150 }),
       wordmark('#FFFFFF', { y: 430 }),
       {
         text: 'Agustín del Castillo 2960, Vitacura',

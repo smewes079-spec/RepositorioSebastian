@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.12.0 — 2026-10-06
+
+- **Logo real del taller**: se reemplazó el monograma aproximado (dibujado con letras superpuestas, ya que no se contaba con el archivo original de la marca) por el logo real del taller, provisto por el usuario. Se actualizó en las 4 páginas del PDF de cotización, en el menú lateral, en la pantalla de inicio de sesión y en el ícono de la pestaña del navegador. El resto del formato (colores, tipografías, textos, estructura) no cambió.
+
 ## v1.11.0 — 2026-10-06
 
 - **Código de venta automático**: en Ventas, el "Código único" ahora se autocompleta solo con la inicial del nombre + inicial del apellido + fecha del evento (ej. "Florencia Vasquez" + 05/06/2027 → `FV050627`), apenas se completan el nombre y la fecha del evento. Sigue siendo editable a mano, y si el código coincide con uno ya existente se agrega automáticamente un sufijo (`-2`, `-3`, etc.) para que nunca se repita. Al aceptar una cotización, la venta resultante también usa este formato en vez del anterior (`COT-xxxxxx`).
