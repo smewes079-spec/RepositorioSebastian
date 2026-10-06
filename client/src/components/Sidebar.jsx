@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Receipt,
 } from 'lucide-react';
 import Logo from './Logo.jsx';
 import { useAuth } from '../lib/AuthContext.jsx';
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
 
 const COSTOS_ITEMS = [
   { to: '/costos/insumos', label: 'Registro de insumos', icon: PackageSearch },
+  { to: '/costos/gastos-generales', label: 'Gastos generales', icon: Receipt },
   { to: '/costos/rentabilidad', label: 'Rentabilidad por vestido', icon: TrendingUp },
 ];
 

@@ -105,6 +105,13 @@ export const TIPO_ASIGNACION_CORTO = {
   PRORRATEO: 'Prorrateo',
 };
 
+export const CATEGORIA_GASTO_GENERAL_LABELS = {
+  CAFETERIA_Y_ASEO: 'Cafetería y aseo',
+  TRANSPORTE_ESTACIONAMIENTO: 'Transporte y estacionamiento',
+  MOBILIARIO_Y_EQUIPAMIENTO: 'Mobiliario y equipamiento',
+  OTROS: 'Otros',
+};
+
 export const COTIZACION_ESTADO_LABELS = {
   PENDIENTE: 'Pendiente',
   ENVIADA: 'Enviada',

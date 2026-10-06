@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import * as configService from './config.service.js';
 import * as costeoService from './costeo.service.js';
+import * as gastosGeneralesService from './gastosGenerales.service.js';
 import { monthKey, monthRangeKeys, round1 } from '../lib/monthUtils.js';
 
 const TOTAL_VACIO = {
@@ -11,26 +12,37 @@ const TOTAL_VACIO = {
   cvReal: 0,
   cvPresupuestado: 0,
   costosFijos: 0,
+  gastosGenerales: 0,
   totalSalidas: 0,
   resultadoMes: 0,
 };
 
 export async function getFlujoCaja() {
-  const [ventas, cuotas, presupuestos, presupuestoCuotas, costoEstandarPorTipo, sueldos, costosFijos, financiero] =
-    await Promise.all([
-      prisma.venta.findMany(),
-      prisma.cuota.findMany(),
-      prisma.presupuestoVenta.findMany(),
-      prisma.presupuestoCuota.findMany(),
-      configService.getCostoEstandarPorTipo(),
-      configService.listSueldos(),
-      configService.listCostosFijos(),
-      configService.getFinanciero(),
-    ]);
+  const [
+    ventas,
+    cuotas,
+    presupuestos,
+    presupuestoCuotas,
+    costoEstandarPorTipo,
+    sueldos,
+    costosFijos,
+    gastosGenerales,
+    financiero,
+  ] = await Promise.all([
+    prisma.venta.findMany(),
+    prisma.cuota.findMany(),
+    prisma.presupuestoVenta.findMany(),
+    prisma.presupuestoCuota.findMany(),
+    configService.getCostoEstandarPorTipo(),
+    configService.listSueldos(),
+    configService.listCostosFijos(),
+    gastosGeneralesService.listGastosGenerales(),
+    configService.getFinanciero(),
+  ]);
 
   const costosFijosDetalle = [...sueldos, ...costosFijos];
 
-  if (ventas.length === 0 && presupuestos.length === 0) {
+  if (ventas.length === 0 && presupuestos.length === 0 && gastosGenerales.length === 0) {
     return {
       meses: [],
       total: TOTAL_VACIO,
@@ -94,6 +106,14 @@ export async function getFlujoCaja() {
     cvPresPorMes.set(key, (cvPresPorMes.get(key) || 0) + cv);
   }
 
+  // Gastos generales: café, estacionamiento, mobiliario, etc. — gasto operacional
+  // real del mes en que ocurrió, no asignado a ningún vestido.
+  const gastosGeneralesPorMes = new Map();
+  for (const g of gastosGenerales) {
+    const key = monthKey(g.fecha);
+    gastosGeneralesPorMes.set(key, (gastosGeneralesPorMes.get(key) || 0) + g.montoTotal);
+  }
+
   const mesesFechaInicio = costosFijosDetalle.map((c) => monthKey(c.fechaInicio));
   const hoyKey = monthKey(new Date());
   const todasLasClaves = [
@@ -102,6 +122,7 @@ export async function getFlujoCaja() {
     ...cobrosPresPorMes.keys(),
     ...cvRealPorMes.keys(),
     ...cvPresPorMes.keys(),
+    ...gastosGeneralesPorMes.keys(),
     ...mesesFechaInicio,
     hoyKey,
   ].sort();
@@ -124,7 +145,8 @@ export async function getFlujoCaja() {
       mesKey
     );
     const totalCostosFijos = costosFijosVigentes.reduce((s, c) => s + c.monto, 0);
-    const totalSalidas = cvReal + cvPresupuestado + totalCostosFijos;
+    const totalGastosGenerales = gastosGeneralesPorMes.get(mesKey) || 0;
+    const totalSalidas = cvReal + cvPresupuestado + totalCostosFijos + totalGastosGenerales;
 
     const resultadoMes = totalEntradas - totalSalidas;
     cajaAcumulada += resultadoMes;
@@ -140,6 +162,7 @@ export async function getFlujoCaja() {
       cvReal,
       cvPresupuestado,
       costosFijos: totalCostosFijos,
+      gastosGenerales: totalGastosGenerales,
       totalSalidas,
       resultadoMes,
       cajaAcumulada,
@@ -156,6 +179,7 @@ export async function getFlujoCaja() {
       cvReal: acc.cvReal + f.cvReal,
       cvPresupuestado: acc.cvPresupuestado + f.cvPresupuestado,
       costosFijos: acc.costosFijos + f.costosFijos,
+      gastosGenerales: acc.gastosGenerales + f.gastosGenerales,
       totalSalidas: acc.totalSalidas + f.totalSalidas,
       resultadoMes: acc.resultadoMes + f.resultadoMes,
     }),

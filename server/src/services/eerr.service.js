@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import * as configService from './config.service.js';
 import * as costeoService from './costeo.service.js';
+import * as gastosGeneralesService from './gastosGenerales.service.js';
 import { monthKey, monthRangeKeys, round1 } from '../lib/monthUtils.js';
 
 const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
@@ -14,23 +15,25 @@ const TOTAL_VACIO = {
   totalCV: 0,
   margenBruto: 0,
   costosFijos: 0,
+  gastosGenerales: 0,
   utilidadOperacional: 0,
   margenBrutoPct: 0,
   margenOperacionalPct: 0,
 };
 
 export async function getEERR() {
-  const [ventas, presupuestos, costoEstandarPorTipo, sueldos, costosFijos] = await Promise.all([
+  const [ventas, presupuestos, costoEstandarPorTipo, sueldos, costosFijos, gastosGenerales] = await Promise.all([
     prisma.venta.findMany(),
     prisma.presupuestoVenta.findMany(),
     configService.getCostoEstandarPorTipo(),
     configService.listSueldos(),
     configService.listCostosFijos(),
+    gastosGeneralesService.listGastosGenerales(),
   ]);
 
   const costosFijosDetalle = [...sueldos, ...costosFijos];
 
-  if (ventas.length === 0 && presupuestos.length === 0) {
+  if (ventas.length === 0 && presupuestos.length === 0 && gastosGenerales.length === 0) {
     return { meses: [], total: TOTAL_VACIO };
   }
 
@@ -40,12 +43,26 @@ export async function getEERR() {
   // registrados.
   const costoMaterialesPorVenta = await costeoService.getCostosMaterialesPorVenta(ventas);
 
+  // Gastos generales: café, estacionamiento, mobiliario, etc. — gasto operacional
+  // real del mes en que ocurrió, no asignado a ningún vestido.
+  const gastosGeneralesPorMes = new Map();
+  for (const g of gastosGenerales) {
+    const key = monthKey(g.fecha);
+    gastosGeneralesPorMes.set(key, (gastosGeneralesPorMes.get(key) || 0) + g.montoTotal);
+  }
+
   const mesesVentas = ventas.map((v) => monthKey(v.fechaVenta));
   const mesesPresupuesto = presupuestos.map((p) => monthKey(p.mes));
   const mesesFechaInicio = costosFijosDetalle.map((c) => monthKey(c.fechaInicio));
   const hoyKey = monthKey(new Date());
 
-  const candidatos = [...mesesVentas, ...mesesPresupuesto, ...mesesFechaInicio, hoyKey].sort();
+  const candidatos = [
+    ...mesesVentas,
+    ...mesesPresupuesto,
+    ...mesesFechaInicio,
+    ...gastosGeneralesPorMes.keys(),
+    hoyKey,
+  ].sort();
   const desde = candidatos[0];
   const hasta = candidatos[candidatos.length - 1];
   const meses = monthRangeKeys(desde, hasta);
@@ -104,8 +121,9 @@ export async function getEERR() {
       mesKey
     );
     const totalCostosFijos = costosFijosVigentes.reduce((s, c) => s + c.monto, 0);
+    const totalGastosGenerales = gastosGeneralesPorMes.get(mesKey) || 0;
 
-    const utilidadOperacional = margenBruto - totalCostosFijos;
+    const utilidadOperacional = margenBruto - totalCostosFijos - totalGastosGenerales;
     const margenOperacionalPct =
       totalIngresos > 0 ? round1((utilidadOperacional / totalIngresos) * 100) : 0;
 
@@ -126,6 +144,7 @@ export async function getEERR() {
       margenBrutoPct,
       costosFijos: totalCostosFijos,
       costosFijosDetalle: costosFijosVigentes,
+      gastosGenerales: totalGastosGenerales,
       utilidadOperacional,
       margenOperacionalPct,
     };
@@ -141,6 +160,7 @@ export async function getEERR() {
       totalCV: acc.totalCV + f.totalCV,
       margenBruto: acc.margenBruto + f.margenBruto,
       costosFijos: acc.costosFijos + f.costosFijos,
+      gastosGenerales: acc.gastosGenerales + f.gastosGenerales,
       utilidadOperacional: acc.utilidadOperacional + f.utilidadOperacional,
     }),
     { ...TOTAL_VACIO }

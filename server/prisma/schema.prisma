@@ -40,6 +40,13 @@ enum TipoAsignacion {
   PRORRATEO
 }
 
+enum CategoriaGastoGeneral {
+  CAFETERIA_Y_ASEO
+  TRANSPORTE_ESTACIONAMIENTO
+  MOBILIARIO_Y_EQUIPAMIENTO
+  OTROS
+}
+
 enum CotizacionRemitente {
   MARIA
   CARO
@@ -61,12 +68,14 @@ model Usuario {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  ventasCreadas       Venta[]      @relation("VentaCreadoPor")
-  ventasActualizadas  Venta[]      @relation("VentaActualizadoPor")
-  comprasCreadas      Purchase[]   @relation("PurchaseCreadoPor")
-  comprasActualizadas Purchase[]   @relation("PurchaseActualizadoPor")
-  cotizCreadas        Cotizacion[] @relation("CotizacionCreadoPor")
-  cotizActualizadas   Cotizacion[] @relation("CotizacionActualizadoPor")
+  ventasCreadas                Venta[]        @relation("VentaCreadoPor")
+  ventasActualizadas           Venta[]        @relation("VentaActualizadoPor")
+  comprasCreadas               Purchase[]     @relation("PurchaseCreadoPor")
+  comprasActualizadas          Purchase[]     @relation("PurchaseActualizadoPor")
+  cotizCreadas                 Cotizacion[]   @relation("CotizacionCreadoPor")
+  cotizActualizadas            Cotizacion[]   @relation("CotizacionActualizadoPor")
+  gastosGeneralesCreados       GastoGeneral[] @relation("GastoGeneralCreadoPor")
+  gastosGeneralesActualizados  GastoGeneral[] @relation("GastoGeneralActualizadoPor")
 }
 
 model Venta {
@@ -151,6 +160,27 @@ model PurchaseAssignment {
 
   @@index([ventaId])
   @@index([purchaseId])
+}
+
+// Gastos operacionales que no son insumos de vestidos (café, estacionamiento,
+// mobiliario, maniquíes, etc.) — sin asignación a ventas, a diferencia de Purchase.
+model GastoGeneral {
+  id          String                @id @default(cuid())
+  fecha       DateTime
+  categoria   CategoriaGastoGeneral
+  descripcion String
+  montoTotal  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creadoPorId      String?
+  creadoPor        Usuario? @relation("GastoGeneralCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  actualizadoPorId String?
+  actualizadoPor   Usuario? @relation("GastoGeneralActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
+
+  @@index([categoria])
+  @@index([fecha])
 }
 
 model ConfigTipoVestido {

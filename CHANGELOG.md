@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.10.0 — 2026-10-06
+
+- **Gastos generales**: nuevo registro para café, estacionamiento, mobiliario, maniquíes y otros gastos que no son insumos de vestidos — separado del Registro de insumos (que sigue siendo solo para materiales asignados a un vestido) y de Costos Fijos (montos recurrentes mensuales). Cada gasto se registra con fecha, categoría, descripción y monto, y se refleja automáticamente en el Estado de Resultados y el Flujo de Caja del mes en que ocurrió, sin afectar la rentabilidad por vestido. Nuevo ítem "Gastos generales" en el menú, bajo Costos.
+
 ## v1.9.0 — 2026-10-06
 
 - **Historial de sueldos y costos fijos**: en Configuración, cada modista y cada costo fijo (arriendo, agua/luz, etc.) ahora puede tener varios valores en el tiempo en vez de uno solo. Al agregar un valor nuevo (ej. porque subió el arriendo), el anterior queda guardado como historial — no se pierde — y el Estado de Resultados, el Flujo de Caja y la rentabilidad por vestido usan automáticamente el valor que correspondía a cada mes según su fecha. Se puede corregir o eliminar una entrada puntual del historial, o eliminar una modista/costo por completo.

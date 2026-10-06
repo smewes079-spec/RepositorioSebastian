@@ -7,6 +7,8 @@ import CotizacionesList from './pages/CotizacionesList.jsx';
 import CotizacionForm from './pages/CotizacionForm.jsx';
 import ComprasList from './pages/ComprasList.jsx';
 import CompraForm from './pages/CompraForm.jsx';
+import GastosGeneralesList from './pages/GastosGeneralesList.jsx';
+import GastoGeneralForm from './pages/GastoGeneralForm.jsx';
 import RentabilidadPorVestido from './pages/RentabilidadPorVestido.jsx';
 import Configuracion from './pages/Configuracion.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -98,6 +100,30 @@ export default function App() {
         element={
           <PrivateRoute>
             <CompraForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/gastos-generales"
+        element={
+          <PrivateRoute>
+            <GastosGeneralesList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/gastos-generales/nueva"
+        element={
+          <PrivateRoute>
+            <GastoGeneralForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/costos/gastos-generales/:id"
+        element={
+          <PrivateRoute>
+            <GastoGeneralForm />
           </PrivateRoute>
         }
       />
