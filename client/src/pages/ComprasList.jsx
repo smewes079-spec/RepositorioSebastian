@@ -57,6 +57,11 @@ const COLUMN_DEFS = {
     cell: (c) => CATEGORIA_LABELS[c.categoria],
     getValue: (c) => CATEGORIA_LABELS[c.categoria],
   },
+  proveedor: {
+    label: 'Proveedor',
+    cell: (c) => <span className="text-[#2C2420]/70">{c.proveedor || '—'}</span>,
+    getValue: (c) => c.proveedor || '',
+  },
   descripcion: {
     label: 'Descripción',
     cell: (c) => <span className="font-medium text-[#2C2420]">{c.descripcion}</span>,
@@ -80,11 +85,12 @@ const COLUMN_DEFS = {
   },
 };
 
-const ORDEN_COLUMNAS = ['fecha', 'categoria', 'descripcion', 'asignacion', 'vestidos', 'monto'];
+const ORDEN_COLUMNAS = ['fecha', 'categoria', 'proveedor', 'descripcion', 'asignacion', 'vestidos', 'monto'];
 
 const ANCHOS_COLUMNAS_DEFECTO = {
   fecha: 100,
   categoria: 140,
+  proveedor: 160,
   descripcion: 260,
   asignacion: 130,
   vestidos: 130,
@@ -481,7 +487,7 @@ export default function ComprasList() {
           titulo="Importar compras de insumos desde Excel o CSV"
           endpoint="/purchases/importar"
           plantillaHref="/plantilla-compras.xlsx"
-          descripcionColumnas="Completa la plantilla con las columnas: FECHA COMPRA, CATEGORIA, DESCRIPCION, MONTO TOTAL, TIPO ASIGNACION (Directo o Prorrateo), CODIGO VENTA (solo si es Directo)."
+          descripcionColumnas="Completa la plantilla con las columnas: FECHA COMPRA, CATEGORIA, PROVEEDOR (opcional), DESCRIPCION, MONTO TOTAL, TIPO ASIGNACION (Directo o Prorrateo), CODIGO VENTA (solo si es Directo)."
           onClose={() => setShowImport(false)}
           onImported={() => {
             load();

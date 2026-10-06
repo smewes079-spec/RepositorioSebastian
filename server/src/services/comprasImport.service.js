@@ -48,6 +48,7 @@ export async function importComprasRows(rows, usuarioId) {
     try {
       const fechaRaw = getField(row, 'FECHA COMPRA', 'FECHA');
       const categoriaRaw = getField(row, 'CATEGORIA', 'CATEGORÍA');
+      const proveedorRaw = getField(row, 'PROVEEDOR');
       const descripcion = getField(row, 'DESCRIPCION', 'DESCRIPCIÓN');
       const montoRaw = getField(row, 'MONTO TOTAL', 'MONTO');
       const tipoAsigRaw = getField(row, 'TIPO ASIGNACION', 'TIPO ASIGNACIÓN', 'TIPO DE ASIGNACION');
@@ -91,6 +92,7 @@ export async function importComprasRows(rows, usuarioId) {
       const data = {
         fecha: fecha.toISOString(),
         categoria,
+        proveedor: proveedorRaw ? String(proveedorRaw).trim() : null,
         descripcion: String(descripcion).trim(),
         montoTotal,
         tipoAsignacion,

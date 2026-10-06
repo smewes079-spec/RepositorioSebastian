@@ -130,6 +130,7 @@ model Purchase {
   id             String          @id @default(cuid())
   fecha          DateTime
   categoria      CategoriaInsumo
+  proveedor      String?
   descripcion    String
   montoTotal     Int
   tipoAsignacion TipoAsignacion

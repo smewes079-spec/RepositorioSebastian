@@ -1,4 +1,21 @@
 import { prisma } from '../lib/prisma.js';
+import { calcularCodigoVenta } from '../lib/codigoVenta.js';
+
+export { calcularCodigoVenta };
+
+// Si el código propuesto ya existe (de otra venta), agrega un sufijo -2, -3...
+// hasta encontrar uno libre. `excludeId` evita que una venta "choque consigo
+// misma" al editar sin cambiar su propio código.
+export async function resolverCodigoDisponible(codigoPropuesto, excludeId = null) {
+  let codigo = codigoPropuesto;
+  let sufijo = 2;
+  while (true) {
+    const existente = await prisma.venta.findUnique({ where: { codigo } });
+    if (!existente || existente.id === excludeId) return codigo;
+    codigo = `${codigoPropuesto}-${sufijo}`;
+    sufijo += 1;
+  }
+}
 
 const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
 const TIPO_LABELS_ES = { NOVIA: 'Novia', MADRINA: 'Madrina', INVITADA: 'Invitada', CIVIL: 'Civil' };
@@ -64,9 +81,11 @@ export async function getVenta(id) {
 
 export async function createVenta(data, usuarioId) {
   const { cuotas = [], ...ventaData } = data;
+  const codigo = await resolverCodigoDisponible(ventaData.codigo);
   const venta = await prisma.venta.create({
     data: {
       ...ventaData,
+      codigo,
       fechaVenta: new Date(ventaData.fechaVenta),
       fechaEvento: new Date(ventaData.fechaEvento),
       fechaEntregaComprometida: ventaData.fechaEntregaComprometida
@@ -93,6 +112,9 @@ export async function createVenta(data, usuarioId) {
 export async function updateVenta(id, data, usuarioId) {
   const { cuotas, ...ventaData } = data;
   const updateData = { ...ventaData, actualizadoPorId: usuarioId };
+  if (ventaData.codigo) {
+    updateData.codigo = await resolverCodigoDisponible(ventaData.codigo, id);
+  }
   if (ventaData.fechaVenta) updateData.fechaVenta = new Date(ventaData.fechaVenta);
   if (ventaData.fechaEvento) updateData.fechaEvento = new Date(ventaData.fechaEvento);
   if (ventaData.fechaEntregaComprometida !== undefined) {

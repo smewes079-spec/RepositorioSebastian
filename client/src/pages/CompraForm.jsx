@@ -11,6 +11,7 @@ import { formatCLP, toInputDate, CATEGORIA_LABELS, TIPO_ASIGNACION_LABELS } from
 const VACIO = {
   fecha: toInputDate(new Date()),
   categoria: 'TELA',
+  proveedor: '',
   descripcion: '',
   montoTotal: '',
   tipoAsignacion: 'DIRECTO',
@@ -43,6 +44,7 @@ export default function CompraForm() {
         setForm({
           fecha: toInputDate(c.fecha),
           categoria: c.categoria,
+          proveedor: c.proveedor || '',
           descripcion: c.descripcion,
           montoTotal: c.montoTotal,
           tipoAsignacion: c.tipoAsignacion,
@@ -145,6 +147,15 @@ export default function CompraForm() {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Proveedor</label>
+            <input
+              value={form.proveedor}
+              onChange={(e) => set('proveedor', e.target.value)}
+              placeholder="ej: Telas Hermanos Soto"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+            />
           </div>
           <div className="col-span-2">
             <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Descripción</label>

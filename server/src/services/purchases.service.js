@@ -48,6 +48,7 @@ function baseData(data) {
   return {
     fecha: new Date(data.fecha),
     categoria: data.categoria,
+    proveedor: data.proveedor ? String(data.proveedor).trim() : null,
     descripcion: data.descripcion,
     montoTotal: Number(data.montoTotal),
     tipoAsignacion: data.tipoAsignacion,

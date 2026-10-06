@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.11.0 — 2026-10-06
+
+- **Código de venta automático**: en Ventas, el "Código único" ahora se autocompleta solo con la inicial del nombre + inicial del apellido + fecha del evento (ej. "Florencia Vasquez" + 05/06/2027 → `FV050627`), apenas se completan el nombre y la fecha del evento. Sigue siendo editable a mano, y si el código coincide con uno ya existente se agrega automáticamente un sufijo (`-2`, `-3`, etc.) para que nunca se repita. Al aceptar una cotización, la venta resultante también usa este formato en vez del anterior (`COT-xxxxxx`).
+- **Proveedor en Registro de insumos**: nuevo campo opcional "Proveedor" para anotar dónde se compró cada insumo — disponible en el formulario, en la columna del listado y en la plantilla Excel de importación (columna PROVEEDOR, opcional).
+
 ## v1.10.0 — 2026-10-06
 
 - **Gastos generales**: nuevo registro para café, estacionamiento, mobiliario, maniquíes y otros gastos que no son insumos de vestidos — separado del Registro de insumos (que sigue siendo solo para materiales asignados a un vestido) y de Costos Fijos (montos recurrentes mensuales). Cada gasto se registra con fecha, categoría, descripción y monto, y se refleja automáticamente en el Estado de Resultados y el Flujo de Caja del mes en que ocurrió, sin afectar la rentabilidad por vestido. Nuevo ítem "Gastos generales" en el menú, bajo Costos.

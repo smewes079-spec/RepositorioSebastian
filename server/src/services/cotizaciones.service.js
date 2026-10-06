@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { buildCotizacionPdf } from './pdf.service.js';
 import { sendCotizacionEmail } from './email.service.js';
+import { calcularCodigoVenta, resolverCodigoDisponible } from './ventas.service.js';
 
 const include = {
   items: { orderBy: { orden: 'asc' } },
@@ -146,10 +147,6 @@ export async function descargarCotizacionPdf(id) {
   return buildCotizacionPdf(cotizacion);
 }
 
-function generarCodigoVenta(cotizacionId) {
-  return `COT-${cotizacionId.slice(-6).toUpperCase()}`;
-}
-
 export async function aceptarCotizacion(id, usuarioId) {
   const cotizacion = await getCotizacion(id);
   if (!cotizacion) throw new Error('Cotización no encontrada');
@@ -162,10 +159,14 @@ export async function aceptarCotizacion(id, usuarioId) {
     throw new Error('La cotización no tiene ítems, no se puede calcular el precio de la venta');
   }
 
+  const codigo = await resolverCodigoDisponible(
+    calcularCodigoVenta(cotizacion.nombreClienta, cotizacion.fechaEventoTentativa)
+  );
+
   const venta = await prisma.$transaction(async (tx) => {
     const nuevaVenta = await tx.venta.create({
       data: {
-        codigo: generarCodigoVenta(cotizacion.id),
+        codigo,
         nombreClienta: cotizacion.nombreClienta,
         tipo: cotizacion.tipo,
         fechaVenta: new Date(),

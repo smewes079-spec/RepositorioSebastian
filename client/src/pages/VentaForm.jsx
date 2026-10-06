@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Trash2, Undo2 } from 'lucide-react';
+import { Trash2, Undo2, Wand2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CuotasEditor from '../components/CuotasEditor.jsx';
 import FichaCosto from '../components/FichaCosto.jsx';
 import InfoAuditoria from '../components/InfoAuditoria.jsx';
 import { api } from '../lib/api.js';
 import { formatCLP, formatFecha, toInputDate, TIPO_LABELS, ESTADO_LABELS, KANBAN_LABELS } from '../lib/format.js';
+import { calcularCodigoVenta } from '../lib/codigoVenta.js';
 
 const VACIO = {
   codigo: '',
@@ -80,6 +81,19 @@ export default function VentaForm() {
 
   function handleChange(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  useEffect(() => {
+    if (isEdit) return;
+    if (!form.nombreClienta || !form.fechaEvento) return;
+    setForm((f) =>
+      f.codigo ? f : { ...f, codigo: calcularCodigoVenta(f.nombreClienta, f.fechaEvento) }
+    );
+  }, [form.nombreClienta, form.fechaEvento, isEdit]);
+
+  function sugerirCodigo() {
+    if (!form.nombreClienta || !form.fechaEvento) return;
+    handleChange('codigo', calcularCodigoVenta(form.nombreClienta, form.fechaEvento));
   }
 
   async function handleSubmit(e) {
@@ -199,13 +213,25 @@ export default function VentaForm() {
         <div className="bg-white rounded-xl border border-black/5 p-6 grid grid-cols-2 gap-5">
           <div>
             <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Código único</label>
-            <input
-              required
-              value={form.codigo}
-              onChange={(e) => handleChange('codigo', e.target.value)}
-              placeholder="ej: JB150526"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-            />
+            <div className="flex items-center gap-1.5">
+              <input
+                required
+                value={form.codigo}
+                onChange={(e) => handleChange('codigo', e.target.value)}
+                placeholder="ej: FV050627"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+              />
+              {form.nombreClienta && form.fechaEvento && (
+                <button
+                  type="button"
+                  onClick={sugerirCodigo}
+                  title="Recalcular a partir del nombre y la fecha del evento"
+                  className="shrink-0 p-2 rounded-lg border border-black/10 text-[#C9A96E] hover:bg-[#C9A96E]/10"
+                >
+                  <Wand2 size={15} />
+                </button>
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Nombre clienta</label>
