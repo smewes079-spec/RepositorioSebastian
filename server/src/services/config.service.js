@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { monthKey } from '../lib/monthUtils.js';
 
 const TIPOS_DEFAULT = {
   NOVIA: { costoEstandar: 568000, consumoTelaEstimado: 8, precioVentaEstandar: 1200000 },
@@ -76,14 +77,9 @@ export async function listSueldos() {
   return existentes.sort((a, b) => a.nombre.localeCompare(b.nombre));
 }
 
-export async function updateSueldo(nombre, data) {
-  return prisma.configSueldo.upsert({
-    where: { nombre },
-    update: {
-      ...(data.monto !== undefined && { monto: Number(data.monto) }),
-      ...(data.fechaInicio !== undefined && { fechaInicio: new Date(data.fechaInicio) }),
-    },
-    create: {
+export async function addSueldoHistorial(nombre, data) {
+  return prisma.configSueldo.create({
+    data: {
       nombre,
       monto: Number(data.monto ?? 0),
       fechaInicio: data.fechaInicio ? new Date(data.fechaInicio) : new Date(),
@@ -91,8 +87,22 @@ export async function updateSueldo(nombre, data) {
   });
 }
 
-export async function deleteSueldo(nombre) {
-  await prisma.configSueldo.delete({ where: { nombre } });
+export async function updateSueldoHistorialEntry(id, data) {
+  return prisma.configSueldo.update({
+    where: { id },
+    data: {
+      ...(data.monto !== undefined && { monto: Number(data.monto) }),
+      ...(data.fechaInicio !== undefined && { fechaInicio: new Date(data.fechaInicio) }),
+    },
+  });
+}
+
+export async function deleteSueldoHistorialEntry(id) {
+  await prisma.configSueldo.delete({ where: { id } });
+}
+
+export async function deleteSueldoNombre(nombre) {
+  await prisma.configSueldo.deleteMany({ where: { nombre } });
 }
 
 export async function listCostosFijos() {
@@ -109,14 +119,9 @@ export async function listCostosFijos() {
   return existentes.sort((a, b) => orden.indexOf(a.nombre) - orden.indexOf(b.nombre));
 }
 
-export async function updateCostoFijo(nombre, data) {
-  return prisma.configCostoFijo.upsert({
-    where: { nombre },
-    update: {
-      ...(data.monto !== undefined && { monto: Number(data.monto) }),
-      ...(data.fechaInicio !== undefined && { fechaInicio: new Date(data.fechaInicio) }),
-    },
-    create: {
+export async function addCostoFijoHistorial(nombre, data) {
+  return prisma.configCostoFijo.create({
+    data: {
       nombre,
       monto: Number(data.monto ?? 0),
       fechaInicio: data.fechaInicio ? new Date(data.fechaInicio) : new Date(),
@@ -124,8 +129,22 @@ export async function updateCostoFijo(nombre, data) {
   });
 }
 
-export async function deleteCostoFijo(nombre) {
-  await prisma.configCostoFijo.delete({ where: { nombre } });
+export async function updateCostoFijoHistorialEntry(id, data) {
+  return prisma.configCostoFijo.update({
+    where: { id },
+    data: {
+      ...(data.monto !== undefined && { monto: Number(data.monto) }),
+      ...(data.fechaInicio !== undefined && { fechaInicio: new Date(data.fechaInicio) }),
+    },
+  });
+}
+
+export async function deleteCostoFijoHistorialEntry(id) {
+  await prisma.configCostoFijo.delete({ where: { id } });
+}
+
+export async function deleteCostoFijoNombre(nombre) {
+  await prisma.configCostoFijo.deleteMany({ where: { nombre } });
 }
 
 export async function getFinanciero() {
@@ -173,9 +192,26 @@ export async function getConsumoTelaPorTipo() {
   }, {});
 }
 
+// De un historial con varias filas por nombre, se queda con la más reciente
+// (mayor fechaInicio) de cada nombre que ya esté vigente en mesKey, y
+// descarta los nombres sin ninguna entrada vigente a esa fecha todavía.
+// Evita sumar dos veces un mismo costo cuando tiene varios valores históricos.
+export function seleccionarVigentePorNombre(detalle, mesKey) {
+  const porNombre = new Map();
+  for (const item of detalle) {
+    if (monthKey(item.fechaInicio) > mesKey) continue;
+    const actual = porNombre.get(item.nombre);
+    if (!actual || new Date(item.fechaInicio) > new Date(actual.fechaInicio)) {
+      porNombre.set(item.nombre, item);
+    }
+  }
+  return [...porNombre.values()];
+}
+
 export async function getSueldosVigentes(fecha = new Date()) {
   const sueldos = await listSueldos();
-  return sueldos.reduce((sum, s) => (new Date(s.fechaInicio) <= fecha ? sum + s.monto : sum), 0);
+  const vigentes = seleccionarVigentePorNombre(sueldos, monthKey(fecha));
+  return vigentes.reduce((sum, s) => sum + s.monto, 0);
 }
 
 // Costos fijos vigentes en una fecha: sueldos de modistas + el resto de los costos fijos.
@@ -185,7 +221,7 @@ export async function getCostosFijosVigentes(fecha = new Date()) {
     ...sueldos.map((s) => ({ nombre: s.nombre, monto: s.monto, fechaInicio: s.fechaInicio })),
     ...costosFijos.map((c) => ({ nombre: c.nombre, monto: c.monto, fechaInicio: c.fechaInicio })),
   ];
-  const vigentes = detalle.filter((c) => new Date(c.fechaInicio) <= fecha);
+  const vigentes = seleccionarVigentePorNombre(detalle, monthKey(fecha));
   return {
     total: vigentes.reduce((sum, c) => sum + c.monto, 0),
     detalle: vigentes,

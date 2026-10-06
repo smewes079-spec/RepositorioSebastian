@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { monthKey } from '../lib/monthUtils.js';
+import { monthKey, monthRangeKeys, addMonths } from '../lib/monthUtils.js';
 
 function mesToDate(mes) {
   // Acepta "YYYY-MM" o una fecha completa; siempre normaliza al día 1 del mes en UTC.
@@ -99,4 +99,37 @@ export async function updatePresupuesto(id, data) {
 
 export async function deletePresupuesto(id) {
   await prisma.presupuestoVenta.delete({ where: { id } });
+}
+
+// Proyección automática: promedio real de ventas de ese tipo en los meses
+// anteriores al mes objetivo con datos disponibles (desde la primera venta
+// registrada). Cuenta 0 en los meses sin ventas de ese tipo, para que el
+// promedio refleje la frecuencia real y no solo los meses buenos.
+export async function sugerirProyeccion(tipo, mesObjetivo) {
+  const ventas = await prisma.venta.findMany({ select: { fechaVenta: true, tipo: true, precioTotal: true } });
+  if (ventas.length === 0) return null;
+
+  const mesObjetivoKey = mesObjetivo.slice(0, 7);
+  const primerMesKey = ventas.map((v) => monthKey(v.fechaVenta)).sort()[0];
+  const ultimoMesKey = addMonths(mesObjetivoKey, -1);
+
+  if (ultimoMesKey < primerMesKey) return null;
+
+  const meses = monthRangeKeys(primerMesKey, ultimoMesKey);
+
+  let totalCantidad = 0;
+  let totalMonto = 0;
+  for (const mesKey of meses) {
+    const ventasDelMesTipo = ventas.filter((v) => monthKey(v.fechaVenta) === mesKey && v.tipo === tipo);
+    totalCantidad += ventasDelMesTipo.length;
+    totalMonto += ventasDelMesTipo.reduce((s, v) => s + v.precioTotal, 0);
+  }
+
+  return {
+    cantidadSugerida: Math.round(totalCantidad / meses.length),
+    montoSugerido: Math.round(totalMonto / meses.length),
+    mesesAnalizados: meses.length,
+    primerMes: meses[0],
+    ultimoMes: meses[meses.length - 1],
+  };
 }

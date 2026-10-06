@@ -119,8 +119,9 @@ export async function getFlujoCaja() {
 
     const cvReal = cvRealPorMes.get(mesKey) || 0;
     const cvPresupuestado = cvPresPorMes.get(mesKey) || 0;
-    const costosFijosVigentes = costosFijosDetalle.filter(
-      (c) => monthKey(c.fechaInicio) <= mesKey
+    const costosFijosVigentes = configService.seleccionarVigentePorNombre(
+      costosFijosDetalle,
+      mesKey
     );
     const totalCostosFijos = costosFijosVigentes.reduce((s, c) => s + c.monto, 0);
     const totalSalidas = cvReal + cvPresupuestado + totalCostosFijos;

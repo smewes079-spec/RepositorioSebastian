@@ -163,25 +163,36 @@ model ConfigTipoVestido {
   updatedAt DateTime @updatedAt
 }
 
+// Historial de sueldos: puede haber varias filas por nombre, una por cada
+// vez que cambió el monto, para no perder el valor anterior al actualizar.
+// Para un mes dado, el vigente es la fila con fechaInicio <= ese mes más
+// reciente por nombre (ver config.service.js: seleccionarVigentePorNombre).
 model ConfigSueldo {
   id          String   @id @default(cuid())
-  nombre      String   @unique
+  nombre      String
   monto       Int
   fechaInicio DateTime
 
   updatedAt DateTime @updatedAt
+
+  @@unique([nombre, fechaInicio])
+  @@index([nombre])
 }
 
 // Costos fijos mensuales del EERR / Flujo de Caja (arriendo, servicios, etc.)
 // Los sueldos de modistas viven en ConfigSueldo y se suman aparte porque
 // también se usan para la mano de obra estimada del módulo de Costeo.
+// Mismo historial con fecha que ConfigSueldo (ver comentario arriba).
 model ConfigCostoFijo {
   id          String   @id @default(cuid())
-  nombre      String   @unique
+  nombre      String
   monto       Int
   fechaInicio DateTime
 
   updatedAt DateTime @updatedAt
+
+  @@unique([nombre, fechaInicio])
+  @@index([nombre])
 }
 
 // Fila única con supuestos generales del flujo de caja.

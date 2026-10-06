@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Check, Plus, Trash2, KeyRound, UserPlus } from 'lucide-react';
+import { Fragment, useEffect, useState } from 'react';
+import { Check, Plus, Trash2, KeyRound, UserPlus, History } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import { api } from '../lib/api.js';
 import { toInputDate, TIPO_LABELS } from '../lib/format.js';
@@ -16,6 +16,19 @@ function SavedBadge({ show }) {
 
 const COSTO_FIJO_VACIO = { nombre: '', monto: 0, fechaInicio: '' };
 const SUELDO_VACIO = { nombre: '', monto: 0, fechaInicio: '' };
+const VALOR_NUEVO_VACIO = { monto: 0, fechaInicio: '' };
+
+function agruparPorNombre(lista) {
+  const grupos = new Map();
+  for (const item of lista) {
+    if (!grupos.has(item.nombre)) grupos.set(item.nombre, []);
+    grupos.get(item.nombre).push(item);
+  }
+  for (const entradas of grupos.values()) {
+    entradas.sort((a, b) => new Date(b.fechaInicio) - new Date(a.fechaInicio));
+  }
+  return [...grupos.entries()];
+}
 const NUEVO_USUARIO_VACIO = { nombre: '', email: '' };
 const CAMBIAR_PASSWORD_VACIO = { passwordActual: '', passwordNueva: '', passwordNueva2: '' };
 
@@ -32,6 +45,8 @@ export default function Configuracion() {
   const [cambiarPasswordMsg, setCambiarPasswordMsg] = useState('');
   const [nuevoCostoFijo, setNuevoCostoFijo] = useState(COSTO_FIJO_VACIO);
   const [nuevoSueldo, setNuevoSueldo] = useState(SUELDO_VACIO);
+  const [nuevoValorSueldo, setNuevoValorSueldo] = useState({}); // nombre -> {monto, fechaInicio}
+  const [nuevoValorCostoFijo, setNuevoValorCostoFijo] = useState({}); // nombre -> {monto, fechaInicio}
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [savedKey, setSavedKey] = useState('');
@@ -126,28 +141,38 @@ export default function Configuracion() {
     }
   }
 
-  function updateSueldoField(nombre, field, value) {
-    setSueldos((prev) => prev.map((s) => (s.nombre === nombre ? { ...s, [field]: value } : s)));
+  function updateSueldoField(id, field, value) {
+    setSueldos((prev) => prev.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
   }
 
-  async function saveSueldo(nombre) {
-    const row = sueldos.find((s) => s.nombre === nombre);
+  async function saveSueldo(id) {
+    const row = sueldos.find((s) => s.id === id);
     try {
-      await api.put(`/config/sueldos/${encodeURIComponent(nombre)}`, {
+      await api.put(`/config/sueldos/historial/${id}`, {
         monto: Number(row.monto),
         fechaInicio: row.fechaInicio,
       });
-      setSavedKey(`sueldo-${nombre}`);
+      setSavedKey(`sueldo-${id}`);
       setTimeout(() => setSavedKey(''), 1500);
     } catch (err) {
       setError(err.message);
     }
   }
 
-  async function eliminarSueldo(nombre) {
-    if (!confirm(`¿Eliminar a "${nombre}" de los sueldos?`)) return;
+  async function eliminarEntradaSueldo(id) {
+    if (!confirm('¿Eliminar esta entrada del historial de sueldos?')) return;
     try {
-      await api.del(`/config/sueldos/${encodeURIComponent(nombre)}`);
+      await api.del(`/config/sueldos/historial/${id}`);
+      setSueldos((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function eliminarSueldo(nombre) {
+    if (!confirm(`¿Eliminar a "${nombre}" de los sueldos (todo su historial)?`)) return;
+    try {
+      await api.del(`/config/sueldos/nombre/${encodeURIComponent(nombre)}`);
       setSueldos((prev) => prev.filter((s) => s.nombre !== nombre));
     } catch (err) {
       setError(err.message);
@@ -169,28 +194,53 @@ export default function Configuracion() {
     }
   }
 
-  function updateCostoFijoField(nombre, field, value) {
-    setCostosFijos((prev) => prev.map((c) => (c.nombre === nombre ? { ...c, [field]: value } : c)));
+  async function agregarValorSueldo(nombre) {
+    const valor = nuevoValorSueldo[nombre] || VALOR_NUEVO_VACIO;
+    try {
+      const creado = await api.post('/config/sueldos', {
+        nombre,
+        monto: Number(valor.monto),
+        fechaInicio: valor.fechaInicio || new Date().toISOString().slice(0, 10),
+      });
+      setSueldos((prev) => [...prev, creado]);
+      setNuevoValorSueldo((prev) => ({ ...prev, [nombre]: VALOR_NUEVO_VACIO }));
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
-  async function saveCostoFijo(nombre) {
-    const row = costosFijos.find((c) => c.nombre === nombre);
+  function updateCostoFijoField(id, field, value) {
+    setCostosFijos((prev) => prev.map((c) => (c.id === id ? { ...c, [field]: value } : c)));
+  }
+
+  async function saveCostoFijo(id) {
+    const row = costosFijos.find((c) => c.id === id);
     try {
-      await api.put(`/config/costos-fijos/${encodeURIComponent(nombre)}`, {
+      await api.put(`/config/costos-fijos/historial/${id}`, {
         monto: Number(row.monto),
         fechaInicio: row.fechaInicio,
       });
-      setSavedKey(`costofijo-${nombre}`);
+      setSavedKey(`costofijo-${id}`);
       setTimeout(() => setSavedKey(''), 1500);
     } catch (err) {
       setError(err.message);
     }
   }
 
-  async function eliminarCostoFijo(nombre) {
-    if (!confirm(`¿Eliminar el costo fijo "${nombre}"?`)) return;
+  async function eliminarEntradaCostoFijo(id) {
+    if (!confirm('¿Eliminar esta entrada del historial de costos fijos?')) return;
     try {
-      await api.del(`/config/costos-fijos/${encodeURIComponent(nombre)}`);
+      await api.del(`/config/costos-fijos/historial/${id}`);
+      setCostosFijos((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function eliminarCostoFijo(nombre) {
+    if (!confirm(`¿Eliminar el costo fijo "${nombre}" (todo su historial)?`)) return;
+    try {
+      await api.del(`/config/costos-fijos/nombre/${encodeURIComponent(nombre)}`);
       setCostosFijos((prev) => prev.filter((c) => c.nombre !== nombre));
     } catch (err) {
       setError(err.message);
@@ -207,6 +257,21 @@ export default function Configuracion() {
       });
       setCostosFijos((prev) => [...prev, creado]);
       setNuevoCostoFijo(COSTO_FIJO_VACIO);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function agregarValorCostoFijo(nombre) {
+    const valor = nuevoValorCostoFijo[nombre] || VALOR_NUEVO_VACIO;
+    try {
+      const creado = await api.post('/config/costos-fijos', {
+        nombre,
+        monto: Number(valor.monto),
+        fechaInicio: valor.fechaInicio || new Date().toISOString().slice(0, 10),
+      });
+      setCostosFijos((prev) => [...prev, creado]);
+      setNuevoValorCostoFijo((prev) => ({ ...prev, [nombre]: VALOR_NUEVO_VACIO }));
     } catch (err) {
       setError(err.message);
     }
@@ -320,53 +385,112 @@ export default function Configuracion() {
             </tr>
           </thead>
           <tbody>
-            {sueldos.map((s) => (
-              <tr key={s.nombre} className="border-b border-black/5 last:border-0">
-                <td className="px-5 py-3 font-medium">{s.nombre}</td>
-                <td className="px-5 py-3">
-                  <input
-                    type="number"
-                    min="0"
-                    value={s.monto}
-                    onChange={(e) => updateSueldoField(s.nombre, 'monto', e.target.value)}
-                    className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                  />
-                </td>
-                <td className="px-5 py-3">
-                  <input
-                    type="date"
-                    value={toInputDate(s.fechaInicio)}
-                    onChange={(e) => updateSueldoField(s.nombre, 'fechaInicio', e.target.value)}
-                    className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                  />
-                </td>
-                <td className="px-5 py-3">
-                  <div className="flex items-center gap-3">
+            {agruparPorNombre(sueldos).map(([nombre, entradas]) => (
+              <Fragment key={nombre}>
+                {entradas.map((s, i) => (
+                  <tr key={s.id} className="border-b border-black/5 last:border-0">
+                    <td className="px-5 py-3 font-medium">
+                      {i === 0 ? nombre : <span className="text-[#2C2420]/30">↳ anterior</span>}
+                    </td>
+                    <td className="px-5 py-3">
+                      <input
+                        type="number"
+                        min="0"
+                        value={s.monto}
+                        onChange={(e) => updateSueldoField(s.id, 'monto', e.target.value)}
+                        className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <input
+                        type="date"
+                        value={toInputDate(s.fechaInicio)}
+                        onChange={(e) => updateSueldoField(s.id, 'fechaInicio', e.target.value)}
+                        className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => saveSueldo(s.id)}
+                          className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
+                          style={{ backgroundColor: '#1A1A2E' }}
+                        >
+                          Guardar
+                        </button>
+                        <SavedBadge show={savedKey === `sueldo-${s.id}`} />
+                        <button
+                          onClick={() => eliminarEntradaSueldo(s.id)}
+                          className="ml-auto text-[#A85C52]/70 hover:text-[#A85C52]"
+                          title="Eliminar esta entrada del historial"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                        {i === 0 && (
+                          <button
+                            onClick={() => eliminarSueldo(nombre)}
+                            className="text-[#A85C52]/70 hover:text-[#A85C52]"
+                            title={`Eliminar a "${nombre}" por completo`}
+                          >
+                            <Trash2 size={15} className="opacity-50" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                <tr key={`${nombre}-nuevo-valor`} className="border-b border-black/5 last:border-0 bg-[#FAFAF8]">
+                  <td className="px-5 py-3 text-xs text-[#2C2420]/40">
+                    <span className="inline-flex items-center gap-1">
+                      <History size={12} />
+                      Nuevo valor para {nombre}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3">
+                    <input
+                      type="number"
+                      min="0"
+                      value={nuevoValorSueldo[nombre]?.monto ?? 0}
+                      onChange={(e) =>
+                        setNuevoValorSueldo((prev) => ({
+                          ...prev,
+                          [nombre]: { ...(prev[nombre] || VALOR_NUEVO_VACIO), monto: e.target.value },
+                        }))
+                      }
+                      className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                    />
+                  </td>
+                  <td className="px-5 py-3">
+                    <input
+                      type="date"
+                      value={nuevoValorSueldo[nombre]?.fechaInicio ?? ''}
+                      onChange={(e) =>
+                        setNuevoValorSueldo((prev) => ({
+                          ...prev,
+                          [nombre]: { ...(prev[nombre] || VALOR_NUEVO_VACIO), fechaInicio: e.target.value },
+                        }))
+                      }
+                      className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                    />
+                  </td>
+                  <td className="px-5 py-3">
                     <button
-                      onClick={() => saveSueldo(s.nombre)}
-                      className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
-                      style={{ backgroundColor: '#1A1A2E' }}
+                      onClick={() => agregarValorSueldo(nombre)}
+                      className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
                     >
-                      Guardar
+                      <Plus size={14} />
+                      Agregar valor
                     </button>
-                    <SavedBadge show={savedKey === `sueldo-${s.nombre}`} />
-                    <button
-                      onClick={() => eliminarSueldo(s.nombre)}
-                      className="ml-auto text-[#A85C52]/70 hover:text-[#A85C52]"
-                      title="Eliminar"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              </Fragment>
             ))}
             <tr>
               <td className="px-5 py-3">
                 <input
                   value={nuevoSueldo.nombre}
                   onChange={(e) => setNuevoSueldo((f) => ({ ...f, nombre: e.target.value }))}
-                  placeholder="Nombre de la modista"
+                  placeholder="Nombre de la modista nueva"
                   className="w-full px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
                 />
               </td>
@@ -393,7 +517,7 @@ export default function Configuracion() {
                   className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
                 >
                   <Plus size={14} />
-                  Agregar
+                  Agregar modista
                 </button>
               </td>
             </tr>
@@ -403,10 +527,13 @@ export default function Configuracion() {
       </div>
 
       <p className="text-xs text-[#2C2420]/40 mt-4 mb-8 leading-relaxed max-w-2xl">
-        La mano de obra estimada mostrada en la ficha de costo de cada vestido se calcula como la
-        suma de sueldos vigentes hoy dividida entre la cantidad de vestidos activos (No entregado +
-        entregados este mes). El costo estándar por tipo se usa como valor provisional cuando un
-        vestido todavía no tiene insumos registrados.
+        Cada modista puede tener varios valores en el tiempo (su historial de sueldo). El campo
+        "Vigente desde" de cada fila indica desde cuándo aplica ese monto; al agregar un valor
+        nuevo, el anterior queda guardado como referencia histórica, no se pierde. La mano de obra
+        estimada mostrada en la ficha de costo de cada vestido se calcula con el monto vigente hoy
+        de cada modista, dividido entre la cantidad de vestidos activos (No entregado + entregados
+        este mes). El costo estándar por tipo se usa como valor provisional cuando un vestido
+        todavía no tiene insumos registrados.
       </p>
 
       <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3">
@@ -424,46 +551,105 @@ export default function Configuracion() {
               </tr>
             </thead>
             <tbody>
-              {costosFijos.map((c) => (
-                <tr key={c.nombre} className="border-b border-black/5 last:border-0">
-                  <td className="px-5 py-3 font-medium">{c.nombre}</td>
-                  <td className="px-5 py-3">
-                    <input
-                      type="number"
-                      min="0"
-                      value={c.monto}
-                      onChange={(e) => updateCostoFijoField(c.nombre, 'monto', e.target.value)}
-                      className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <input
-                      type="date"
-                      value={toInputDate(c.fechaInicio)}
-                      onChange={(e) => updateCostoFijoField(c.nombre, 'fechaInicio', e.target.value)}
-                      className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
+              {agruparPorNombre(costosFijos).map(([nombre, entradas]) => (
+                <Fragment key={nombre}>
+                  {entradas.map((c, i) => (
+                    <tr key={c.id} className="border-b border-black/5 last:border-0">
+                      <td className="px-5 py-3 font-medium">
+                        {i === 0 ? nombre : <span className="text-[#2C2420]/30">↳ anterior</span>}
+                      </td>
+                      <td className="px-5 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          value={c.monto}
+                          onChange={(e) => updateCostoFijoField(c.id, 'monto', e.target.value)}
+                          className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <input
+                          type="date"
+                          value={toInputDate(c.fechaInicio)}
+                          onChange={(e) => updateCostoFijoField(c.id, 'fechaInicio', e.target.value)}
+                          className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => saveCostoFijo(c.id)}
+                            className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
+                            style={{ backgroundColor: '#1A1A2E' }}
+                          >
+                            Guardar
+                          </button>
+                          <SavedBadge show={savedKey === `costofijo-${c.id}`} />
+                          <button
+                            onClick={() => eliminarEntradaCostoFijo(c.id)}
+                            className="ml-auto text-[#A85C52]/70 hover:text-[#A85C52]"
+                            title="Eliminar esta entrada del historial"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                          {i === 0 && (
+                            <button
+                              onClick={() => eliminarCostoFijo(nombre)}
+                              className="text-[#A85C52]/70 hover:text-[#A85C52]"
+                              title={`Eliminar "${nombre}" por completo`}
+                            >
+                              <Trash2 size={15} className="opacity-50" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr key={`${nombre}-nuevo-valor`} className="border-b border-black/5 last:border-0 bg-[#FAFAF8]">
+                    <td className="px-5 py-3 text-xs text-[#2C2420]/40">
+                      <span className="inline-flex items-center gap-1">
+                        <History size={12} />
+                        Nuevo valor para {nombre}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <input
+                        type="number"
+                        min="0"
+                        value={nuevoValorCostoFijo[nombre]?.monto ?? 0}
+                        onChange={(e) =>
+                          setNuevoValorCostoFijo((prev) => ({
+                            ...prev,
+                            [nombre]: { ...(prev[nombre] || VALOR_NUEVO_VACIO), monto: e.target.value },
+                          }))
+                        }
+                        className="w-40 px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <input
+                        type="date"
+                        value={nuevoValorCostoFijo[nombre]?.fechaInicio ?? ''}
+                        onChange={(e) =>
+                          setNuevoValorCostoFijo((prev) => ({
+                            ...prev,
+                            [nombre]: { ...(prev[nombre] || VALOR_NUEVO_VACIO), fechaInicio: e.target.value },
+                          }))
+                        }
+                        className="px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+                      />
+                    </td>
+                    <td className="px-5 py-3">
                       <button
-                        onClick={() => saveCostoFijo(c.nombre)}
-                        className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
-                        style={{ backgroundColor: '#1A1A2E' }}
+                        onClick={() => agregarValorCostoFijo(nombre)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
                       >
-                        Guardar
+                        <Plus size={14} />
+                        Agregar valor
                       </button>
-                      <SavedBadge show={savedKey === `costofijo-${c.nombre}`} />
-                      <button
-                        onClick={() => eliminarCostoFijo(c.nombre)}
-                        className="ml-auto text-[#A85C52]/70 hover:text-[#A85C52]"
-                        title="Eliminar"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                </Fragment>
               ))}
               <tr>
                 <td className="px-5 py-3">
@@ -497,7 +683,7 @@ export default function Configuracion() {
                     className="flex items-center gap-1.5 text-xs font-medium text-[#C9A96E] hover:opacity-70"
                   >
                     <Plus size={14} />
-                    Agregar
+                    Agregar costo nuevo
                   </button>
                 </td>
               </tr>
@@ -505,6 +691,12 @@ export default function Configuracion() {
           </table>
         </div>
       </div>
+
+      <p className="text-xs text-[#2C2420]/40 mt-4 mb-8 leading-relaxed max-w-2xl">
+        Cada costo fijo puede tener varios valores en el tiempo (ej. si sube el arriendo). Al
+        agregar un valor nuevo, el anterior queda guardado como historial y el Estado de
+        Resultados y Flujo de Caja usan el que corresponda a cada mes según su fecha.
+      </p>
 
       <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3 mt-8">
         Supuestos financieros del Dashboard

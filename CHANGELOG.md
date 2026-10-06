@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.9.0 — 2026-10-06
+
+- **Historial de sueldos y costos fijos**: en Configuración, cada modista y cada costo fijo (arriendo, agua/luz, etc.) ahora puede tener varios valores en el tiempo en vez de uno solo. Al agregar un valor nuevo (ej. porque subió el arriendo), el anterior queda guardado como historial — no se pierde — y el Estado de Resultados, el Flujo de Caja y la rentabilidad por vestido usan automáticamente el valor que correspondía a cada mes según su fecha. Se puede corregir o eliminar una entrada puntual del historial, o eliminar una modista/costo por completo.
+- **Proyección automática de ventas en Presupuesto**: junto al botón que sugiere con el precio estándar, ahora hay un segundo botón que sugiere la cantidad y el monto según el promedio real de ventas de ese tipo de vestido en los meses anteriores con datos. El botón indica claramente cuántos meses y qué rango de fechas usó para el cálculo, y la sugerencia sigue siendo editable antes de guardar.
+
 ## v1.8.0 — 2026-10-02
 
 - **"Mover a Cotización" ahora funciona para cualquier venta**, no solo las que vinieron de una cotización aceptada — incluidas las ventas de la base de datos importada. Si la venta nunca tuvo cotización, se crea una nueva automáticamente con sus datos (nombre, tipo, fecha de evento, monto) marcada como Rechazada; el correo de la clienta queda vacío y se puede completar después si hace falta reenviarla.

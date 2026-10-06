@@ -5,14 +5,19 @@ const router = Router();
 
 router.get('/tipos-vestido', configController.tiposVestido);
 router.put('/tipos-vestido/:tipo', configController.updateTipoVestido);
+
 router.get('/sueldos', configController.sueldos);
 router.post('/sueldos', configController.createSueldo);
-router.put('/sueldos/:nombre', configController.updateSueldo);
-router.delete('/sueldos/:nombre', configController.deleteSueldo);
+router.put('/sueldos/historial/:id', configController.updateSueldoHistorial);
+router.delete('/sueldos/historial/:id', configController.deleteSueldoHistorial);
+router.delete('/sueldos/nombre/:nombre', configController.deleteSueldoNombre);
+
 router.get('/costos-fijos', configController.costosFijos);
 router.post('/costos-fijos', configController.createCostoFijo);
-router.put('/costos-fijos/:nombre', configController.updateCostoFijo);
-router.delete('/costos-fijos/:nombre', configController.deleteCostoFijo);
+router.put('/costos-fijos/historial/:id', configController.updateCostoFijoHistorial);
+router.delete('/costos-fijos/historial/:id', configController.deleteCostoFijoHistorial);
+router.delete('/costos-fijos/nombre/:nombre', configController.deleteCostoFijoNombre);
+
 router.get('/financiero', configController.financiero);
 router.put('/financiero', configController.updateFinanciero);
 

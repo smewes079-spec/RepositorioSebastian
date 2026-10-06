@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, X, Wand2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Wand2, TrendingUp } from 'lucide-react';
 import { api } from '../lib/api.js';
-import { formatCLP, formatMesCorto, toInputDate, TIPO_LABELS } from '../lib/format.js';
+import { formatCLP, formatMesCorto, formatMesLargo, toInputDate, TIPO_LABELS } from '../lib/format.js';
 import PresupuestoCuotasEditor from './PresupuestoCuotasEditor.jsx';
 
 const VACIO = { tipo: 'NOVIA', mes: '', cantidad: 1, montoTotal: 0 };
@@ -16,6 +16,8 @@ export default function PresupuestoVentas() {
   const [form, setForm] = useState(VACIO);
   const [cuotas, setCuotas] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [proyeccion, setProyeccion] = useState(null);
+  const [cargandoProyeccion, setCargandoProyeccion] = useState(false);
 
   function load() {
     setLoading(true);
@@ -33,9 +35,27 @@ export default function PresupuestoVentas() {
 
   useEffect(load, []);
 
+  useEffect(() => {
+    if (editId === null || !form.mes) {
+      setProyeccion(null);
+      return;
+    }
+    setCargandoProyeccion(true);
+    api
+      .get(`/dashboard/presupuesto/proyeccion?tipo=${form.tipo}&mes=${form.mes}`)
+      .then((data) => setProyeccion(data))
+      .catch(() => setProyeccion(null))
+      .finally(() => setCargandoProyeccion(false));
+  }, [editId, form.tipo, form.mes]);
+
   function sugerirMonto() {
     const precio = precioEstandarPorTipo[form.tipo] || 0;
     setForm((f) => ({ ...f, montoTotal: precio * (Number(f.cantidad) || 0) }));
+  }
+
+  function sugerirConHistorico() {
+    if (!proyeccion) return;
+    setForm((f) => ({ ...f, cantidad: proyeccion.cantidadSugerida, montoTotal: proyeccion.montoSugerido }));
   }
 
   function openNuevo() {
@@ -189,6 +209,19 @@ export default function PresupuestoVentas() {
                     <Wand2 size={15} />
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={sugerirConHistorico}
+                  disabled={!proyeccion || cargandoProyeccion}
+                  title={
+                    proyeccion
+                      ? `Sugerir con el promedio real de ${proyeccion.mesesAnalizados} ${proyeccion.mesesAnalizados === 1 ? 'mes' : 'meses'} (${formatMesLargo(`${proyeccion.primerMes}-01`)} a ${formatMesLargo(`${proyeccion.ultimoMes}-01`)})`
+                      : 'Aún no hay historial de ventas suficiente para proyectar este tipo en este mes'
+                  }
+                  className="shrink-0 p-2 rounded-lg border border-black/10 text-[#C9A96E] hover:bg-[#C9A96E]/10 disabled:opacity-30 disabled:hover:bg-transparent"
+                >
+                  <TrendingUp size={15} />
+                </button>
               </div>
             </div>
           </div>

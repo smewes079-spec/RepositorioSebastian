@@ -99,8 +99,9 @@ export async function getEERR() {
     const margenBruto = totalIngresos - totalCV;
     const margenBrutoPct = totalIngresos > 0 ? round1((margenBruto / totalIngresos) * 100) : 0;
 
-    const costosFijosVigentes = costosFijosDetalle.filter(
-      (c) => monthKey(c.fechaInicio) <= mesKey
+    const costosFijosVigentes = configService.seleccionarVigentePorNombre(
+      costosFijosDetalle,
+      mesKey
     );
     const totalCostosFijos = costosFijosVigentes.reduce((s, c) => s + c.monto, 0);
 

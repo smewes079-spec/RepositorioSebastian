@@ -18,36 +18,48 @@ export async function sueldos(req, res) {
   res.json(await configService.listSueldos());
 }
 
-export async function updateSueldo(req, res) {
-  try {
-    const data = await configService.updateSueldo(req.params.nombre, req.body);
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: 'No se pudo actualizar el sueldo' });
-  }
-}
-
 export async function createSueldo(req, res) {
   try {
     const { nombre } = req.body;
     if (!nombre || !nombre.trim()) {
       return res.status(400).json({ error: 'El nombre es obligatorio' });
     }
-    const data = await configService.updateSueldo(nombre.trim(), req.body);
+    const data = await configService.addSueldoHistorial(nombre.trim(), req.body);
     res.status(201).json(data);
   } catch (err) {
     console.error(err);
     if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'Ya existe un sueldo con ese nombre' });
+      return res.status(409).json({ error: 'Ya existe un sueldo con ese nombre y esa fecha de inicio' });
     }
-    res.status(400).json({ error: 'No se pudo agregar la modista' });
+    res.status(400).json({ error: 'No se pudo agregar el sueldo' });
   }
 }
 
-export async function deleteSueldo(req, res) {
+export async function updateSueldoHistorial(req, res) {
   try {
-    await configService.deleteSueldo(req.params.nombre);
+    const data = await configService.updateSueldoHistorialEntry(req.params.id, req.body);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'Ya existe un sueldo con ese nombre y esa fecha de inicio' });
+    }
+    res.status(400).json({ error: 'No se pudo actualizar el sueldo' });
+  }
+}
+
+export async function deleteSueldoHistorial(req, res) {
+  try {
+    await configService.deleteSueldoHistorialEntry(req.params.id);
+    res.status(204).end();
+  } catch (err) {
+    res.status(404).json({ error: 'Entrada de sueldo no encontrada' });
+  }
+}
+
+export async function deleteSueldoNombre(req, res) {
+  try {
+    await configService.deleteSueldoNombre(req.params.nombre);
     res.status(204).end();
   } catch (err) {
     res.status(404).json({ error: 'Sueldo no encontrado' });
@@ -58,36 +70,48 @@ export async function costosFijos(req, res) {
   res.json(await configService.listCostosFijos());
 }
 
-export async function updateCostoFijo(req, res) {
-  try {
-    const data = await configService.updateCostoFijo(req.params.nombre, req.body);
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: 'No se pudo actualizar el costo fijo' });
-  }
-}
-
 export async function createCostoFijo(req, res) {
   try {
     const { nombre } = req.body;
     if (!nombre || !nombre.trim()) {
       return res.status(400).json({ error: 'El nombre es obligatorio' });
     }
-    const data = await configService.updateCostoFijo(nombre.trim(), req.body);
+    const data = await configService.addCostoFijoHistorial(nombre.trim(), req.body);
     res.status(201).json(data);
   } catch (err) {
     console.error(err);
     if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'Ya existe un costo fijo con ese nombre' });
+      return res.status(409).json({ error: 'Ya existe un costo fijo con ese nombre y esa fecha de inicio' });
     }
     res.status(400).json({ error: 'No se pudo crear el costo fijo' });
   }
 }
 
-export async function deleteCostoFijo(req, res) {
+export async function updateCostoFijoHistorial(req, res) {
   try {
-    await configService.deleteCostoFijo(req.params.nombre);
+    const data = await configService.updateCostoFijoHistorialEntry(req.params.id, req.body);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'P2002') {
+      return res.status(409).json({ error: 'Ya existe un costo fijo con ese nombre y esa fecha de inicio' });
+    }
+    res.status(400).json({ error: 'No se pudo actualizar el costo fijo' });
+  }
+}
+
+export async function deleteCostoFijoHistorial(req, res) {
+  try {
+    await configService.deleteCostoFijoHistorialEntry(req.params.id);
+    res.status(204).end();
+  } catch (err) {
+    res.status(404).json({ error: 'Entrada de costo fijo no encontrada' });
+  }
+}
+
+export async function deleteCostoFijoNombre(req, res) {
+  try {
+    await configService.deleteCostoFijoNombre(req.params.nombre);
     res.status(204).end();
   } catch (err) {
     res.status(404).json({ error: 'Costo fijo no encontrado' });

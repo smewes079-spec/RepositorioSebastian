@@ -22,6 +22,18 @@ router.get('/presupuesto', async (req, res) => {
   res.json(await presupuestoService.listPresupuesto());
 });
 
+router.get('/presupuesto/proyeccion', async (req, res) => {
+  const { tipo, mes } = req.query;
+  if (!tipo || !mes) {
+    return res.status(400).json({ error: 'Faltan parámetros tipo o mes' });
+  }
+  const sugerencia = await presupuestoService.sugerirProyeccion(tipo, mes);
+  if (!sugerencia) {
+    return res.status(204).end();
+  }
+  res.json(sugerencia);
+});
+
 router.post('/presupuesto', async (req, res) => {
   try {
     const data = await presupuestoService.createPresupuesto(req.body);
