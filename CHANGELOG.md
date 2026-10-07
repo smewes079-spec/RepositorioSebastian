@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.17.0 — 2026-10-07
+
+- **N° de documento**: en Registro de Insumos y Gastos Generales ahora se puede anotar el número de la boleta o factura como dato de texto, junto al comprobante adjunto. Se puede ver, filtrar y exportar como columna nueva en ambos listados.
+
 ## v1.16.0 — 2026-10-07
 
 - **Comprobantes de gasto**: en Registro de Insumos y Gastos Generales ahora se puede adjuntar la boleta o factura (imagen o PDF, hasta 8 MB) al crear o editar un registro. En el listado aparece una columna "Comprobante" con un link "Ver archivo" cuando hay uno adjunto; en el formulario se puede reemplazar o quitar en cualquier momento.

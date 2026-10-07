@@ -53,6 +53,7 @@ function baseData(data) {
     descripcion: data.descripcion,
     montoTotal: Number(data.montoTotal),
     tipoAsignacion: data.tipoAsignacion,
+    numeroDocumento: data.numeroDocumento ? String(data.numeroDocumento).trim() : null,
   };
 }
 
@@ -76,6 +77,7 @@ const selectSinComprobanteDatos = {
   updatedAt: true,
   creadoPorId: true,
   actualizadoPorId: true,
+  numeroDocumento: true,
   comprobanteNombre: true,
   comprobanteMime: true,
   comprobanteTamano: true,

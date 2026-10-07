@@ -83,6 +83,11 @@ const COLUMN_DEFS = {
     cell: (c) => <span className="font-medium">{formatCLP(c.montoTotal)}</span>,
     getValue: (c) => formatCLP(c.montoTotal),
   },
+  numeroDocumento: {
+    label: 'N° documento',
+    cell: (c) => <span className="text-[#2C2420]/70">{c.numeroDocumento || '—'}</span>,
+    getValue: (c) => c.numeroDocumento || '',
+  },
   comprobante: {
     label: 'Comprobante',
     cell: (c) =>
@@ -104,7 +109,8 @@ const COLUMN_DEFS = {
 };
 
 const ORDEN_COLUMNAS = [
-  'fecha', 'categoria', 'proveedor', 'descripcion', 'asignacion', 'vestidos', 'monto', 'comprobante',
+  'fecha', 'categoria', 'proveedor', 'descripcion', 'asignacion', 'vestidos', 'monto',
+  'numeroDocumento', 'comprobante',
 ];
 
 const ANCHOS_COLUMNAS_DEFECTO = {
@@ -115,6 +121,7 @@ const ANCHOS_COLUMNAS_DEFECTO = {
   asignacion: 130,
   vestidos: 130,
   monto: 110,
+  numeroDocumento: 130,
   comprobante: 120,
 };
 

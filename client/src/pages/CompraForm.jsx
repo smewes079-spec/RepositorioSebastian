@@ -14,6 +14,7 @@ const VACIO = {
   proveedor: '',
   descripcion: '',
   montoTotal: '',
+  numeroDocumento: '',
   tipoAsignacion: 'DIRECTO',
   ventaId: '',
   ventaIds: [],
@@ -60,6 +61,7 @@ export default function CompraForm() {
           tipoAsignacion: c.tipoAsignacion,
           ventaId: c.asignaciones[0]?.ventaId || '',
           ventaIds: c.asignaciones.map((a) => a.ventaId),
+          numeroDocumento: c.numeroDocumento || '',
         });
         setAsignacionesGuardadas(c.asignaciones);
         setAuditoria({ creadoPor: c.creadoPor?.nombre, actualizadoPor: c.actualizadoPor?.nombre });
@@ -229,6 +231,17 @@ export default function CompraForm() {
               min="0"
               value={form.montoTotal}
               onChange={(e) => set('montoTotal', e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+              N° de documento (boleta/factura)
+            </label>
+            <input
+              value={form.numeroDocumento}
+              onChange={(e) => set('numeroDocumento', e.target.value)}
+              placeholder="ej: 00123456"
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
           </div>

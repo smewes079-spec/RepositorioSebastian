@@ -146,6 +146,7 @@ model Purchase {
 
   asignaciones PurchaseAssignment[]
 
+  numeroDocumento   String?
   comprobanteNombre String?
   comprobanteMime   String?
   comprobanteTamano Int?
@@ -186,6 +187,7 @@ model GastoGeneral {
   actualizadoPorId String?
   actualizadoPor   Usuario? @relation("GastoGeneralActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
 
+  numeroDocumento   String?
   comprobanteNombre String?
   comprobanteMime   String?
   comprobanteTamano Int?

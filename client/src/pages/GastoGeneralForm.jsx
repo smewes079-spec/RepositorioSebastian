@@ -11,6 +11,7 @@ const VACIO = {
   categoria: 'CAFETERIA_Y_ASEO',
   descripcion: '',
   montoTotal: '',
+  numeroDocumento: '',
 };
 
 function formatTamano(bytes) {
@@ -44,6 +45,7 @@ export default function GastoGeneralForm() {
           categoria: g.categoria,
           descripcion: g.descripcion,
           montoTotal: g.montoTotal,
+          numeroDocumento: g.numeroDocumento || '',
         });
         setAuditoria({ creadoPor: g.creadoPor?.nombre, actualizadoPor: g.actualizadoPor?.nombre });
         setComprobante(
@@ -199,6 +201,17 @@ export default function GastoGeneralForm() {
               min="0"
               value={form.montoTotal}
               onChange={(e) => set('montoTotal', e.target.value)}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+              N° de documento (boleta/factura)
+            </label>
+            <input
+              value={form.numeroDocumento}
+              onChange={(e) => set('numeroDocumento', e.target.value)}
+              placeholder="ej: 00123456"
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
           </div>
