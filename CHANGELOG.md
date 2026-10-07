@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.12.1 — 2026-10-07
+
+- Las cotizaciones Aceptadas o Rechazadas ahora se pueden editar (antes quedaban completamente bloqueadas). Si la cotización ya generó una venta, se muestra un aviso recordando que los cambios no se reflejan automáticamente en esa venta. Los botones de Enviar/Aceptar/Rechazar/Eliminar siguen sin aparecer en esos estados.
+
 ## v1.12.0 — 2026-10-06
 
 - **Logo real del taller**: se reemplazó el monograma aproximado (dibujado con letras superpuestas, ya que no se contaba con el archivo original de la marca) por el logo real del taller, provisto por el usuario. Se actualizó en las 4 páginas del PDF de cotización, en el menú lateral, en la pantalla de inicio de sesión y en el ícono de la pestaña del navegador. El resto del formato (colores, tipografías, textos, estructura) no cambió.

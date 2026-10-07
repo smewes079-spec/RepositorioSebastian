@@ -297,8 +297,15 @@ export default function CotizacionForm() {
       {info && <p className="text-sm text-[#5C8C6A] mb-4">{info}</p>}
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
+      {cotizacion?.estado === 'ACEPTADA' && cotizacion.venta && (
+        <p className="text-sm text-[#8A7E76] mb-4">
+          Esta cotización ya generó la venta <strong>{cotizacion.venta.codigo}</strong>. Los cambios
+          que hagas aquí no se reflejan automáticamente en esa venta.
+        </p>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
-        <fieldset disabled={bloqueada} className="space-y-6 disabled:opacity-60">
+        <fieldset className="space-y-6">
           <div className="bg-white rounded-xl border border-black/5 p-6 grid grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Nombre clienta</label>
@@ -398,25 +405,23 @@ export default function CotizacionForm() {
           </div>
         </fieldset>
 
-        {!bloqueada && (
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/cotizaciones')}
-              className="px-5 py-2.5 text-sm rounded-lg text-[#2C2420]/70 hover:bg-black/5"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving || items.length === 0}
-              className="px-5 py-2.5 text-sm rounded-lg text-white hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: '#1A1A2E' }}
-            >
-              {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear cotización'}
-            </button>
-          </div>
-        )}
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/cotizaciones')}
+            className="px-5 py-2.5 text-sm rounded-lg text-[#2C2420]/70 hover:bg-black/5"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={saving || items.length === 0}
+            className="px-5 py-2.5 text-sm rounded-lg text-white hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: '#1A1A2E' }}
+          >
+            {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear cotización'}
+          </button>
+        </div>
       </form>
     </Layout>
   );
