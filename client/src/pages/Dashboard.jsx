@@ -285,6 +285,7 @@ export default function Dashboard() {
   const [tab, setTab] = useState('eerr');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
+  const [mesKpi, setMesKpi] = useState('');
 
   useEffect(() => {
     Promise.all([api.get('/dashboard/kpis'), api.get('/dashboard/eerr'), api.get('/dashboard/flujo-caja')])
@@ -292,10 +293,16 @@ export default function Dashboard() {
         setKpis(k);
         setEerr(e);
         setFlujo(f);
+        const ultimoConVentas = [...e.meses].reverse().find((m) => m.tieneReales);
+        const hoy = new Date();
+        const mesHoyKey = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+        setMesKpi(ultimoConVentas?.mes || mesHoyKey);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const filaMesKpi = useMemo(() => eerr?.meses.find((m) => m.mes === mesKpi), [eerr, mesKpi]);
 
   const eerrMesesFiltrados = useMemo(
     () => (eerr ? filtrarPorRango(eerr.meses, desde, hasta) : []),
@@ -334,25 +341,41 @@ export default function Dashboard() {
       {error && <p className="text-sm text-[#A85C52] mb-4">{error}</p>}
 
       {kpis && (
-        <div className="grid grid-cols-6 gap-4 mb-6">
-          <KpiCard label="Caja actual" value={formatCLP(kpis.cajaActual)} valueColor={kpis.cajaActual >= 0 ? '#5C8C6A' : '#A85C52'} />
-          <KpiCard label="Ventas del mes" value={formatCLP(kpis.ventasDelMes)} />
-          <KpiCard
-            label="Margen bruto % del mes"
-            value={`${kpis.margenBrutoPctMes}%`}
-            valueColor={kpis.margenBrutoPctMes >= 0 ? '#5C8C6A' : '#A85C52'}
-          />
-          <KpiCard label="Vestidos en producción" value={kpis.vestidosEnProduccion} />
-          <KpiCard label="Por cobrar (total)" value={formatCLP(kpis.totalPorCobrar)} />
-          <KpiCard
-            label="¿Alcanza sueldo socias?"
-            value={kpis.alcanzaSueldoSociasMes === null ? '—' : kpis.alcanzaSueldoSociasMes ? 'Sí' : 'No'}
-            valueColor={
-              kpis.alcanzaSueldoSociasMes === null ? undefined : kpis.alcanzaSueldoSociasMes ? '#5C8C6A' : '#A85C52'
-            }
-            hint={kpis.sueldoSocias > 0 ? `Meta: ${formatCLP(kpis.sueldoSocias)}` : undefined}
-          />
-        </div>
+        <>
+          <div className="flex items-center gap-2 mb-3 text-xs text-[#2C2420]/60">
+            Mes de referencia (Ventas y Margen bruto)
+            <input
+              type="month"
+              value={mesKpi}
+              onChange={(e) => setMesKpi(e.target.value)}
+              className="px-2.5 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
+            />
+            {filaMesKpi?.tieneReales === false && (
+              <span className="text-[10px] uppercase tracking-wide text-[#8A7F75]">
+                mes proyectado, sin ventas reales
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-6 gap-4 mb-6">
+            <KpiCard label="Caja actual" value={formatCLP(kpis.cajaActual)} valueColor={kpis.cajaActual >= 0 ? '#5C8C6A' : '#A85C52'} />
+            <KpiCard label="Ventas del mes" value={formatCLP(filaMesKpi?.ingresosReales ?? 0)} />
+            <KpiCard
+              label="Margen bruto % del mes"
+              value={`${filaMesKpi?.margenBrutoPct ?? 0}%`}
+              valueColor={(filaMesKpi?.margenBrutoPct ?? 0) >= 0 ? '#5C8C6A' : '#A85C52'}
+            />
+            <KpiCard label="Vestidos en producción" value={kpis.vestidosEnProduccion} />
+            <KpiCard label="Por cobrar (total)" value={formatCLP(kpis.totalPorCobrar)} />
+            <KpiCard
+              label="¿Alcanza sueldo socias?"
+              value={kpis.alcanzaSueldoSociasMes === null ? '—' : kpis.alcanzaSueldoSociasMes ? 'Sí' : 'No'}
+              valueColor={
+                kpis.alcanzaSueldoSociasMes === null ? undefined : kpis.alcanzaSueldoSociasMes ? '#5C8C6A' : '#A85C52'
+              }
+              hint={kpis.sueldoSocias > 0 ? `Meta: ${formatCLP(kpis.sueldoSocias)}` : undefined}
+            />
+          </div>
+        </>
       )}
 
       <div className="flex items-center gap-1 mb-4 border-b border-black/5">
