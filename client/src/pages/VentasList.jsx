@@ -89,16 +89,19 @@ const COLUMN_DEFS = {
     label: 'Fecha venta',
     cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaVenta)}</span>,
     getValue: (v) => formatFecha(v.fechaVenta),
+    sortField: 'fechaVenta',
   },
   fechaEvento: {
     label: 'Fecha evento',
     cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaEvento)}</span>,
     getValue: (v) => formatFecha(v.fechaEvento),
+    sortField: 'fechaEvento',
   },
   fechaEntregaComprometida: {
     label: 'Entrega comprometida',
     cell: (v) => <span className="text-[#2C2420]/70">{formatFecha(v.fechaEntregaComprometida) || '—'}</span>,
     getValue: (v) => formatFecha(v.fechaEntregaComprometida),
+    sortField: 'fechaEntregaComprometida',
   },
   total: {
     label: 'Total',
@@ -193,6 +196,20 @@ export default function VentasList() {
     () => ORDEN_COLUMNAS_DEFECTO.map((key) => ({ key, getValue: COLUMN_DEFS[key].getValue })),
     []
   );
+  const [sort, setSort] = useState({ field: 'fechaVenta', dir: 'desc' });
+  const ventasOrdenadas = useMemo(() => {
+    if (!sort.field) return ventas;
+    const copia = [...ventas];
+    copia.sort((a, b) => {
+      const av = a[sort.field] ? new Date(a[sort.field]).getTime() : null;
+      const bv = b[sort.field] ? new Date(b[sort.field]).getTime() : null;
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1; // sin fecha siempre al final
+      if (bv === null) return -1;
+      return sort.dir === 'asc' ? av - bv : bv - av;
+    });
+    return copia;
+  }, [ventas, sort]);
   const {
     filteredRows: ventasFiltradas,
     uniqueValuesByColumn,
@@ -200,7 +217,7 @@ export default function VentasList() {
     setColumnExcluded,
     clearAllFilters: limpiarFiltrosColumna,
     activeCount: filtrosColumnaActivos,
-  } = useColumnFilters(ventas, filtroColumnas);
+  } = useColumnFilters(ventasOrdenadas, filtroColumnas);
 
   async function load() {
     setLoading(true);
@@ -480,6 +497,17 @@ export default function VentasList() {
                   options={uniqueValuesByColumn[key]}
                   excluded={excludedByColumn[key]}
                   onChange={(excl) => setColumnExcluded(key, excl)}
+                  sortActive={COLUMN_DEFS[key].sortField && sort.field === COLUMN_DEFS[key].sortField}
+                  sortDir={sort.dir}
+                  onSortClick={
+                    COLUMN_DEFS[key].sortField
+                      ? () =>
+                          setSort((s) => ({
+                            field: COLUMN_DEFS[key].sortField,
+                            dir: s.field === COLUMN_DEFS[key].sortField && s.dir === 'desc' ? 'asc' : 'desc',
+                          }))
+                      : undefined
+                  }
                   width={anchosColumnas[key]}
                   onResize={setAnchoColumna}
                 />

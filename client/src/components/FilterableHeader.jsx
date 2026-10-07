@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Filter, Search, GripVertical, ArrowUpDown } from 'lucide-react';
+import { Filter, Search, GripVertical, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 export default function FilterableHeader({
   label,
@@ -111,12 +111,15 @@ export default function FilterableHeader({
           />
         )}
         <span className="truncate">{label}</span>
-        {onSortClick && (
-          <ArrowUpDown
-            size={11}
-            className={`shrink-0 ${sortActive ? 'text-[#C9A96E]' : 'text-[#2C2420]/20'}`}
-          />
-        )}
+        {onSortClick && (sortActive ? (
+          sortDir === 'asc' ? (
+            <ArrowUp size={11} className="shrink-0 text-[#C9A96E]" />
+          ) : (
+            <ArrowDown size={11} className="shrink-0 text-[#C9A96E]" />
+          )
+        ) : (
+          <ArrowUpDown size={11} className="shrink-0 text-[#2C2420]/20" />
+        ))}
         {options && (
           <button
             type="button"
