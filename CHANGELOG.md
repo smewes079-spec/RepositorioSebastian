@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.14.0 — 2026-10-07
+
+- **Importar Excel en Gastos Generales**: ya se puede cargar gastos generales en lote desde una planilla Excel/CSV, igual que ya se podía con Insumos — botón "Importar Excel" en el listado, con plantilla descargable.
+- **Prorrateo de insumos más preciso al importar**: cuando una compra de insumos se importa con "Prorrateo" (sin elegir vestidos a mano), ahora se reparte entre las ventas del mismo mes de la compra en vez de las ventas activas hoy — importante para cargar historial antiguo sin ensuciar la rentabilidad de los vestidos actuales.
+
 ## v1.13.0 — 2026-10-07
 
 - Gastos Generales: nueva categoría "Impuestos, legal y bancos" (trámites, notaría, asesoría tributaria, comisiones bancarias, impuestos) — para ordenar el historial de gastos que se está cargando.

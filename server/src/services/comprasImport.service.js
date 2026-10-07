@@ -37,6 +37,24 @@ function parseTipoAsignacion(value) {
   return TIPO_ASIGNACION_MAP[normalizeLoose(value)] || null;
 }
 
+// Para un prorrateo sin selección manual de vestidos (como en la importación
+// masiva), reparte el costo entre las ventas del mismo mes de la compra en
+// vez de las ventas activas hoy — así una compra de tela de marzo no termina
+// cargándose a los vestidos que están en producción al momento de importar.
+// Si ese mes no tiene ventas, amplía a un mes antes/después; si sigue sin
+// encontrar nada, deja que purchases.service.js use su respaldo habitual
+// (ventas "No entregado" vigentes).
+async function ventaIdsDelMes(fecha) {
+  const centro = new Date(fecha);
+  const inicio = new Date(Date.UTC(centro.getUTCFullYear(), centro.getUTCMonth() - 1, 1));
+  const fin = new Date(Date.UTC(centro.getUTCFullYear(), centro.getUTCMonth() + 2, 1));
+  const ventas = await prisma.venta.findMany({
+    where: { fechaVenta: { gte: inicio, lt: fin } },
+    select: { id: true },
+  });
+  return ventas.length ? ventas.map((v) => v.id) : null;
+}
+
 export async function importComprasRows(rows, usuarioId) {
   const creadas = [];
   const errores = [];
@@ -109,6 +127,9 @@ export async function importComprasRows(rows, usuarioId) {
           continue;
         }
         data.ventaId = venta.id;
+      } else {
+        const ventaIds = await ventaIdsDelMes(fecha);
+        if (ventaIds) data.ventaIds = ventaIds;
       }
 
       await purchasesService.createPurchase(data, usuarioId);

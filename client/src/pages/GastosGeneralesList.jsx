@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Download, X, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Download, Upload, X, RotateCcw } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
+import ImportCsvModal from '../components/ImportCsvModal.jsx';
 import FilterableHeader from '../components/FilterableHeader.jsx';
 import ColumnVisibilityMenu from '../components/ColumnVisibilityMenu.jsx';
 import { useColumnFilters } from '../lib/useColumnFilters.js';
@@ -62,6 +63,7 @@ export default function GastosGeneralesList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [exportando, setExportando] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const columnasVisibilidad = useColumnVisibility('hsn-gastos-generales-columnas-visibles', ORDEN_COLUMNAS);
   const { widths: anchosColumnas, setWidth: setAnchoColumna, restablecer: restablecerAnchos } = useColumnWidths(
@@ -139,14 +141,23 @@ export default function GastosGeneralesList() {
       title="Gastos generales"
       subtitle="Café, estacionamiento, mobiliario y otros gastos que no son insumos de vestidos"
       actions={
-        <Link
-          to="/costos/gastos-generales/nueva"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
-          style={{ backgroundColor: '#1A1A2E' }}
-        >
-          <Plus size={16} />
-          Nuevo gasto
-        </Link>
+        <>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-black/10 text-[#2C2420]/80 hover:bg-black/5"
+          >
+            <Upload size={16} />
+            Importar Excel
+          </button>
+          <Link
+            to="/costos/gastos-generales/nueva"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90"
+            style={{ backgroundColor: '#1A1A2E' }}
+          >
+            <Plus size={16} />
+            Nuevo gasto
+          </Link>
+        </>
       }
     >
       {resumen && (
@@ -334,6 +345,19 @@ export default function GastosGeneralesList() {
           </table>
         </div>
       </div>
+
+      {showImport && (
+        <ImportCsvModal
+          titulo="Importar gastos generales desde Excel o CSV"
+          endpoint="/gastos-generales/importar"
+          plantillaHref="/plantilla-gastos-generales.xlsx"
+          descripcionColumnas="Completa la plantilla con las columnas: FECHA, CATEGORIA, DESCRIPCION, MONTO TOTAL."
+          onClose={() => setShowImport(false)}
+          onImported={() => {
+            load();
+          }}
+        />
+      )}
     </Layout>
   );
 }

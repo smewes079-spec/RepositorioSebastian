@@ -24,9 +24,10 @@ async function computeAssignments(data) {
   }
 
   if (data.tipoAsignacion === 'PRORRATEO') {
-    // Si viene una lista explícita de vestidos (elegida a mano en el formulario),
-    // se prorratea solo entre esos. Si no viene (ej. import de Excel/CSV), se
-    // mantiene el comportamiento anterior: todos los vestidos "No entregado".
+    // Si viene una lista explícita de vestidos (elegida a mano en el formulario,
+    // o calculada automáticamente al importar por Excel según el mes de la
+    // compra), se prorratea solo entre esos. Si no viene ninguna, se usa el
+    // respaldo: todos los vestidos "No entregado" vigentes hoy.
     const ventaIds = Array.isArray(data.ventaIds) ? data.ventaIds.filter(Boolean) : null;
     if (ventaIds && ventaIds.length === 0) {
       throw new Error('Selecciona al menos un vestido para prorratear el costo');
