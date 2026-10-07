@@ -146,6 +146,11 @@ model Purchase {
 
   asignaciones PurchaseAssignment[]
 
+  comprobanteNombre String?
+  comprobanteMime   String?
+  comprobanteTamano Int?
+  comprobanteDatos  Bytes?
+
   @@index([categoria])
   @@index([tipoAsignacion])
   @@index([fecha])
@@ -180,6 +185,11 @@ model GastoGeneral {
   creadoPor        Usuario? @relation("GastoGeneralCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
   actualizadoPorId String?
   actualizadoPor   Usuario? @relation("GastoGeneralActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
+
+  comprobanteNombre String?
+  comprobanteMime   String?
+  comprobanteTamano Int?
+  comprobanteDatos  Bytes?
 
   @@index([categoria])
   @@index([fecha])

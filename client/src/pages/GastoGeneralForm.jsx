@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
@@ -13,6 +13,12 @@ const VACIO = {
   montoTotal: '',
 };
 
+function formatTamano(bytes) {
+  if (!bytes) return '';
+  const kb = bytes / 1024;
+  return kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+}
+
 export default function GastoGeneralForm() {
   const { id } = useParams();
   const isEdit = !!id;
@@ -23,6 +29,10 @@ export default function GastoGeneralForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [auditoria, setAuditoria] = useState(null);
+  const [comprobante, setComprobante] = useState(null);
+  const [archivoNuevo, setArchivoNuevo] = useState(null);
+  const [subiendoArchivo, setSubiendoArchivo] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -36,6 +46,9 @@ export default function GastoGeneralForm() {
           montoTotal: g.montoTotal,
         });
         setAuditoria({ creadoPor: g.creadoPor?.nombre, actualizadoPor: g.actualizadoPor?.nombre });
+        setComprobante(
+          g.comprobanteNombre ? { nombre: g.comprobanteNombre, tamano: g.comprobanteTamano } : null
+        );
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -51,16 +64,55 @@ export default function GastoGeneralForm() {
     setError('');
     try {
       const payload = { ...form, montoTotal: Number(form.montoTotal) };
+      let gastoId = id;
       if (isEdit) {
         await api.put(`/gastos-generales/${id}`, payload);
       } else {
-        await api.post('/gastos-generales', payload);
+        const creado = await api.post('/gastos-generales', payload);
+        gastoId = creado.id;
+      }
+      if (archivoNuevo) {
+        const fd = new FormData();
+        fd.append('archivo', archivoNuevo);
+        await api.post(`/gastos-generales/${gastoId}/comprobante`, fd);
       }
       navigate('/costos/gastos-generales');
     } catch (err) {
       setError(err.message || 'No se pudo guardar el gasto');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleArchivoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!isEdit) {
+      setArchivoNuevo(file);
+      return;
+    }
+    setSubiendoArchivo(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('archivo', file);
+      const actualizado = await api.post(`/gastos-generales/${id}/comprobante`, fd);
+      setComprobante({ nombre: actualizado.comprobanteNombre, tamano: actualizado.comprobanteTamano });
+    } catch (err) {
+      setError(err.message || 'No se pudo subir el comprobante');
+    } finally {
+      setSubiendoArchivo(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  async function handleQuitarComprobante() {
+    if (!confirm('¿Quitar el comprobante de este gasto?')) return;
+    try {
+      await api.del(`/gastos-generales/${id}/comprobante`);
+      setComprobante(null);
+    } catch (err) {
+      setError(err.message || 'No se pudo quitar el comprobante');
     }
   }
 
@@ -149,6 +201,60 @@ export default function GastoGeneralForm() {
               onChange={(e) => set('montoTotal', e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+              Comprobante (boleta/factura)
+            </label>
+            {isEdit && comprobante ? (
+              <div className="flex items-center flex-wrap gap-3 text-sm">
+                <a
+                  href={`/api/gastos-generales/${id}/comprobante`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#C9A96E] hover:underline"
+                >
+                  Ver archivo
+                </a>
+                <span className="text-[#2C2420]/40 text-xs">
+                  {comprobante.nombre}
+                  {comprobante.tamano ? ` · ${formatTamano(comprobante.tamano)}` : ''}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs text-[#2C2420]/60 hover:underline"
+                >
+                  Reemplazar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuitarComprobante}
+                  className="text-xs text-[#A85C52] hover:underline"
+                >
+                  Quitar
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleArchivoChange}
+                  className="hidden"
+                />
+              </div>
+            ) : (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleArchivoChange}
+                className="w-full text-sm"
+              />
+            )}
+            {subiendoArchivo && <p className="text-xs text-[#2C2420]/40 mt-1">Subiendo…</p>}
+            {!isEdit && archivoNuevo && (
+              <p className="text-xs text-[#2C2420]/40 mt-1">Se subirá al guardar: {archivoNuevo.name}</p>
+            )}
           </div>
         </div>
 

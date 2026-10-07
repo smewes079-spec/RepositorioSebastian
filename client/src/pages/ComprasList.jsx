@@ -83,9 +83,29 @@ const COLUMN_DEFS = {
     cell: (c) => <span className="font-medium">{formatCLP(c.montoTotal)}</span>,
     getValue: (c) => formatCLP(c.montoTotal),
   },
+  comprobante: {
+    label: 'Comprobante',
+    cell: (c) =>
+      c.comprobanteNombre ? (
+        <a
+          href={`/api/purchases/${c.id}/comprobante`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-[#C9A96E] hover:underline"
+        >
+          Ver archivo
+        </a>
+      ) : (
+        <span className="text-[#2C2420]/30">—</span>
+      ),
+    getValue: (c) => (c.comprobanteNombre ? 'Sí' : 'No'),
+  },
 };
 
-const ORDEN_COLUMNAS = ['fecha', 'categoria', 'proveedor', 'descripcion', 'asignacion', 'vestidos', 'monto'];
+const ORDEN_COLUMNAS = [
+  'fecha', 'categoria', 'proveedor', 'descripcion', 'asignacion', 'vestidos', 'monto', 'comprobante',
+];
 
 const ANCHOS_COLUMNAS_DEFECTO = {
   fecha: 100,
@@ -95,6 +115,7 @@ const ANCHOS_COLUMNAS_DEFECTO = {
   asignacion: 130,
   vestidos: 130,
   monto: 110,
+  comprobante: 120,
 };
 
 export default function ComprasList() {

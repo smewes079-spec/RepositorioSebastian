@@ -56,6 +56,33 @@ function baseData(data) {
   };
 }
 
+const includeAuditoria = {
+  creadoPor: { select: { nombre: true } },
+  actualizadoPor: { select: { nombre: true } },
+};
+
+// Select explícito que trae todo salvo `comprobanteDatos` (puede pesar varios
+// MB) — se usa en listados/detalle para no cargar el archivo completo en cada
+// consulta; el archivo en sí solo se lee en getComprobante().
+const selectSinComprobanteDatos = {
+  id: true,
+  fecha: true,
+  categoria: true,
+  proveedor: true,
+  descripcion: true,
+  montoTotal: true,
+  tipoAsignacion: true,
+  createdAt: true,
+  updatedAt: true,
+  creadoPorId: true,
+  actualizadoPorId: true,
+  comprobanteNombre: true,
+  comprobanteMime: true,
+  comprobanteTamano: true,
+  asignaciones: { include: { venta: true } },
+  ...includeAuditoria,
+};
+
 export async function listPurchases(filters = {}) {
   const where = {};
   if (filters.categoria) where.categoria = filters.categoria;
@@ -67,7 +94,7 @@ export async function listPurchases(filters = {}) {
 
   const purchases = await prisma.purchase.findMany({
     where,
-    include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
+    select: selectSinComprobanteDatos,
     orderBy: { fecha: 'desc' },
   });
 
@@ -81,7 +108,7 @@ export async function listPurchases(filters = {}) {
 export async function getPurchase(id) {
   const purchase = await prisma.purchase.findUnique({
     where: { id },
-    include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
+    select: selectSinComprobanteDatos,
   });
   if (!purchase) return null;
   return {
@@ -89,11 +116,6 @@ export async function getPurchase(id) {
     montoAsignadoTotal: purchase.asignaciones.reduce((s, a) => s + a.montoAsignado, 0),
   };
 }
-
-const includeAuditoria = {
-  creadoPor: { select: { nombre: true } },
-  actualizadoPor: { select: { nombre: true } },
-};
 
 export async function createPurchase(data, usuarioId) {
   const asignaciones = await computeAssignments({ ...data, montoTotal: Number(data.montoTotal) });
@@ -105,7 +127,7 @@ export async function createPurchase(data, usuarioId) {
       actualizadoPorId: usuarioId,
       asignaciones: { create: asignaciones },
     },
-    include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
+    select: selectSinComprobanteDatos,
   });
 }
 
@@ -141,13 +163,58 @@ export async function updatePurchase(id, data, usuarioId) {
         actualizadoPorId: usuarioId,
         asignaciones: { create: asignaciones },
       },
-      include: { asignaciones: { include: { venta: true } }, ...includeAuditoria },
+      select: selectSinComprobanteDatos,
     });
   });
 }
 
 export async function deletePurchase(id) {
   await prisma.purchase.delete({ where: { id } });
+}
+
+export async function guardarComprobante(id, file) {
+  const existente = await prisma.purchase.findUnique({ where: { id } });
+  if (!existente) {
+    const err = new Error('Compra no encontrada');
+    err.status = 404;
+    throw err;
+  }
+  return prisma.purchase.update({
+    where: { id },
+    data: {
+      comprobanteNombre: file.originalname,
+      comprobanteMime: file.mimetype,
+      comprobanteTamano: file.size,
+      comprobanteDatos: file.buffer,
+    },
+    select: selectSinComprobanteDatos,
+  });
+}
+
+export async function eliminarComprobante(id) {
+  const existente = await prisma.purchase.findUnique({ where: { id } });
+  if (!existente) {
+    const err = new Error('Compra no encontrada');
+    err.status = 404;
+    throw err;
+  }
+  return prisma.purchase.update({
+    where: { id },
+    data: {
+      comprobanteNombre: null,
+      comprobanteMime: null,
+      comprobanteTamano: null,
+      comprobanteDatos: null,
+    },
+    select: selectSinComprobanteDatos,
+  });
+}
+
+export async function getComprobante(id) {
+  return prisma.purchase.findUnique({
+    where: { id },
+    select: { comprobanteNombre: true, comprobanteMime: true, comprobanteDatos: true },
+  });
 }
 
 export async function resumen(filters = {}) {

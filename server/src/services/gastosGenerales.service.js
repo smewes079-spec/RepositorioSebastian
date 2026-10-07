@@ -21,6 +21,25 @@ const includeAuditoria = {
   actualizadoPor: { select: { nombre: true } },
 };
 
+// Select explícito que trae todo salvo `comprobanteDatos` (puede pesar varios
+// MB) — se usa en listados/detalle para no cargar el archivo completo en cada
+// consulta; el archivo en sí solo se lee en getComprobante().
+const selectSinComprobanteDatos = {
+  id: true,
+  fecha: true,
+  categoria: true,
+  descripcion: true,
+  montoTotal: true,
+  createdAt: true,
+  updatedAt: true,
+  creadoPorId: true,
+  actualizadoPorId: true,
+  comprobanteNombre: true,
+  comprobanteMime: true,
+  comprobanteTamano: true,
+  ...includeAuditoria,
+};
+
 export async function listGastosGenerales(filters = {}) {
   const where = {};
   if (filters.categoria) where.categoria = filters.categoria;
@@ -31,13 +50,13 @@ export async function listGastosGenerales(filters = {}) {
 
   return prisma.gastoGeneral.findMany({
     where,
-    include: includeAuditoria,
+    select: selectSinComprobanteDatos,
     orderBy: { fecha: 'desc' },
   });
 }
 
 export async function getGastoGeneral(id) {
-  return prisma.gastoGeneral.findUnique({ where: { id }, include: includeAuditoria });
+  return prisma.gastoGeneral.findUnique({ where: { id }, select: selectSinComprobanteDatos });
 }
 
 export async function createGastoGeneral(data, usuarioId) {
@@ -47,7 +66,7 @@ export async function createGastoGeneral(data, usuarioId) {
       creadoPorId: usuarioId,
       actualizadoPorId: usuarioId,
     },
-    include: includeAuditoria,
+    select: selectSinComprobanteDatos,
   });
 }
 
@@ -67,12 +86,57 @@ export async function updateGastoGeneral(id, data, usuarioId) {
       ...baseData(merged),
       actualizadoPorId: usuarioId,
     },
-    include: includeAuditoria,
+    select: selectSinComprobanteDatos,
   });
 }
 
 export async function deleteGastoGeneral(id) {
   await prisma.gastoGeneral.delete({ where: { id } });
+}
+
+export async function guardarComprobante(id, file) {
+  const existente = await prisma.gastoGeneral.findUnique({ where: { id } });
+  if (!existente) {
+    const err = new Error('Gasto no encontrado');
+    err.status = 404;
+    throw err;
+  }
+  return prisma.gastoGeneral.update({
+    where: { id },
+    data: {
+      comprobanteNombre: file.originalname,
+      comprobanteMime: file.mimetype,
+      comprobanteTamano: file.size,
+      comprobanteDatos: file.buffer,
+    },
+    select: selectSinComprobanteDatos,
+  });
+}
+
+export async function eliminarComprobante(id) {
+  const existente = await prisma.gastoGeneral.findUnique({ where: { id } });
+  if (!existente) {
+    const err = new Error('Gasto no encontrado');
+    err.status = 404;
+    throw err;
+  }
+  return prisma.gastoGeneral.update({
+    where: { id },
+    data: {
+      comprobanteNombre: null,
+      comprobanteMime: null,
+      comprobanteTamano: null,
+      comprobanteDatos: null,
+    },
+    select: selectSinComprobanteDatos,
+  });
+}
+
+export async function getComprobante(id) {
+  return prisma.gastoGeneral.findUnique({
+    where: { id },
+    select: { comprobanteNombre: true, comprobanteMime: true, comprobanteDatos: true },
+  });
 }
 
 export async function resumen(filters = {}) {

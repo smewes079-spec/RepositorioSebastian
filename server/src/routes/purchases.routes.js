@@ -3,6 +3,7 @@ import multer from 'multer';
 import * as purchasesController from '../controllers/purchases.controller.js';
 import { parseArchivoRows } from '../lib/fileRows.js';
 import { importComprasRows } from '../services/comprasImport.service.js';
+import { subirComprobanteMiddleware } from '../lib/comprobante.js';
 
 const upload = multer({ storage: multer.memoryStorage() });
 const router = Router();
@@ -26,5 +27,9 @@ router.get('/:id', purchasesController.show);
 router.post('/', purchasesController.create);
 router.put('/:id', purchasesController.update);
 router.delete('/:id', purchasesController.destroy);
+
+router.post('/:id/comprobante', subirComprobanteMiddleware, purchasesController.subirComprobante);
+router.get('/:id/comprobante', purchasesController.descargarComprobante);
+router.delete('/:id/comprobante', purchasesController.eliminarComprobante);
 
 export default router;

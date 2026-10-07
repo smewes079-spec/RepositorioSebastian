@@ -44,15 +44,34 @@ const COLUMN_DEFS = {
     cell: (g) => <span className="font-medium">{formatCLP(g.montoTotal)}</span>,
     getValue: (g) => formatCLP(g.montoTotal),
   },
+  comprobante: {
+    label: 'Comprobante',
+    cell: (g) =>
+      g.comprobanteNombre ? (
+        <a
+          href={`/api/gastos-generales/${g.id}/comprobante`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-[#C9A96E] hover:underline"
+        >
+          Ver archivo
+        </a>
+      ) : (
+        <span className="text-[#2C2420]/30">—</span>
+      ),
+    getValue: (g) => (g.comprobanteNombre ? 'Sí' : 'No'),
+  },
 };
 
-const ORDEN_COLUMNAS = ['fecha', 'categoria', 'descripcion', 'monto'];
+const ORDEN_COLUMNAS = ['fecha', 'categoria', 'descripcion', 'monto', 'comprobante'];
 
 const ANCHOS_COLUMNAS_DEFECTO = {
   fecha: 100,
   categoria: 180,
   descripcion: 320,
   monto: 110,
+  comprobante: 120,
 };
 
 export default function GastosGeneralesList() {

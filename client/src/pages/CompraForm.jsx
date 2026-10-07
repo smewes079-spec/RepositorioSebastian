@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
@@ -19,6 +19,12 @@ const VACIO = {
   ventaIds: [],
 };
 
+function formatTamano(bytes) {
+  if (!bytes) return '';
+  const kb = bytes / 1024;
+  return kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+}
+
 const TIPO_ASIGNACION_DESC = {
   DIRECTO: 'El 100% del costo va a una venta específica.',
   PRORRATEO: 'El monto se divide en partes iguales entre los vestidos que elijas: uno, varios o todos.',
@@ -35,6 +41,10 @@ export default function CompraForm() {
   const [error, setError] = useState('');
   const [asignacionesGuardadas, setAsignacionesGuardadas] = useState(null);
   const [auditoria, setAuditoria] = useState(null);
+  const [comprobante, setComprobante] = useState(null);
+  const [archivoNuevo, setArchivoNuevo] = useState(null);
+  const [subiendoArchivo, setSubiendoArchivo] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -53,6 +63,9 @@ export default function CompraForm() {
         });
         setAsignacionesGuardadas(c.asignaciones);
         setAuditoria({ creadoPor: c.creadoPor?.nombre, actualizadoPor: c.actualizadoPor?.nombre });
+        setComprobante(
+          c.comprobanteNombre ? { nombre: c.comprobanteNombre, tamano: c.comprobanteTamano } : null
+        );
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -72,16 +85,55 @@ export default function CompraForm() {
     setError('');
     try {
       const payload = { ...form, montoTotal: Number(form.montoTotal) };
+      let compraId = id;
       if (isEdit) {
         await api.put(`/purchases/${id}`, payload);
       } else {
-        await api.post('/purchases', payload);
+        const creada = await api.post('/purchases', payload);
+        compraId = creada.id;
+      }
+      if (archivoNuevo) {
+        const fd = new FormData();
+        fd.append('archivo', archivoNuevo);
+        await api.post(`/purchases/${compraId}/comprobante`, fd);
       }
       navigate('/costos/insumos');
     } catch (err) {
       setError(err.message || 'No se pudo guardar la compra');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleArchivoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!isEdit) {
+      setArchivoNuevo(file);
+      return;
+    }
+    setSubiendoArchivo(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('archivo', file);
+      const actualizado = await api.post(`/purchases/${id}/comprobante`, fd);
+      setComprobante({ nombre: actualizado.comprobanteNombre, tamano: actualizado.comprobanteTamano });
+    } catch (err) {
+      setError(err.message || 'No se pudo subir el comprobante');
+    } finally {
+      setSubiendoArchivo(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  async function handleQuitarComprobante() {
+    if (!confirm('¿Quitar el comprobante de esta compra?')) return;
+    try {
+      await api.del(`/purchases/${id}/comprobante`);
+      setComprobante(null);
+    } catch (err) {
+      setError(err.message || 'No se pudo quitar el comprobante');
     }
   }
 
@@ -179,6 +231,60 @@ export default function CompraForm() {
               onChange={(e) => set('montoTotal', e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">
+              Comprobante (boleta/factura)
+            </label>
+            {isEdit && comprobante ? (
+              <div className="flex items-center flex-wrap gap-3 text-sm">
+                <a
+                  href={`/api/purchases/${id}/comprobante`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#C9A96E] hover:underline"
+                >
+                  Ver archivo
+                </a>
+                <span className="text-[#2C2420]/40 text-xs">
+                  {comprobante.nombre}
+                  {comprobante.tamano ? ` · ${formatTamano(comprobante.tamano)}` : ''}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs text-[#2C2420]/60 hover:underline"
+                >
+                  Reemplazar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleQuitarComprobante}
+                  className="text-xs text-[#A85C52] hover:underline"
+                >
+                  Quitar
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={handleArchivoChange}
+                  className="hidden"
+                />
+              </div>
+            ) : (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleArchivoChange}
+                className="w-full text-sm"
+              />
+            )}
+            {subiendoArchivo && <p className="text-xs text-[#2C2420]/40 mt-1">Subiendo…</p>}
+            {!isEdit && archivoNuevo && (
+              <p className="text-xs text-[#2C2420]/40 mt-1">Se subirá al guardar: {archivoNuevo.name}</p>
+            )}
           </div>
         </div>
 
