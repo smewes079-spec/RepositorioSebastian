@@ -86,6 +86,17 @@ const TABS = [
   { key: 'presupuesto', label: 'Presupuesto de Ventas' },
 ];
 
+// Año completo (no los últimos 2 dígitos) — esta fecha es justamente la que
+// resultó ambigua/corrupta, así que acá conviene no repetir esa ambigüedad.
+function formatFechaAnomalia(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '';
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}-${mm}-${d.getUTCFullYear()}`;
+}
+
 function KpiCard({ label, value, valueColor, hint }) {
   return (
     <div className="bg-white rounded-xl border border-black/5 px-5 py-4">
@@ -439,15 +450,43 @@ export default function Dashboard() {
         />
       )}
       {tab === 'flujo' && (
-        <FlujoCajaTable
-          meses={flujoMesesFiltrados}
-          total={flujoTotalFiltrado}
-          vacioMensaje={
-            hayDatosOriginales
-              ? 'No hay datos para el rango de meses seleccionado.'
-              : 'Aún no hay ventas ni presupuesto cargado.'
-          }
-        />
+        <>
+          {flujo?.anomalias?.length > 0 && (
+            <div className="bg-[#F5E9E7] border border-[#A85C52]/20 rounded-xl px-4 py-3 mb-4 text-sm text-[#A85C52]">
+              <p className="font-medium mb-1.5">
+                {flujo.anomalias.length === 1
+                  ? 'Se encontró 1 fecha fuera de rango que no se incluyó en esta tabla:'
+                  : `Se encontraron ${flujo.anomalias.length} fechas fuera de rango que no se incluyeron en esta tabla:`}
+              </p>
+              <ul className="space-y-1 text-xs">
+                {flujo.anomalias.map((a, i) => (
+                  <li key={i}>
+                    {a.codigoVenta ? (
+                      <>
+                        Venta <strong>{a.codigoVenta}</strong>
+                        {a.cuotaNumero ? ` (cuota #${a.cuotaNumero})` : ''}:
+                      </>
+                    ) : a.nombre ? (
+                      <>
+                        <strong>{a.nombre}</strong>:
+                      </>
+                    ) : null}{' '}
+                    {a.tipo} con fecha {formatFechaAnomalia(a.fecha)} — revísala y corrígela a mano.
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <FlujoCajaTable
+            meses={flujoMesesFiltrados}
+            total={flujoTotalFiltrado}
+            vacioMensaje={
+              hayDatosOriginales
+                ? 'No hay datos para el rango de meses seleccionado.'
+                : 'Aún no hay ventas ni presupuesto cargado.'
+            }
+          />
+        </>
       )}
       {tab === 'presupuesto' && <PresupuestoVentas />}
     </Layout>

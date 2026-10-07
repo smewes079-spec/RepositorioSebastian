@@ -50,8 +50,12 @@ export function parseFecha(value) {
     return new Date(Date.UTC(year, parseInt(m[2], 10) - 1, parseInt(m[1], 10)));
   }
 
+  // Respaldo final: solo se acepta si el año resultante es razonable. Sin este
+  // tope, un texto ambiguo como "dic-99" (sin día) cae acá y JS lo interpreta
+  // como el año 1999 literal en vez de 2099 — a diferencia de los dos patrones
+  // de arriba, que sí corrigen años de 2 dígitos a 20XX.
   const asDate = new Date(str);
-  if (!isNaN(asDate.getTime())) return asDate;
+  if (!isNaN(asDate.getTime()) && asDate.getUTCFullYear() >= 2000) return asDate;
 
   return null;
 }
