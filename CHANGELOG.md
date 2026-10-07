@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.21.0 — 2026-10-07
+
+- **Flujo de Caja**: el ícono de "Alcanza sueldo socias" (✓/✗) ahora muestra una explicación al pasar el mouse por encima, con el resultado del mes, la meta de sueldo de socias y cuánto falta (o sobra) para alcanzarla.
+
 ## v1.20.0 — 2026-10-07
 
 - **Flujo de Caja: corregidas fechas corruptas (año 1999)**. Se encontró la causa raíz: una celda de fecha ambigua en una importación histórica (ej. "dic-99") se interpretaba literalmente como el año 1999 en vez de 2026, lo que estiraba la tabla con casi 30 años de filas vacías. Ahora esas fechas se excluyen del cálculo y se muestra un aviso indicando exactamente qué venta/cuota revisar y corregir a mano. También se corrigió la función de importación para que una fecha así de ambigua ya no pueda volver a colarse en el futuro.

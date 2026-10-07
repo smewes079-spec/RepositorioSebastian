@@ -196,7 +196,7 @@ function EerrTable({ meses, total, vacioMensaje }) {
   );
 }
 
-function FlujoCajaTable({ meses, total, vacioMensaje }) {
+function FlujoCajaTable({ meses, total, vacioMensaje, sueldoSocias }) {
   if (meses.length === 0) {
     return <p className="text-sm text-[#2C2420]/40 px-1">{vacioMensaje}</p>;
   }
@@ -249,9 +249,17 @@ function FlujoCajaTable({ meses, total, vacioMensaje }) {
                 })}
                 <td className="px-4 py-2.5 text-center">
                   {m.alcanzaSueldoSocias ? (
-                    <CheckCircle2 size={17} className="inline text-[#5C8C6A]" />
+                    <CheckCircle2
+                      size={17}
+                      className="inline text-[#5C8C6A]"
+                      title={`Sí alcanza: el resultado del mes (${formatCLP(m.resultadoMes)}) es igual o mayor que la meta de sueldo de socias (${formatCLP(sueldoSocias)}).`}
+                    />
                   ) : (
-                    <XCircle size={17} className="inline text-[#A85C52]" />
+                    <XCircle
+                      size={17}
+                      className="inline text-[#A85C52]"
+                      title={`No alcanza: el resultado del mes (${formatCLP(m.resultadoMes)}) es menor que la meta de sueldo de socias (${formatCLP(sueldoSocias)}). Faltan ${formatCLP(sueldoSocias - m.resultadoMes)}.`}
+                    />
                   )}
                 </td>
               </tr>
@@ -480,6 +488,7 @@ export default function Dashboard() {
           <FlujoCajaTable
             meses={flujoMesesFiltrados}
             total={flujoTotalFiltrado}
+            sueldoSocias={flujo?.sueldoSocias}
             vacioMensaje={
               hayDatosOriginales
                 ? 'No hay datos para el rango de meses seleccionado.'
