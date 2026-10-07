@@ -68,16 +68,33 @@ export async function getFlujoCaja() {
     cobrosPorMes.set(key, (cobrosPorMes.get(key) || 0) + monto);
   }
 
-  // Saldo pendiente por cobrar: agrupado por fecha del evento de cada clienta.
+  // Saldo pendiente por cobrar: cada cuota programada pero no pagada se agrupa
+  // por su propia fecha programada (el plan de pago real ya registrado para
+  // esa venta) — mucho más preciso que asumir que todo el saldo se cobra
+  // recién en el mes del evento, que antes estiraba la tabla con meses vacíos
+  // hasta la fecha de la boda más lejana. Si una venta tiene parte del precio
+  // sin ninguna cuota creada (nunca se le armó un plan de pago completo), esa
+  // parte sin programar se sigue estimando en el mes del evento, como mejor
+  // aproximación posible sin más datos.
+  const cuotasPorVenta = new Map();
+  for (const c of cuotas) {
+    if (!cuotasPorVenta.has(c.ventaId)) cuotasPorVenta.set(c.ventaId, []);
+    cuotasPorVenta.get(c.ventaId).push(c);
+  }
   const saldoPorMes = new Map();
   for (const v of ventas) {
-    const pagado = cuotas
-      .filter((c) => c.ventaId === v.id && c.pagada)
-      .reduce((s, c) => s + (c.montoPagado ?? c.monto), 0);
-    const saldo = v.precioTotal - pagado;
-    if (saldo > 0) {
+    const cuotasVenta = cuotasPorVenta.get(v.id) || [];
+    let totalCuotas = 0;
+    for (const c of cuotasVenta) {
+      totalCuotas += c.monto;
+      if (c.pagada) continue;
+      const key = monthKey(c.fechaProgramada);
+      saldoPorMes.set(key, (saldoPorMes.get(key) || 0) + c.monto);
+    }
+    const saldoSinProgramar = v.precioTotal - totalCuotas;
+    if (saldoSinProgramar > 0) {
       const key = monthKey(v.fechaEvento);
-      saldoPorMes.set(key, (saldoPorMes.get(key) || 0) + saldo);
+      saldoPorMes.set(key, (saldoPorMes.get(key) || 0) + saldoSinProgramar);
     }
   }
 

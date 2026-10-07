@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.19.0 — 2026-10-07
+
+- **Dashboard**: nueva tarjeta "Vestidos vendidos (mes)" junto a "Ventas del mes", que respeta el mismo selector de mes de referencia. "Vestidos en producción" sigue mostrando el total actual, sin filtrar por mes.
+- **Flujo de Caja**: se corrige un error estructural en "Saldo pendiente esperado" — antes se asumía que todo el saldo de una venta se cobraba recién en el mes del evento (la boda), lo que estiraba la tabla con muchos meses vacíos hasta fechas de eventos lejanas. Ahora se usa la fecha programada real de cada cuota pendiente, reflejando el plan de pago efectivo de cada clienta.
+
 ## v1.18.0 — 2026-10-07
 
 - **Dashboard**: las tarjetas "Ventas del mes" y "Margen bruto % del mes" ya no quedan pegadas al mes calendario actual (que mostraba $0 si todavía no había ventas ese mes) — ahora hay un selector "Mes de referencia" que por defecto muestra el último mes con ventas reales, y se puede cambiar a cualquier otro mes para ver sus resultados.

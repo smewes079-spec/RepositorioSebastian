@@ -356,7 +356,7 @@ export default function Dashboard() {
               </span>
             )}
           </div>
-          <div className="grid grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-7 gap-4 mb-6">
             <KpiCard label="Caja actual" value={formatCLP(kpis.cajaActual)} valueColor={kpis.cajaActual >= 0 ? '#5C8C6A' : '#A85C52'} />
             <KpiCard label="Ventas del mes" value={formatCLP(filaMesKpi?.ingresosReales ?? 0)} />
             <KpiCard
@@ -364,6 +364,7 @@ export default function Dashboard() {
               value={`${filaMesKpi?.margenBrutoPct ?? 0}%`}
               valueColor={(filaMesKpi?.margenBrutoPct ?? 0) >= 0 ? '#5C8C6A' : '#A85C52'}
             />
+            <KpiCard label="Vestidos vendidos (mes)" value={filaMesKpi?.cantidadVentasReales ?? 0} />
             <KpiCard label="Vestidos en producción" value={kpis.vestidosEnProduccion} />
             <KpiCard label="Por cobrar (total)" value={formatCLP(kpis.totalPorCobrar)} />
             <KpiCard
