@@ -248,19 +248,20 @@ function FlujoCajaTable({ meses, total, vacioMensaje, sueldoSocias }) {
                   );
                 })}
                 <td className="px-4 py-2.5 text-center">
-                  {m.alcanzaSueldoSocias ? (
-                    <CheckCircle2
-                      size={17}
-                      className="inline text-[#5C8C6A]"
-                      title={`Sí alcanza: el resultado del mes (${formatCLP(m.resultadoMes)}) es igual o mayor que la meta de sueldo de socias (${formatCLP(sueldoSocias)}).`}
-                    />
-                  ) : (
-                    <XCircle
-                      size={17}
-                      className="inline text-[#A85C52]"
-                      title={`No alcanza: el resultado del mes (${formatCLP(m.resultadoMes)}) es menor que la meta de sueldo de socias (${formatCLP(sueldoSocias)}). Faltan ${formatCLP(sueldoSocias - m.resultadoMes)}.`}
-                    />
-                  )}
+                  <span
+                    className="inline-block"
+                    title={
+                      m.alcanzaSueldoSocias
+                        ? `Sí alcanza: el resultado del mes (${formatCLP(m.resultadoMes)}) es igual o mayor que la meta de sueldo de socias (${formatCLP(sueldoSocias)}).`
+                        : `No alcanza: el resultado del mes (${formatCLP(m.resultadoMes)}) es menor que la meta de sueldo de socias (${formatCLP(sueldoSocias)}). Faltan ${formatCLP(sueldoSocias - m.resultadoMes)}.`
+                    }
+                  >
+                    {m.alcanzaSueldoSocias ? (
+                      <CheckCircle2 size={17} className="inline text-[#5C8C6A]" />
+                    ) : (
+                      <XCircle size={17} className="inline text-[#A85C52]" />
+                    )}
+                  </span>
                 </td>
               </tr>
             ))}
