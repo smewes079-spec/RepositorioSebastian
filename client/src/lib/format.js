@@ -109,6 +109,7 @@ export const CATEGORIA_GASTO_GENERAL_LABELS = {
   CAFETERIA_Y_ASEO: 'Cafetería y aseo',
   TRANSPORTE_ESTACIONAMIENTO: 'Transporte y estacionamiento',
   MOBILIARIO_Y_EQUIPAMIENTO: 'Mobiliario y equipamiento',
+  IMPUESTOS_LEGAL_BANCOS: 'Impuestos, legal y bancos',
   OTROS: 'Otros',
 };
 

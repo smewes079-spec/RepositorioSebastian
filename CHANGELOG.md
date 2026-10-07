@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.13.0 — 2026-10-07
+
+- Gastos Generales: nueva categoría "Impuestos, legal y bancos" (trámites, notaría, asesoría tributaria, comisiones bancarias, impuestos) — para ordenar el historial de gastos que se está cargando.
+
 ## v1.12.1 — 2026-10-07
 
 - Las cotizaciones Aceptadas o Rechazadas ahora se pueden editar (antes quedaban completamente bloqueadas). Si la cotización ya generó una venta, se muestra un aviso recordando que los cambios no se reflejan automáticamente en esa venta. Los botones de Enviar/Aceptar/Rechazar/Eliminar siguen sin aparecer en esos estados.
