@@ -7,6 +7,7 @@ import { formatCLP, formatMesCorto } from '../lib/format.js';
 
 const EERR_TOTAL_VACIO = {
   ingresosReales: 0,
+  ingresosAsesorias: 0,
   ingresosPresupuestados: 0,
   totalIngresos: 0,
   cvReal: 0,
@@ -24,6 +25,7 @@ const FLUJO_TOTAL_VACIO = {
   cobrosRealizados: 0,
   saldoPendienteEsperado: 0,
   cobrosPresupuestados: 0,
+  asesorias: 0,
   totalEntradas: 0,
   cvReal: 0,
   cvPresupuestado: 0,
@@ -42,6 +44,7 @@ function sumarEerr(filas) {
   const t = filas.reduce(
     (acc, f) => ({
       ingresosReales: acc.ingresosReales + f.ingresosReales,
+      ingresosAsesorias: acc.ingresosAsesorias + f.ingresosAsesorias,
       ingresosPresupuestados: acc.ingresosPresupuestados + f.ingresosPresupuestados,
       totalIngresos: acc.totalIngresos + f.totalIngresos,
       cvReal: acc.cvReal + f.cvReal,
@@ -66,6 +69,7 @@ function sumarFlujo(filas) {
       cobrosRealizados: acc.cobrosRealizados + f.cobrosRealizados,
       saldoPendienteEsperado: acc.saldoPendienteEsperado + f.saldoPendienteEsperado,
       cobrosPresupuestados: acc.cobrosPresupuestados + f.cobrosPresupuestados,
+      asesorias: acc.asesorias + f.asesorias,
       totalEntradas: acc.totalEntradas + f.totalEntradas,
       cvReal: acc.cvReal + f.cvReal,
       cvPresupuestado: acc.cvPresupuestado + f.cvPresupuestado,
@@ -128,6 +132,7 @@ function EerrTable({ meses, total, vacioMensaje }) {
   }
   const cols = [
     { key: 'ingresosReales', label: 'Ingresos reales' },
+    { key: 'ingresosAsesorias', label: 'Ingresos asesorías' },
     { key: 'ingresosPresupuestados', label: 'Ingresos presup.' },
     { key: 'totalIngresos', label: 'Total ingresos', bold: true },
     { key: 'cvReal', label: 'CV real' },
@@ -204,6 +209,7 @@ function FlujoCajaTable({ meses, total, vacioMensaje, sueldoSocias }) {
     { key: 'cobrosRealizados', label: 'Cobros realizados' },
     { key: 'saldoPendienteEsperado', label: 'Saldo pend. esperado' },
     { key: 'cobrosPresupuestados', label: 'Cobros presup.' },
+    { key: 'asesorias', label: 'Asesorías' },
     { key: 'totalEntradas', label: 'Total entradas', bold: true },
     { key: 'cvReal', label: 'CV real' },
     { key: 'cvPresupuestado', label: 'CV presup.' },

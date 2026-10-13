@@ -5,6 +5,8 @@ import VentasList from './pages/VentasList.jsx';
 import VentaForm from './pages/VentaForm.jsx';
 import CotizacionesList from './pages/CotizacionesList.jsx';
 import CotizacionForm from './pages/CotizacionForm.jsx';
+import AsesoriasList from './pages/AsesoriasList.jsx';
+import AsesoriaForm from './pages/AsesoriaForm.jsx';
 import ComprasList from './pages/ComprasList.jsx';
 import CompraForm from './pages/CompraForm.jsx';
 import GastosGeneralesList from './pages/GastosGeneralesList.jsx';
@@ -52,6 +54,30 @@ export default function App() {
         element={
           <PrivateRoute>
             <VentaForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/asesorias"
+        element={
+          <PrivateRoute>
+            <AsesoriasList />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/asesorias/nueva"
+        element={
+          <PrivateRoute>
+            <AsesoriaForm />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/asesorias/:id"
+        element={
+          <PrivateRoute>
+            <AsesoriaForm />
           </PrivateRoute>
         }
       />

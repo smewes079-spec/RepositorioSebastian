@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Trash2, Send, CheckCircle2, XCircle, FileDown } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CotizacionItemsEditor from '../components/CotizacionItemsEditor.jsx';
@@ -41,8 +41,11 @@ export default function CotizacionForm() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [form, setForm] = useState(VACIO);
+  const [form, setForm] = useState(() =>
+    !isEdit && location.state?.prefill ? { ...VACIO, ...location.state.prefill } : VACIO
+  );
   const [items, setItems] = useState([]);
   const [cotizacion, setCotizacion] = useState(null);
   const [loading, setLoading] = useState(isEdit);

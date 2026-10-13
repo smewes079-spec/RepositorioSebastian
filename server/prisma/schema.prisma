@@ -77,6 +77,8 @@ model Usuario {
   cotizActualizadas            Cotizacion[]   @relation("CotizacionActualizadoPor")
   gastosGeneralesCreados       GastoGeneral[] @relation("GastoGeneralCreadoPor")
   gastosGeneralesActualizados  GastoGeneral[] @relation("GastoGeneralActualizadoPor")
+  asesoriasCreadas             Asesoria[]     @relation("AsesoriaCreadoPor")
+  asesoriasActualizadas        Asesoria[]     @relation("AsesoriaActualizadoPor")
 }
 
 model Venta {
@@ -194,6 +196,29 @@ model GastoGeneral {
   comprobanteDatos  Bytes?
 
   @@index([categoria])
+  @@index([fecha])
+}
+
+// Ingreso simple por una asesoría/consulta con una clienta (siempre se cobra,
+// haya o no terminado en una venta). Sin cuotas ni ficha de producción, a
+// diferencia de Venta — es solo el registro del cobro de la consulta.
+model Asesoria {
+  id              String   @id @default(cuid())
+  fecha           DateTime
+  nombreClienta   String
+  emailClienta    String?
+  telefonoClienta String?
+  monto           Int
+  notas           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creadoPorId      String?
+  creadoPor        Usuario? @relation("AsesoriaCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  actualizadoPorId String?
+  actualizadoPor   Usuario? @relation("AsesoriaActualizadoPor", fields: [actualizadoPorId], references: [id], onDelete: SetNull)
+
   @@index([fecha])
 }
 

@@ -8,6 +8,12 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.22.0 — 2026-10-13
+
+- **Asesorías**: nuevo módulo para registrar el cobro de una asesoría/consulta con una clienta (fecha, nombre, correo, teléfono opcional, monto, notas), haya terminado o no en una venta. Desde la asesoría se puede crear una cotización para esa misma clienta con sus datos ya cargados. El ingreso se suma al Estado de Resultados y al Flujo de Caja del Dashboard en una columna propia ("Ingresos asesorías"/"Asesorías"), sin afectar el costo de materiales ni la rentabilidad por vestido.
+- **Ventas**: ahora se puede ordenar también por Código, Clienta, Tipo, Total, Saldo, % Cobrado, Estado y Producción haciendo clic en el encabezado — antes solo se podía ordenar por las columnas de fecha.
+- Confirmado con el equipo: el campo "Precio total negociado" en Editar Venta ya se podía modificar libremente — no se necesitaba ningún cambio ahí.
+
 ## v1.21.1 — 2026-10-07
 
 - Corrige el tooltip de "Alcanza sueldo socias" agregado en v1.21.0, que no se mostraba al pasar el mouse — Chrome no muestra tooltips nativos para el atributo `title` puesto directamente en un ícono SVG, así que ahora se coloca en el elemento que lo envuelve.

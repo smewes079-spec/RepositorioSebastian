@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import * as configService from './config.service.js';
 import * as costeoService from './costeo.service.js';
 import * as gastosGeneralesService from './gastosGenerales.service.js';
+import * as asesoriasService from './asesorias.service.js';
 import { monthKey, monthRangeKeys, round1 } from '../lib/monthUtils.js';
 
 const ANIO_MIN = 2000;
@@ -21,6 +22,7 @@ const TOTAL_VACIO = {
   cobrosRealizados: 0,
   saldoPendienteEsperado: 0,
   cobrosPresupuestados: 0,
+  asesorias: 0,
   totalEntradas: 0,
   cvReal: 0,
   cvPresupuestado: 0,
@@ -40,6 +42,7 @@ export async function getFlujoCaja() {
     sueldos,
     costosFijos,
     gastosGenerales,
+    asesorias,
     financiero,
   ] = await Promise.all([
     prisma.venta.findMany(),
@@ -50,12 +53,13 @@ export async function getFlujoCaja() {
     configService.listSueldos(),
     configService.listCostosFijos(),
     gastosGeneralesService.listGastosGenerales(),
+    asesoriasService.listAsesorias(),
     configService.getFinanciero(),
   ]);
 
   const costosFijosDetalle = [...sueldos, ...costosFijos];
 
-  if (ventas.length === 0 && presupuestos.length === 0 && gastosGenerales.length === 0) {
+  if (ventas.length === 0 && presupuestos.length === 0 && gastosGenerales.length === 0 && asesorias.length === 0) {
     return {
       meses: [],
       total: TOTAL_VACIO,
@@ -193,6 +197,19 @@ export async function getFlujoCaja() {
     }
     mesesFechaInicio.push(key);
   }
+
+  // Ingresos por asesorías: se cobran siempre, al contado, el mismo mes de la
+  // consulta — entran directo como cobro realizado, sin pasar por cuotas.
+  const asesoriasPorMes = new Map();
+  for (const a of asesorias) {
+    const key = monthKeySeguro(a.fecha);
+    if (!key) {
+      anomalias.push({ tipo: 'Asesoría', nombre: a.nombreClienta, fecha: a.fecha });
+      continue;
+    }
+    asesoriasPorMes.set(key, (asesoriasPorMes.get(key) || 0) + a.monto);
+  }
+
   const hoyKey = monthKey(new Date());
   const todasLasClaves = [
     ...cobrosPorMes.keys(),
@@ -201,6 +218,7 @@ export async function getFlujoCaja() {
     ...cvRealPorMes.keys(),
     ...cvPresPorMes.keys(),
     ...gastosGeneralesPorMes.keys(),
+    ...asesoriasPorMes.keys(),
     ...mesesFechaInicio,
     hoyKey,
   ].sort();
@@ -214,7 +232,8 @@ export async function getFlujoCaja() {
     const cobrosRealizados = cobrosPorMes.get(mesKey) || 0;
     const saldoPendienteEsperado = saldoPorMes.get(mesKey) || 0;
     const cobrosPresupuestados = cobrosPresPorMes.get(mesKey) || 0;
-    const totalEntradas = cobrosRealizados + saldoPendienteEsperado + cobrosPresupuestados;
+    const totalAsesorias = asesoriasPorMes.get(mesKey) || 0;
+    const totalEntradas = cobrosRealizados + saldoPendienteEsperado + cobrosPresupuestados + totalAsesorias;
 
     const cvReal = cvRealPorMes.get(mesKey) || 0;
     const cvPresupuestado = cvPresPorMes.get(mesKey) || 0;
@@ -236,6 +255,7 @@ export async function getFlujoCaja() {
       cobrosRealizados,
       saldoPendienteEsperado,
       cobrosPresupuestados,
+      asesorias: totalAsesorias,
       totalEntradas,
       cvReal,
       cvPresupuestado,
@@ -253,6 +273,7 @@ export async function getFlujoCaja() {
       cobrosRealizados: acc.cobrosRealizados + f.cobrosRealizados,
       saldoPendienteEsperado: acc.saldoPendienteEsperado + f.saldoPendienteEsperado,
       cobrosPresupuestados: acc.cobrosPresupuestados + f.cobrosPresupuestados,
+      asesorias: acc.asesorias + f.asesorias,
       totalEntradas: acc.totalEntradas + f.totalEntradas,
       cvReal: acc.cvReal + f.cvReal,
       cvPresupuestado: acc.cvPresupuestado + f.cvPresupuestado,

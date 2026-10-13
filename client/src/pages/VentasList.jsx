@@ -24,6 +24,7 @@ import {
 } from '../lib/format.js';
 
 const FILTROS_INICIALES = { tipo: '', estado: '', mesVenta: '', mesEvento: '', search: '' };
+const CAMPOS_FECHA = new Set(['fechaVenta', 'fechaEvento', 'fechaEntregaComprometida']);
 
 function buildQuery(filtros) {
   const params = new URLSearchParams();
@@ -78,12 +79,19 @@ const COLUMN_DEFS = {
     label: 'Código',
     cell: (v) => <span className="font-medium text-[#2C2420]">{v.codigo}</span>,
     getValue: (v) => v.codigo,
+    sortField: 'codigo',
   },
-  clienta: { label: 'Clienta', cell: (v) => v.nombreClienta, getValue: (v) => v.nombreClienta },
+  clienta: {
+    label: 'Clienta',
+    cell: (v) => v.nombreClienta,
+    getValue: (v) => v.nombreClienta,
+    sortField: 'nombreClienta',
+  },
   tipo: {
     label: 'Tipo',
     cell: (v) => <TipoBadge tipo={v.tipo} />,
     getValue: (v) => TIPO_LABELS[v.tipo],
+    sortField: 'tipo',
   },
   fechaVenta: {
     label: 'Fecha venta',
@@ -108,6 +116,7 @@ const COLUMN_DEFS = {
     align: 'right',
     cell: (v) => <span className="font-medium">{formatCLP(v.precioTotal)}</span>,
     getValue: (v) => formatCLP(v.precioTotal),
+    sortField: 'precioTotal',
   },
   saldo: {
     label: 'Saldo',
@@ -121,6 +130,7 @@ const COLUMN_DEFS = {
       </span>
     ),
     getValue: (v) => formatCLP(v.saldoPendiente),
+    sortField: 'saldoPendiente',
   },
   cobrado: {
     label: '% Cobrado',
@@ -136,16 +146,19 @@ const COLUMN_DEFS = {
       </div>
     ),
     getValue: (v) => `${v.porcentajeCobrado}%`,
+    sortField: 'porcentajeCobrado',
   },
   estado: {
     label: 'Estado',
     cell: (v) => <EstadoBadge estado={v.estado} />,
     getValue: (v) => ESTADO_LABELS[v.estado],
+    sortField: 'estado',
   },
   produccion: {
     label: 'Producción',
     cell: (v) => <KanbanBadge kanbanEstado={v.kanbanEstado} />,
     getValue: (v) => KANBAN_LABELS[v.kanbanEstado],
+    sortField: 'kanbanEstado',
   },
 };
 
@@ -201,11 +214,19 @@ export default function VentasList() {
     if (!sort.field) return ventas;
     const copia = [...ventas];
     copia.sort((a, b) => {
-      const av = a[sort.field] ? new Date(a[sort.field]).getTime() : null;
-      const bv = b[sort.field] ? new Date(b[sort.field]).getTime() : null;
-      if (av === null && bv === null) return 0;
-      if (av === null) return 1; // sin fecha siempre al final
-      if (bv === null) return -1;
+      let av = a[sort.field];
+      let bv = b[sort.field];
+      if (CAMPOS_FECHA.has(sort.field)) {
+        av = av ? new Date(av).getTime() : null;
+        bv = bv ? new Date(bv).getTime() : null;
+        if (av === null && bv === null) return 0;
+        if (av === null) return 1; // sin fecha siempre al final
+        if (bv === null) return -1;
+        return sort.dir === 'asc' ? av - bv : bv - av;
+      }
+      if (typeof av === 'string') {
+        return sort.dir === 'asc' ? av.localeCompare(bv, 'es') : bv.localeCompare(av, 'es');
+      }
       return sort.dir === 'asc' ? av - bv : bv - av;
     });
     return copia;

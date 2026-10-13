@@ -2,12 +2,14 @@ import { prisma } from '../lib/prisma.js';
 import * as configService from './config.service.js';
 import * as costeoService from './costeo.service.js';
 import * as gastosGeneralesService from './gastosGenerales.service.js';
+import * as asesoriasService from './asesorias.service.js';
 import { monthKey, monthRangeKeys, round1 } from '../lib/monthUtils.js';
 
 const TIPOS = ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'];
 
 const TOTAL_VACIO = {
   ingresosReales: 0,
+  ingresosAsesorias: 0,
   ingresosPresupuestados: 0,
   totalIngresos: 0,
   cvReal: 0,
@@ -22,18 +24,19 @@ const TOTAL_VACIO = {
 };
 
 export async function getEERR() {
-  const [ventas, presupuestos, costoEstandarPorTipo, sueldos, costosFijos, gastosGenerales] = await Promise.all([
+  const [ventas, presupuestos, costoEstandarPorTipo, sueldos, costosFijos, gastosGenerales, asesorias] = await Promise.all([
     prisma.venta.findMany(),
     prisma.presupuestoVenta.findMany(),
     configService.getCostoEstandarPorTipo(),
     configService.listSueldos(),
     configService.listCostosFijos(),
     gastosGeneralesService.listGastosGenerales(),
+    asesoriasService.listAsesorias(),
   ]);
 
   const costosFijosDetalle = [...sueldos, ...costosFijos];
 
-  if (ventas.length === 0 && presupuestos.length === 0 && gastosGenerales.length === 0) {
+  if (ventas.length === 0 && presupuestos.length === 0 && gastosGenerales.length === 0 && asesorias.length === 0) {
     return { meses: [], total: TOTAL_VACIO };
   }
 
@@ -51,6 +54,14 @@ export async function getEERR() {
     gastosGeneralesPorMes.set(key, (gastosGeneralesPorMes.get(key) || 0) + g.montoTotal);
   }
 
+  // Ingresos por asesorías: se cobran siempre, sin costo de materiales asociado
+  // (no son un vestido) — se suman a los ingresos del mes en que ocurrieron.
+  const asesoriasPorMes = new Map();
+  for (const a of asesorias) {
+    const key = monthKey(a.fecha);
+    asesoriasPorMes.set(key, (asesoriasPorMes.get(key) || 0) + a.monto);
+  }
+
   const mesesVentas = ventas.map((v) => monthKey(v.fechaVenta));
   const mesesPresupuesto = presupuestos.map((p) => monthKey(p.mes));
   const mesesFechaInicio = costosFijosDetalle.map((c) => monthKey(c.fechaInicio));
@@ -61,6 +72,7 @@ export async function getEERR() {
     ...mesesPresupuesto,
     ...mesesFechaInicio,
     ...gastosGeneralesPorMes.keys(),
+    ...asesoriasPorMes.keys(),
     hoyKey,
   ].sort();
   const desde = candidatos[0];
@@ -111,7 +123,8 @@ export async function getEERR() {
       }
     }
 
-    const totalIngresos = ingresosRealesTotal + ingresosPresupuestadosTotal;
+    const totalIngresosAsesorias = asesoriasPorMes.get(mesKey) || 0;
+    const totalIngresos = ingresosRealesTotal + ingresosPresupuestadosTotal + totalIngresosAsesorias;
     const totalCV = cvRealTotal + cvPresupuestadoTotal;
     const margenBruto = totalIngresos - totalCV;
     const margenBrutoPct = totalIngresos > 0 ? round1((margenBruto / totalIngresos) * 100) : 0;
@@ -135,6 +148,7 @@ export async function getEERR() {
       ingresosPorTipo,
       cvPorTipo,
       ingresosReales: ingresosRealesTotal,
+      ingresosAsesorias: totalIngresosAsesorias,
       ingresosPresupuestados: ingresosPresupuestadosTotal,
       totalIngresos,
       cvReal: cvRealTotal,
@@ -153,6 +167,7 @@ export async function getEERR() {
   const total = filas.reduce(
     (acc, f) => ({
       ingresosReales: acc.ingresosReales + f.ingresosReales,
+      ingresosAsesorias: acc.ingresosAsesorias + f.ingresosAsesorias,
       ingresosPresupuestados: acc.ingresosPresupuestados + f.ingresosPresupuestados,
       totalIngresos: acc.totalIngresos + f.totalIngresos,
       cvReal: acc.cvReal + f.cvReal,
