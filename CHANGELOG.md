@@ -8,6 +8,12 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.24.0 — 2026-11-12
+
+- **Envío de cotizaciones por correo con Brevo (gratis)**: el envío había dejado de funcionar con el mensaje "Maximum credits exceeded", porque se acabó la prueba gratis de SendGrid, el servicio que mandaba los correos. Ahora la app envía con **Brevo**, que es gratis hasta 300 correos al día. Los correos siguen saliendo igual: desde la cuenta de quien envía (María o Carolina), con la otra en copia y el PDF adjunto. Las respuestas de la clienta llegan a quien envió.
+- Para que funcione hay que crear la cuenta de Brevo, verificar los correos de María y Carolina, y agregar la clave de Brevo (`BREVO_API_KEY`) en Render. Mientras eso no esté listo, la app sigue intentando con SendGrid.
+- Los errores de envío ahora se explican en español: por ejemplo, si falta verificar un correo en Brevo, si la clave está mal copiada o si se alcanzó el límite diario.
+
 ## v1.23.0 — 2026-11-11
 
 - **Cotización en PDF igual a la plantilla del taller**: el PDF que sale con "Ver PDF" y el que se adjunta en el correo ahora calzan con la plantilla original ("PLANTILLA cotización.pdf"). Se superpusieron página por página, como papel calco, y se corrigieron todas las diferencias:
