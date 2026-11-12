@@ -8,6 +8,18 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.23.0 — 2026-11-11
+
+- **Cotización en PDF igual a la plantilla del taller**: el PDF que sale con "Ver PDF" y el que se adjunta en el correo ahora calzan con la plantilla original ("PLANTILLA cotización.pdf"). Se superpusieron página por página, como papel calco, y se corrigieron todas las diferencias:
+  - Hoja tamaño carta (antes era A4).
+  - Las mismas letras de la plantilla (Assistant), con el mismo espaciado entre letras.
+  - El logo real de Hatton Schultz en la portada, la contraportada y la franja de arriba, del mismo tamaño que en la plantilla.
+  - Los títulos caligráficos "Datos Clienta", "Cotización" y "Pago", iguales a los de la plantilla.
+  - Datos de la clienta en tres recuadros separados (Nombre, Fecha matrimonio y Tipo clienta). Ya no aparecen el correo, el teléfono ni la fecha de validez.
+  - Volvió a verse el recuadro rosado de "Vestido a medida", y "Total: $" queda siempre en el mismo lugar que en la plantilla.
+  - En "Devoluciones" ahora se indica el monto de la reserva de cupo ($250.000).
+  - Los colores, las posiciones y los tamaños de todo coinciden con la plantilla.
+
 ## v1.22.0 — 2026-10-13
 
 - **Asesorías**: nuevo módulo para registrar el cobro de una asesoría/consulta con una clienta (fecha, nombre, correo, teléfono opcional, monto, notas), haya terminado o no en una venta. Desde la asesoría se puede crear una cotización para esa misma clienta con sus datos ya cargados. El ingreso se suma al Estado de Resultados y al Flujo de Caja del Dashboard en una columna propia ("Ingresos asesorías"/"Asesorías"), sin afectar el costo de materiales ni la rentabilidad por vestido.
