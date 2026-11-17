@@ -8,6 +8,13 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.27.0 — 2026-11-17
+
+- **Cada ítem de la cotización va separado, con su precio**: en el PDF, cada ítem aparece como un bloque propio dentro del recuadro de la cotización. Arriba va su **título** en la etiqueta rosada ("Vestido a medida", "Cola", "Velo", "Estola"…), debajo su **descripción** y, a la derecha, **su precio** en negrita. Al final va el **Total cotización** con la suma de todo, para que la novia vea cuánto cuesta cada cosa y el total.
+- **Nuevo campo "Título" en cada ítem**: al armar la cotización, cada ítem tiene un espacio para el título (con sugerencias como Vestido a medida, Cola, Velo, Estola) y un cuadro más grande para la descripción, de varias líneas.
+- Si la cotización tiene muchos ítems y no caben en la página, el recuadro continúa en una página nueva, con la franja y el logo arriba. Un ítem nunca queda cortado entre dos páginas, y el total final nunca queda solo en una página.
+- Las cotizaciones de un solo ítem se ven exactamente igual que la plantilla del taller, como antes.
+
 ## v1.26.0 — 2026-11-17
 
 - **Asunto del correo**: las cotizaciones ahora llegan con el asunto "Cotización Hatton Schultz Atelier".

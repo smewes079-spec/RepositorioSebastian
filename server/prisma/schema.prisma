@@ -334,6 +334,8 @@ model CotizacionItem {
   cotizacionId String
   cotizacion   Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
   orden        Int
+  // Título del ítem en el PDF (etiqueta rosada): "Vestido a medida", "Cola", "Velo"...
+  titulo       String?
   descripcion  String
   cantidad     Int        @default(1)
   monto        Int

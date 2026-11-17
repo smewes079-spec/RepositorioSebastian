@@ -72,7 +72,7 @@ export default function CotizacionForm() {
           notas: c.notas || '',
           remitente: c.remitente || '',
         });
-        setItems(c.items.map((it) => ({ id: it.id, orden: it.orden, descripcion: it.descripcion, cantidad: it.cantidad, monto: it.monto })));
+        setItems(c.items.map((it) => ({ id: it.id, orden: it.orden, titulo: it.titulo || '', descripcion: it.descripcion, cantidad: it.cantidad, monto: it.monto })));
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -94,7 +94,7 @@ export default function CotizacionForm() {
       if (isEdit) {
         const actualizada = await api.put(`/cotizaciones/${id}`, payload);
         setCotizacion(actualizada);
-        setItems(actualizada.items.map((it) => ({ id: it.id, orden: it.orden, descripcion: it.descripcion, cantidad: it.cantidad, monto: it.monto })));
+        setItems(actualizada.items.map((it) => ({ id: it.id, orden: it.orden, titulo: it.titulo || '', descripcion: it.descripcion, cantidad: it.cantidad, monto: it.monto })));
         setInfo('Cambios guardados.');
       } else {
         const creada = await api.post('/cotizaciones', payload);

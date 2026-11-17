@@ -42,7 +42,8 @@ export async function getCotizacion(id) {
 function itemsCreateData(items = []) {
   return items.map((it, idx) => ({
     orden: it.orden ?? idx + 1,
-    descripcion: it.descripcion,
+    titulo: it.titulo?.trim() || null,
+    descripcion: it.descripcion ?? '',
     cantidad: it.cantidad ?? 1,
     monto: it.monto,
   }));
@@ -97,7 +98,8 @@ export async function updateCotizacion(id, data, usuarioId) {
         const it = items[idx];
         const payload = {
           orden: it.orden ?? idx + 1,
-          descripcion: it.descripcion,
+          titulo: it.titulo?.trim() || null,
+          descripcion: it.descripcion ?? '',
           cantidad: it.cantidad ?? 1,
           monto: it.monto,
         };

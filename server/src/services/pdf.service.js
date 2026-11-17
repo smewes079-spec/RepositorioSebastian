@@ -121,56 +121,136 @@ const NO_BORDERS_NO_PADDING = {
   paddingBottom: () => 0,
 };
 
-// Tarjeta de la cotización (fondo claro, etiqueta "Vestido a medida",
-// descripción, línea y total). Fluye desde y=364 y crece si la descripción
-// es larga; con poco texto mantiene la altura del original.
-function tarjetaCotizacion(items, notas, montoTotal) {
-  const descripciones = items.map((it) => ({
-    text: (it.cantidad > 1 ? `(x${it.cantidad}) ` : '') + it.descripcion,
-    margin: [0, 0, 0, 4],
-  }));
-  if (notas) descripciones.push({ text: notas, margin: [0, 4, 0, 0] });
+// Márgenes de página para el contenido que fluye (la tarjeta de la
+// cotización). Todo lo demás va en posiciones fijas medidas sobre la
+// plantilla. Arriba deja libre la franja con el logo; abajo, la nota al pie.
+const FLOW_TOP = 90;
+const FLOW_BOTTOM = 56; // el contenido llega hasta y=736; la nota al pie parte en 738.4
+const CARD_X = 40.2;
+const CARD_Y = 364; // inicio de la tarjeta en la página 2, como en la plantilla
+const CARD_WIDTH = 519.1;
+const CARD_INNER = 480.6; // ancho útil dentro de la tarjeta (largo de la línea)
+const PAD_L = 15.1;
+const PAD_R = 23.4;
+const PAD_TOP = 20.3;
+const PAD_BOTTOM = 36.3;
 
+function totalItem(it) {
+  return (Number(it.cantidad) || 0) * (Number(it.monto) || 0);
+}
+
+// Etiqueta rosada con el título del ítem. El ancho se ajusta al texto; con
+// "Vestido a medida" da exactamente los 86.3 pt de la plantilla.
+function etiqueta(titulo) {
   return {
-    absolutePosition: { x: 40.2, y: 364 },
     table: {
-      widths: [519.1],
-      body: [
-        [
-          {
-            fillColor: SOFT_BG,
-            margin: [15.1, 20.3, 23.4, 36.3],
-            stack: [
-              // Etiqueta "Vestido a medida" con su recuadro rosado.
-              {
-                table: {
-                  widths: [86.3],
-                  heights: [19.3],
-                  body: [[{ text: 'Vestido a medida', color: WHITE, fillColor: ROSE, margin: [6.2, 2.8, 0, 0] }]],
-                },
-                layout: NO_BORDERS_NO_PADDING,
-              },
-              // Descripción con altura mínima, para que la línea y el total
-              // queden donde están en el original.
-              {
-                table: { widths: ['*'], heights: [72.6], body: [[{ stack: descripciones, margin: [0, 0, 0, 6] }]] },
-                layout: NO_BORDERS_NO_PADDING,
-                margin: [0, 9.3, 0, 0],
-              },
-              { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 480.6, y2: 0, lineWidth: 1, lineColor: ROSE }] },
-              // "Total: $" parte siempre en x=451.65 como en la plantilla; el
-              // monto sigue a la derecha (cabe hasta ~$999.999.999 dentro de la tarjeta).
-              {
-                text: [{ text: 'Total: $', bold: true }, { text: formatMonto(montoTotal), bold: true }],
-                margin: [396.35, 9.5, 0, 0],
-              },
-            ],
-          },
-        ],
-      ],
+      widths: ['auto'],
+      heights: [19.3],
+      body: [[{ text: titulo, noWrap: true, color: WHITE, fillColor: ROSE, margin: [6.2, 2.8, 9.8, 0] }]],
     },
     layout: NO_BORDERS_NO_PADDING,
   };
+}
+
+function lineaRosa(lineWidth = 1) {
+  return { canvas: [{ type: 'line', x1: 0, y1: 0, x2: CARD_INNER, y2: 0, lineWidth, lineColor: ROSE }] };
+}
+
+function textoDescripcion(it) {
+  const cantidad = Number(it.cantidad) > 1 ? `(x${it.cantidad}) ` : '';
+  return `${cantidad}${it.descripcion || ''}`.trim();
+}
+
+function celda(stack, margin) {
+  return { fillColor: SOFT_BG, margin, stack };
+}
+
+// Un solo ítem: replica la plantilla al milímetro (descripción con altura
+// mínima, línea y "Total: $" en x=451.65).
+function tarjetaUnItem(it, notas) {
+  const descripciones = [];
+  const texto = textoDescripcion(it);
+  if (texto) descripciones.push({ text: texto, margin: [0, 0, 0, 4] });
+  if (notas) descripciones.push({ text: notas, margin: [0, 4, 0, 0] });
+  return [
+    [
+      celda(
+        [
+          etiqueta(it.titulo || 'Vestido a medida'),
+          {
+            table: { widths: ['*'], heights: [72.6], body: [[{ stack: descripciones, margin: [0, 0, 0, 6] }]] },
+            layout: NO_BORDERS_NO_PADDING,
+            margin: [0, 9.3, 0, 0],
+          },
+          lineaRosa(),
+          {
+            text: [{ text: 'Total: $', bold: true }, { text: formatMonto(totalItem(it)), bold: true }],
+            margin: [396.35, 9.5, 0, 0],
+          },
+        ],
+        [PAD_L, PAD_TOP, PAD_R, PAD_BOTTOM],
+      ),
+    ],
+  ];
+}
+
+// Varios ítems: cada uno es un bloque (título, descripción, línea y su
+// precio) y al final va el total de la cotización. Cada bloque es una fila
+// que no se corta (unbreakable), así que si no caben todos en la página 2
+// la tarjeta sigue en la página siguiente.
+// Ojo: no usar dontBreakRows en la tabla; hace que el fondo de la tarjeta se
+// dibuje encima de las etiquetas rosadas y las tape.
+function tarjetaVariosItems(items, notas, montoTotal) {
+  return items.map((it, i) => {
+    const ultimo = i === items.length - 1;
+    const stack = [];
+    // Separación entre ítems como elemento real (no margen): así también se
+    // respeta cuando el ítem queda arriba de una página nueva.
+    if (i > 0) stack.push({ canvas: [{ type: 'rect', x: 0, y: 0, w: 1, h: 10, color: SOFT_BG }] });
+    if (it.titulo) stack.push(etiqueta(it.titulo));
+    const texto = textoDescripcion(it);
+    if (texto) stack.push({ text: texto, margin: [0, it.titulo ? 7 : 0, 0, 0] });
+    stack.push({ ...lineaRosa(), margin: [0, 6, 0, 0] });
+    stack.push({
+      text: [{ text: 'Total: $', bold: true }, { text: formatMonto(totalItem(it)), bold: true }],
+      alignment: 'right',
+      margin: [0, 5, 0, 0],
+    });
+    // El total de la cotización va pegado al último ítem, para que nunca
+    // quede solo en una página nueva.
+    if (ultimo) {
+      if (notas) stack.push({ text: notas, margin: [0, 12, 0, 0] });
+      stack.push({ ...lineaRosa(1.5), margin: [0, 9, 0, 0] });
+      stack.push({
+        text: [{ text: 'Total cotización: $', bold: true }, { text: formatMonto(montoTotal), bold: true }],
+        alignment: 'right',
+        fontSize: 11,
+        margin: [0, 5, 0, 0],
+      });
+      // Espacio inferior como elemento real: un margen no cuenta al decidir
+      // si el bloque cabe, y dejaba un trozo vacío de tarjeta en otra página.
+      stack.push({ canvas: [{ type: 'rect', x: 0, y: 0, w: 1, h: 8, color: SOFT_BG }] });
+    }
+    // unbreakable: el bloque de un ítem nunca queda cortado entre dos páginas.
+    return [celda([{ stack, unbreakable: true }], [PAD_L, i === 0 ? PAD_TOP : 0, PAD_R, 0])];
+  });
+}
+
+function tarjetaCotizacion(items, notas, montoTotal) {
+  const body =
+    items.length <= 1
+      ? tarjetaUnItem(items[0] || { titulo: '', descripcion: '', cantidad: 1, monto: 0 }, notas)
+      : tarjetaVariosItems(items, notas, montoTotal);
+  return {
+    margin: [CARD_X, CARD_Y - FLOW_TOP, 0, 0],
+    table: { widths: [CARD_WIDTH], body },
+    layout: NO_BORDERS_NO_PADDING,
+  };
+}
+
+// Salto de página sin ocupar espacio (un texto vacío correría el contenido).
+function nuevaPagina() {
+  return { canvas: [], pageBreak: 'before' };
 }
 
 // Nombre del archivo PDF = nombre de la clienta (ej. "María Schultz.pdf").
@@ -192,7 +272,51 @@ export function buildCotizacionPdf(cotizacion) {
     // Título del documento = nombre de la clienta (lo muestra la pestaña del navegador).
     info: { title: nombreArchivoCotizacion(cotizacion).replace(/\.pdf$/, ''), author: 'Hatton Schultz Atelier' },
     pageSize: 'LETTER',
-    pageMargins: [0, 0, 0, 0],
+    pageMargins: [0, FLOW_TOP, 0, FLOW_BOTTOM],
+    // Si la tarjeta de la cotización ocupa más de una página, las páginas
+    // extra llevan la misma franja con el logo (la 2 y la de Pago ya la traen).
+    header: (pagina, totalPaginas) =>
+      pagina > 2 && pagina < totalPaginas - 1 ? franjaSuperior() : null,
+    // Notas al pie en sus posiciones de la plantilla. Van como pie de página
+    // porque caen en la zona inferior reservada (y no deben empujar el flujo).
+    // Páginas: 1 portada · 2..n-2 cotización · n-1 pago · n contraportada.
+    footer: (pagina, totalPaginas) => {
+      // El pie empieza en y = alto de página - FLOW_BOTTOM; se ubica con márgenes.
+      const pieEn = (texto, x, y, width) => ({
+        text: texto,
+        margin: [x, y - (PAGE_HEIGHT - FLOW_BOTTOM), 0, 0],
+        width,
+      });
+      if (pagina === totalPaginas - 2) {
+        return pieEn(
+          'Cualquier modificación o elemento adicional a lo indicado en la descripción significará un cambio en el valor del presupuesto.',
+          56,
+          738.4,
+        );
+      }
+      if (pagina === totalPaginas - 1) {
+        return {
+          columns: [
+            {
+              width: 488,
+              text: '*Al aprobar el toile, la clienta acepta el molde del vestido y se procede a cortar la tela original. Cualquier tipo de cambio que modifique el molde, significará un cambio en el presupuesto por la compra de más tela y trabajo realizado.',
+            },
+          ],
+          margin: [45.1, 734.8 - (PAGE_HEIGHT - FLOW_BOTTOM), 0, 0],
+        };
+      }
+      if (pagina === totalPaginas) {
+        // Contraportada: dirección y redes en blanco, centradas.
+        return {
+          text: 'Agustín del Castillo 2960, Vitacura\n@hatton.schultz',
+          alignment: 'center',
+          color: WHITE,
+          lineHeight: 15 / 12 * LINE_HEIGHT,
+          margin: [0, 704.2 - (PAGE_HEIGHT - FLOW_BOTTOM), 0, 0],
+        };
+      }
+      return null;
+    },
     defaultStyle: {
       font: 'Assistant',
       fontSize: FONT_SIZE,
@@ -207,7 +331,7 @@ export function buildCotizacionPdf(cotizacion) {
       ...portada(),
 
       // Página 2: datos de la clienta y cotización
-      { text: '', pageBreak: 'before' },
+      nuevaPagina(),
       ...franjaSuperior(),
       textAt('Fecha:', 432.4, 87.9),
       textAt(formatFecha(cotizacion.createdAt), 466.0, 87.9),
@@ -217,15 +341,12 @@ export function buildCotizacionPdf(cotizacion) {
       ...datoFila('Fecha matrimonio', formatFecha(cotizacion.fechaEventoTentativa), 219.5),
       ...datoFila('Tipo clienta', TIPO_LABELS[cotizacion.tipo] || cotizacion.tipo, 246.6),
       imageAt(IMG.tituloCotizacion, 36.9, 319.5, 109.9),
-      tarjetaCotizacion(items, cotizacion.notas, montoTotal),
-      textAt(
-        'Cualquier modificación o elemento adicional a lo indicado en la descripción significará un cambio en el valor del presupuesto.',
-        56,
-        738.4,
-      ),
+      // La tarjeta misma marca el salto a la página de Pago (pageBreak
+      // 'after'): si llega justo al borde inferior, un salto aparte dejaba
+      // una página en blanco.
+      { ...tarjetaCotizacion(items, cotizacion.notas, montoTotal), pageBreak: 'after' },
 
       // Página 3: condiciones de pago
-      { text: '', pageBreak: 'before' },
       ...franjaSuperior(),
       imageAt(IMG.tituloPago, 56.8, 95.9, 65.4),
       textAt('Los pagos se realizarán en el siguiente orden:', 60.1, 143.1),
@@ -245,18 +366,10 @@ export function buildCotizacionPdf(cotizacion) {
         60.1,
         311.4,
       ),
-      textAt(
-        '*Al aprobar el toile, la clienta acepta el molde del vestido y se procede a cortar la tela original. Cualquier tipo de cambio que modifique el molde, significará un cambio en el presupuesto por la compra de más tela y trabajo realizado.',
-        45.1,
-        734.8,
-        { width: 488 },
-      ),
 
       // Página 4: contraportada
-      { text: '', pageBreak: 'before' },
+      nuevaPagina(),
       ...portada(),
-      textAt('Agustín del Castillo 2960, Vitacura', 0, 704.2, { width: PAGE_WIDTH, alignment: 'center', color: WHITE }),
-      textAt('@hatton.schultz', 0, 719.2, { width: PAGE_WIDTH, alignment: 'center', color: WHITE }),
     ],
   };
 
