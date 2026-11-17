@@ -161,7 +161,7 @@ function tarjetaCotizacion(items, notas, montoTotal) {
               // "Total: $" parte siempre en x=451.65 como en la plantilla; el
               // monto sigue a la derecha (cabe hasta ~$999.999.999 dentro de la tarjeta).
               {
-                text: [{ text: 'Total: $', bold: true }, formatMonto(montoTotal)],
+                text: [{ text: 'Total: $', bold: true }, { text: formatMonto(montoTotal), bold: true }],
                 margin: [396.35, 9.5, 0, 0],
               },
             ],
@@ -173,11 +173,24 @@ function tarjetaCotizacion(items, notas, montoTotal) {
   };
 }
 
+// Nombre del archivo PDF = nombre de la clienta (ej. "María Schultz.pdf").
+// Quita caracteres que Windows/Mac no permiten en nombres de archivo.
+export function nombreArchivoCotizacion(cotizacion) {
+  const limpio = String(cotizacion.nombreClienta || '')
+    .replace(/[\\/:*?"<>|\u0000-\u001F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[. ]+$/, '');
+  return `${limpio || 'Cotización'}.pdf`;
+}
+
 export function buildCotizacionPdf(cotizacion) {
   const items = cotizacion.items || [];
   const montoTotal = items.reduce((sum, it) => sum + it.cantidad * it.monto, 0);
 
   const docDefinition = {
+    // Título del documento = nombre de la clienta (lo muestra la pestaña del navegador).
+    info: { title: nombreArchivoCotizacion(cotizacion).replace(/\.pdf$/, ''), author: 'Hatton Schultz Atelier' },
     pageSize: 'LETTER',
     pageMargins: [0, 0, 0, 0],
     defaultStyle: {

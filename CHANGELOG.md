@@ -8,6 +8,12 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.26.0 — 2026-11-17
+
+- **Asunto del correo**: las cotizaciones ahora llegan con el asunto "Cotización Hatton Schultz Atelier".
+- **El PDF lleva el nombre de la clienta**: el archivo adjunto en el correo, y el que se descarga con "Ver PDF", se llama como la clienta (por ejemplo "María José Schultz.pdf"), con tildes y ñ incluidas. Si el nombre tiene caracteres que no se pueden usar en un archivo (como / o :), se quitan solos.
+- **Total en negrita**: en el PDF, el monto total de la cotización ahora sale en negrita completo ("Total: $1.100.000"), no solo la palabra "Total".
+
 ## v1.25.0 — 2026-11-16
 
 - **Las cotizaciones ahora salen directo desde el Gmail de María o Carolina**: en vez de pasar por un servicio externo (SendGrid o Brevo), cada cotización se envía desde la casilla real de quien la envía y queda guardada en su carpeta "Enviados". La otra sigue en copia y el PDF va adjunto, igual que antes. Es gratis, porque viene incluido en el Google Workspace del taller.

@@ -1,5 +1,5 @@
 import { prisma } from '../lib/prisma.js';
-import { buildCotizacionPdf } from './pdf.service.js';
+import { buildCotizacionPdf, nombreArchivoCotizacion } from './pdf.service.js';
 import { sendCotizacionEmail } from './email.service.js';
 import { calcularCodigoVenta, resolverCodigoDisponible } from './ventas.service.js';
 
@@ -144,7 +144,7 @@ export async function enviarCotizacion(id, mensaje, usuarioId) {
 export async function descargarCotizacionPdf(id) {
   const cotizacion = await getCotizacion(id);
   if (!cotizacion) throw new Error('Cotización no encontrada');
-  return buildCotizacionPdf(cotizacion);
+  return { buffer: await buildCotizacionPdf(cotizacion), nombreArchivo: nombreArchivoCotizacion(cotizacion) };
 }
 
 export async function aceptarCotizacion(id, usuarioId) {

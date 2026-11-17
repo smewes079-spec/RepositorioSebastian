@@ -73,9 +73,14 @@ export async function rechazar(req, res) {
 
 export async function pdf(req, res) {
   try {
-    const buffer = await cotizacionesService.descargarCotizacionPdf(req.params.id);
+    const { buffer, nombreArchivo } = await cotizacionesService.descargarCotizacionPdf(req.params.id);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="cotizacion-${req.params.id.slice(-8)}.pdf"`);
+    // filename = versión sin tildes para navegadores antiguos; filename* = nombre real (UTF-8).
+    const ascii = nombreArchivo.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\x20-\x7E]|"/g, '');
+    res.setHeader(
+      'Content-Disposition',
+      `inline; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(nombreArchivo)}`
+    );
     res.send(buffer);
   } catch (err) {
     console.error(err);

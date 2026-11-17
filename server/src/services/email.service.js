@@ -1,5 +1,6 @@
 import sgMail from '@sendgrid/mail';
 import { conexionDe, enviarPorGmail } from './gmail.service.js';
+import { nombreArchivoCotizacion } from './pdf.service.js';
 
 // Las dos cuentas del taller: cada cotización sale desde la de quien la
 // envía, con la otra siempre en copia para que ambas tengan seguimiento.
@@ -40,7 +41,6 @@ function armarCorreo({ cotizacion, pdfBuffer, mensaje }) {
     throw new Error('Elige quién envía la cotización (María o Carolina) antes de enviarla.');
   }
   const copia = Object.entries(REMITENTES).find(([key]) => key !== cotizacion.remitente)[1];
-  const numero = cotizacion.id.slice(-8).toUpperCase();
   const cuerpo = (mensaje && mensaje.trim()) || mensajeCorreoPorDefecto(cotizacion);
   const cuerpoHtml = escapeHtml(cuerpo).replace(/\n/g, '<br/>');
   const nombre = escapeHtml(cotizacion.nombreClienta);
@@ -49,10 +49,10 @@ function armarCorreo({ cotizacion, pdfBuffer, mensaje }) {
     to: { email: cotizacion.emailClienta, name: cotizacion.nombreClienta },
     cc: copia,
     from: { email: remitente.email, name: `${remitente.name} - Hatton Schultz Novias` },
-    subject: `Cotización N° ${numero} - Hatton Schultz Novias`,
+    subject: 'Cotización Hatton Schultz Atelier',
     text: `Hola ${cotizacion.nombreClienta},\n\n${cuerpo}\n\nSaludos,\n${remitente.name}\nHatton Schultz Novias`,
     html: `<p>Hola ${nombre},</p><p>${cuerpoHtml}</p><p>Saludos,<br/>${remitente.name}<br/>Hatton Schultz Novias</p>`,
-    adjunto: { nombre: `cotizacion-${numero}.pdf`, base64: pdfBuffer.toString('base64') },
+    adjunto: { nombre: nombreArchivoCotizacion(cotizacion), base64: pdfBuffer.toString('base64') },
   };
 }
 

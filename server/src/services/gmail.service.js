@@ -137,6 +137,14 @@ function direccion({ email, name }) {
   return `${nombre} <${email}>`;
 }
 
+// Nombre de archivo con tildes/ñ (ej. "María Schultz.pdf"): formato RFC 2231,
+// que Gmail, Outlook y Apple Mail muestran bien.
+export function parametroArchivo(nombre) {
+  if (/^[\x20-\x7E]*$/.test(nombre)) return `filename="${nombre.replace(/(["\\])/g, '\\$1')}"`;
+  const codificado = encodeURIComponent(nombre).replace(/['()*]/g, (ch) => `%${ch.charCodeAt(0).toString(16).toUpperCase()}`);
+  return `filename*=UTF-8''${codificado}`;
+}
+
 function base64Lineas(buf) {
   return buf.toString('base64').replace(/.{1,76}/g, '$&\r\n').trimEnd();
 }
@@ -168,8 +176,8 @@ export function armarMime(c) {
     `--${alterno}--`,
     '',
     `--${mixto}`,
-    `Content-Type: application/pdf; name="${c.adjunto.nombre}"`,
-    `Content-Disposition: attachment; filename="${c.adjunto.nombre}"`,
+    `Content-Type: application/pdf; name="${encabezadoUtf8(c.adjunto.nombre)}"`,
+    `Content-Disposition: attachment; ${parametroArchivo(c.adjunto.nombre)}`,
     'Content-Transfer-Encoding: base64',
     '',
     base64Lineas(Buffer.from(c.adjunto.base64, 'base64')),
