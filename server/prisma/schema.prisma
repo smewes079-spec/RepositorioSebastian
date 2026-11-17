@@ -340,3 +340,16 @@ model CotizacionItem {
 
   @@index([cotizacionId])
 }
+
+// Conexión de la casilla de Gmail (Google Workspace) de cada remitente de
+// cotizaciones. Guarda el permiso de "solo enviar correos" que María o
+// Carolina otorgan una vez desde Configuración; con él la app envía las
+// cotizaciones desde su propia casilla vía la API de Gmail.
+model GmailConexion {
+  remitente      CotizacionRemitente @id
+  email          String
+  refreshToken   String
+  conectadoEn    DateTime            @default(now())
+  conectadoPorId String?
+  updatedAt      DateTime            @updatedAt
+}

@@ -8,6 +8,13 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.25.0 — 2026-11-16
+
+- **Las cotizaciones ahora salen directo desde el Gmail de María o Carolina**: en vez de pasar por un servicio externo (SendGrid o Brevo), cada cotización se envía desde la casilla real de quien la envía y queda guardada en su carpeta "Enviados". La otra sigue en copia y el PDF va adjunto, igual que antes. Es gratis, porque viene incluido en el Google Workspace del taller.
+- **Nueva sección "Correo de cotizaciones" en Configuración**: ahí María y Carolina conectan su casilla una sola vez con el botón "Conectar con Gmail". Google les pide entrar con su cuenta y aceptar un permiso que solo deja **enviar** correos: la app no puede leer su correo. La conexión se puede quitar en cualquier momento con "Desconectar".
+- Si alguien se conecta por error con otra cuenta (por ejemplo, un Gmail personal), la app lo rechaza y avisa con qué cuenta hay que entrar.
+- Si quien envía todavía no conectó su casilla, la app lo avisa claramente al intentar enviar.
+
 ## v1.24.0 — 2026-11-12
 
 - **Envío de cotizaciones por correo con Brevo (gratis)**: el envío había dejado de funcionar con el mensaje "Maximum credits exceeded", porque se acabó la prueba gratis de SendGrid, el servicio que mandaba los correos. Ahora la app envía con **Brevo**, que es gratis hasta 300 correos al día. Los correos siguen saliendo igual: desde la cuenta de quien envía (María o Carolina), con la otra en copia y el PDF adjunto. Las respuestas de la clienta llegan a quien envió.

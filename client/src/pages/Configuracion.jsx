@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Check, Plus, Trash2, KeyRound, UserPlus, History } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
+import CorreoCotizacionesConfig from '../components/CorreoCotizacionesConfig.jsx';
 import { api } from '../lib/api.js';
 import { toInputDate, TIPO_LABELS } from '../lib/format.js';
 import { useAuth } from '../lib/AuthContext.jsx';
@@ -735,6 +736,8 @@ export default function Configuracion() {
           <SavedBadge show={savedKey === 'financiero'} />
         </div>
       )}
+
+      <CorreoCotizacionesConfig />
 
       <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3 mt-8">
         Usuarios

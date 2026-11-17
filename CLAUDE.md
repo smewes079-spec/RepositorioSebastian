@@ -144,3 +144,10 @@ node/vite, borrar la base y el usuario de prueba, parar postgres, borrar
   editable sin restricción de backend — no asumir que hace falta construir
   eso si alguien lo pide.
 - Moneda siempre CLP sin decimales. Fechas en vistas: `DD-MMM-YY`.
+- Envío de correo (cotizaciones): Render free bloquea SMTP, así que todo va por
+  API HTTP. Principal: API de Gmail con OAuth por remitente
+  (`gmail.service.js`, tabla `GmailConexion`, conexión en Configuración →
+  Correo de cotizaciones; requiere `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
+  de un cliente OAuth "Interno" del Workspace, redirect
+  `https://<app>/api/gmail/callback`). Respaldo: Brevo (`BREVO_API_KEY`) y
+  SendGrid (`SENDGRID_API_KEY`, prueba agotada) en `email.service.js`.

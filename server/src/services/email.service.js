@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail';
+import { conexionDe, enviarPorGmail } from './gmail.service.js';
 
 // Las dos cuentas del taller: cada cotización sale desde la de quien la
 // envía, con la otra siempre en copia para que ambas tengan seguimiento.
@@ -7,10 +8,10 @@ const REMITENTES = {
   CARO: { email: 'caro@hattonschultz.com', name: 'Carolina' },
 };
 
-// Proveedor de envío. Brevo (plan gratis, 300 correos/día) es el principal
-// desde v1.24.0: la prueba gratis de SendGrid se agotó ("Maximum credits
-// exceeded"). SendGrid queda solo como respaldo si no hay BREVO_API_KEY.
-// Ambos se usan por su API HTTP porque Render (plan free) bloquea SMTP.
+// Proveedor de envío. Desde v1.25.0 el principal es Gmail directo (ver
+// gmail.service.js): cada cotización sale de la casilla real de quien envía.
+// Brevo y SendGrid quedan solo como respaldo si esa casilla no está
+// conectada. Todos se usan por API HTTP porque Render (plan free) bloquea SMTP.
 const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
 
 function proveedor() {
@@ -122,14 +123,18 @@ async function enviarPorSendgrid(c) {
 }
 
 export async function sendCotizacionEmail({ cotizacion, pdfBuffer, mensaje }) {
-  const via = proveedor();
+  // 1º Gmail directo, si quien envía conectó su casilla en Configuración.
+  const gmail = await conexionDe(cotizacion.remitente);
+  const via = gmail ? 'GMAIL' : proveedor();
   if (!via) {
+    const nombre = REMITENTES[cotizacion.remitente]?.name || 'quien envía';
     throw new Error(
-      'El envío de correo no está configurado. Hay que agregar BREVO_API_KEY en las variables de entorno de Render.'
+      `La casilla de Gmail de ${nombre} no está conectada. Conéctala en Configuración → Correo de cotizaciones.`
     );
   }
   const correo = armarCorreo({ cotizacion, pdfBuffer, mensaje });
-  if (via === 'BREVO') await enviarPorBrevo(correo);
+  if (via === 'GMAIL') await enviarPorGmail(gmail, correo, REMITENTES[cotizacion.remitente].name);
+  else if (via === 'BREVO') await enviarPorBrevo(correo);
   else await enviarPorSendgrid(correo);
 }
 

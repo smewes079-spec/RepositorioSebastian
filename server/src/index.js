@@ -17,6 +17,7 @@ import rentabilidadRoutes from './routes/rentabilidad.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import cotizacionesRoutes from './routes/cotizaciones.routes.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
+import gmailRoutes from './routes/gmail.routes.js';
 import { requireAuth } from './middleware/auth.js';
 import { checkRequiredEnv } from './lib/checkEnv.js';
 
@@ -82,6 +83,7 @@ app.use('/api/rentabilidad', requireAuth, rentabilidadRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
 app.use('/api/cotizaciones', requireAuth, cotizacionesRoutes);
 app.use('/api/usuarios', requireAuth, usuariosRoutes);
+app.use('/api/gmail', requireAuth, gmailRoutes);
 
 if (serveClient) {
   app.use(express.static(clientDist));
