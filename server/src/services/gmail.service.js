@@ -18,7 +18,14 @@ const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 const SEND_URL = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send';
-const SCOPES = ['openid', 'email', 'https://www.googleapis.com/auth/gmail.send'];
+export const SCOPE_CALENDARIO = 'https://www.googleapis.com/auth/calendar.events';
+const SCOPES = [
+  'openid',
+  'email',
+  'https://www.googleapis.com/auth/gmail.send', // enviar cotizaciones (no leer correo)
+  'https://www.googleapis.com/auth/calendar.freebusy', // ver horas ocupadas (sin ver el contenido)
+  SCOPE_CALENDARIO, // crear las citas agendadas desde /agendar
+];
 
 export function gmailConfigurado() {
   return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
@@ -89,8 +96,8 @@ export async function completarConexion({ remitente, emailEsperado, code, redire
   }
   await prisma.gmailConexion.upsert({
     where: { remitente },
-    update: { email, refreshToken: data.refresh_token, conectadoEn: new Date(), conectadoPorId: usuarioId },
-    create: { remitente, email, refreshToken: data.refresh_token, conectadoPorId: usuarioId },
+    update: { email, refreshToken: data.refresh_token, scopes: data.scope || null, conectadoEn: new Date(), conectadoPorId: usuarioId },
+    create: { remitente, email, refreshToken: data.refresh_token, scopes: data.scope || null, conectadoPorId: usuarioId },
   });
   return email;
 }
@@ -108,8 +115,13 @@ async function revocar(token) {
 }
 
 export async function estadoConexiones() {
-  const filas = await prisma.gmailConexion.findMany({ select: { remitente: true, email: true, conectadoEn: true } });
-  return { configurado: gmailConfigurado(), conexiones: filas };
+  const filas = await prisma.gmailConexion.findMany({
+    select: { remitente: true, email: true, conectadoEn: true, scopes: true },
+  });
+  return {
+    configurado: gmailConfigurado(),
+    conexiones: filas.map(({ scopes, ...f }) => ({ ...f, calendario: tieneCalendario({ scopes }) })),
+  };
 }
 
 export async function conexionDe(remitente) {
@@ -187,19 +199,32 @@ export function armarMime(c) {
   return lineas.join('\r\n');
 }
 
-export async function enviarPorGmail(conexion, correo, nombreRemitente) {
-  const reconectar = `Vuelve a conectar la casilla de ${nombreRemitente} en Configuración → Correo de cotizaciones.`;
+// Token de acceso de corta duración a partir del permiso guardado. Lo usan
+// el envío de correos y el calendario (agenda.service.js).
+export async function tokenDeAcceso(conexion, nombre) {
   const token = await postToken({ refresh_token: conexion.refreshToken, grant_type: 'refresh_token' });
   if (!token.ok) {
     if (token.data.error === 'invalid_grant') {
-      throw new Error(`Se perdió la conexión con el Gmail de ${nombreRemitente}. ${reconectar}`);
+      throw new Error(
+        `Se perdió la conexión con Google de ${nombre}. Vuelve a conectarla en Configuración → Conexión con Google.`
+      );
     }
     throw new Error(`Google rechazó el acceso (${token.data.error_description || token.data.error || 'sin detalle'}).`);
   }
+  return token.data.access_token;
+}
+
+export function tieneCalendario(conexion) {
+  return !!conexion?.scopes && conexion.scopes.includes(SCOPE_CALENDARIO);
+}
+
+export async function enviarPorGmail(conexion, correo, nombreRemitente) {
+  const reconectar = `Vuelve a conectar la casilla de ${nombreRemitente} en Configuración → Conexión con Google.`;
+  const accessToken = await tokenDeAcceso(conexion, nombreRemitente);
   const raw = Buffer.from(armarMime(correo), 'utf8').toString('base64url');
   const res = await fetch(SEND_URL, {
     method: 'POST',
-    headers: { authorization: `Bearer ${token.data.access_token}`, 'content-type': 'application/json' },
+    headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
     body: JSON.stringify({ raw }),
   });
   if (!res.ok) {

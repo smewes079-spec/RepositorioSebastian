@@ -8,6 +8,19 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.28.0 — 2026-11-25
+
+- **Nueva página para que las clientas agenden su asesoría**: es un link para la bio de Instagram, `https://hatton-schultz-novias.onrender.com/agendar`. La clienta elige si es **novia, madrina o invitada**, pone la fecha de su evento, elige un día y una hora libres, y deja su nombre, correo y teléfono. Queda agendada al tiro y le llega la invitación de Google Calendar a su correo, con la dirección del taller.
+- **Los horarios salen del calendario de Carolina y María**: solo aparecen horas en que al menos una está libre, de lunes a viernes de 10:00 a 18:00 (citas de 1 hora). La cita se anota sola en el Google Calendar de la que quedó asignada; si las dos están libres, se asigna a la que tiene menos citas ese día. Si se cancela o mueve una cita en el calendario, la página lo considera de inmediato.
+- **Segmentación por capacidad**:
+  - Novias: pueden agendar sin importar la fecha de su matrimonio, y ven un botón de **WhatsApp** para pedir un sobrecupo si no encuentran una hora cercana.
+  - Madrinas: solo pueden agendar si faltan **7 meses o más** para su evento.
+  - Invitadas: solo pueden agendar si faltan **5 meses o más** para su evento.
+  - Si no cumplen la regla, la página se lo explica con un mensaje amable y no muestra horas.
+- **Nueva sección "Agenda" en Configuración**: el link para copiar, los meses mínimos de madrinas e invitadas, días y horario de atención, cuántos días hacia adelante se muestran (90), el aviso mínimo (24 horas), el número de WhatsApp para sobrecupos, y un interruptor para **pausar** cada segmento cuando no haya capacidad.
+- **Asesorías**: las citas agendadas desde la web aparecen solas en el listado, con su hora, el segmento, la fecha del evento, la diseñadora asignada y el origen "Web" (con monto $0, que se edita si se cobra). También se pueden anotar estos datos a mano en las asesorías manuales.
+- **Para activarlo**: Carolina y María deben apretar **"Volver a conectar"** en Configuración → Conexión con Google, para dar permiso al calendario. La app solo ve qué horas están ocupadas (no el contenido de sus eventos) y crea las citas.
+
 ## v1.27.0 — 2026-11-17
 
 - **Cada ítem de la cotización va separado, con su precio**: en el PDF, cada ítem aparece como un bloque propio dentro del recuadro de la cotización. Arriba va su **título** en la etiqueta rosada ("Vestido a medida", "Cola", "Velo", "Estola"…), debajo su **descripción** y, a la derecha, **su precio** en negrita. Al final va el **Total cotización** con la suma de todo, para que la novia vea cuánto cuesta cada cosa y el total.

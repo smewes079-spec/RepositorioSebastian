@@ -3,7 +3,7 @@ import { Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { formatFecha } from '../lib/format.js';
 
-// Configuración → Correo de cotizaciones: cada remitente (María, Carolina)
+// Configuración → Conexión con Google: cada diseñadora (María, Carolina)
 // conecta una vez su casilla de Gmail para que las cotizaciones salgan desde ahí.
 export default function CorreoCotizacionesConfig() {
   const [estado, setEstado] = useState(null);
@@ -43,7 +43,7 @@ export default function CorreoCotizacionesConfig() {
   return (
     <div id="correo-cotizaciones" className="mt-8">
       <p className="text-xs font-semibold uppercase tracking-wide text-[#2C2420]/40 mb-3">
-        Correo de cotizaciones
+        Conexión con Google (correo y calendario)
       </p>
 
       {aviso && (
@@ -60,9 +60,11 @@ export default function CorreoCotizacionesConfig() {
 
       <div className="bg-white rounded-xl border border-black/5 p-5">
         <p className="text-sm text-[#2C2420]/70 mb-4">
-          Las cotizaciones se envían desde la casilla de Gmail de quien las envía, y quedan en su carpeta
-          "Enviados". Cada una conecta su casilla una sola vez: al apretar el botón, Google pide entrar
-          con esa cuenta y aceptar el permiso para <strong>enviar</strong> correos (la app no puede leerlos).
+          Cada una conecta su cuenta de Google una sola vez. Con eso, las cotizaciones se envían desde su
+          Gmail (y quedan en "Enviados"), y la página de agendamiento usa su <strong>calendario</strong> para
+          mostrar solo horas libres y anotar ahí las citas. Google pide entrar con esa cuenta y aceptar
+          permisos para <strong>enviar</strong> correos y <strong>ver horas ocupadas / crear citas</strong> (la
+          app no puede leer sus correos).
         </p>
 
         {estado && !estado.configurado && (
@@ -83,7 +85,14 @@ export default function CorreoCotizacionesConfig() {
                     <p className="text-xs text-[#2C2420]/50">
                       {r.email} ·{' '}
                       {conexion ? (
-                        <span className="text-[#5C8C6A]">Conectada desde el {formatFecha(conexion.conectadoEn)}</span>
+                        <>
+                          <span className="text-[#5C8C6A]">Conectada desde el {formatFecha(conexion.conectadoEn)}</span>
+                          {conexion.calendario ? (
+                            <span className="text-[#5C8C6A]"> · Calendario activo</span>
+                          ) : (
+                            <span className="text-[#A85C52]"> · Falta el calendario: aprieta "Volver a conectar"</span>
+                          )}
+                        </>
                       ) : (
                         <span className="text-[#A85C52]">No conectada</span>
                       )}

@@ -18,6 +18,7 @@ import dashboardRoutes from './routes/dashboard.routes.js';
 import cotizacionesRoutes from './routes/cotizaciones.routes.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import gmailRoutes from './routes/gmail.routes.js';
+import agendaPublicaRoutes from './routes/agendaPublica.routes.js';
 import { requireAuth } from './middleware/auth.js';
 import { checkRequiredEnv } from './lib/checkEnv.js';
 
@@ -74,6 +75,8 @@ app.use(
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
+// Página pública de agendamiento (/agendar): sin login a propósito.
+app.use('/api/agenda-publica', agendaPublicaRoutes);
 app.use('/api/ventas', requireAuth, ventasRoutes);
 app.use('/api/purchases', requireAuth, purchasesRoutes);
 app.use('/api/gastos-generales', requireAuth, gastosGeneralesRoutes);

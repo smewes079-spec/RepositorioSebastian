@@ -151,3 +151,10 @@ node/vite, borrar la base y el usuario de prueba, parar postgres, borrar
   de un cliente OAuth "Interno" del Workspace, redirect
   `https://<app>/api/gmail/callback`). Respaldo: Brevo (`BREVO_API_KEY`) y
   SendGrid (`SENDGRID_API_KEY`, prueba agotada) en `email.service.js`.
+- Agendamiento público (`/agendar`, rutas sin login en `/api/agenda-publica`
+  con rate limit): `agenda.service.js` genera horarios en `America/Santiago`
+  (sin librerías; `chileAUtc`), consulta `freeBusy` de cada diseñadora con su
+  token de `GmailConexion` (scopes de calendario desde v1.28.0; ver
+  `tieneCalendario`), aplica reglas de `ConfigAgenda` por segmento (meses
+  mínimos al evento) y al reservar crea el evento (`sendUpdates=all`) y una
+  `Asesoria` con `origen = WEB`. Las reservas van en serie (un solo proceso).

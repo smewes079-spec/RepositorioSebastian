@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Check, Plus, Trash2, KeyRound, UserPlus, History } from 'lucide-react';
 import Layout from '../components/Layout.jsx';
 import CorreoCotizacionesConfig from '../components/CorreoCotizacionesConfig.jsx';
+import AgendaConfig from '../components/AgendaConfig.jsx';
 import { api } from '../lib/api.js';
 import { toInputDate, TIPO_LABELS } from '../lib/format.js';
 import { useAuth } from '../lib/AuthContext.jsx';
@@ -736,6 +737,8 @@ export default function Configuracion() {
           <SavedBadge show={savedKey === 'financiero'} />
         </div>
       )}
+
+      <AgendaConfig />
 
       <CorreoCotizacionesConfig />
 

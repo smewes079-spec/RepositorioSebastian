@@ -13,7 +13,13 @@ const VACIO = {
   telefonoClienta: '',
   monto: '',
   notas: '',
+  segmento: '',
+  fechaEvento: '',
+  asignadaA: '',
 };
+
+const CLASE_INPUT =
+  'w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]';
 
 export default function AsesoriaForm() {
   const { id } = useParams();
@@ -25,6 +31,10 @@ export default function AsesoriaForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [auditoria, setAuditoria] = useState(null);
+  // Fecha y hora originales: las asesorías agendadas desde la web traen hora,
+  // y el formulario solo edita el día. Si el día no cambia, se conserva.
+  const [fechaOriginal, setFechaOriginal] = useState(null);
+  const [origen, setOrigen] = useState('MANUAL');
 
   useEffect(() => {
     if (!isEdit) return;
@@ -38,7 +48,12 @@ export default function AsesoriaForm() {
           telefonoClienta: a.telefonoClienta || '',
           monto: a.monto,
           notas: a.notas || '',
+          segmento: a.segmento || '',
+          fechaEvento: a.fechaEvento ? toInputDate(a.fechaEvento) : '',
+          asignadaA: a.asignadaA || '',
         });
+        setFechaOriginal(a.fecha);
+        setOrigen(a.origen || 'MANUAL');
         setAuditoria({ creadoPor: a.creadoPor?.nombre, actualizadoPor: a.actualizadoPor?.nombre });
       })
       .catch((err) => setError(err.message))
@@ -55,6 +70,7 @@ export default function AsesoriaForm() {
     setError('');
     try {
       const payload = { ...form, monto: Number(form.monto) };
+      if (fechaOriginal && toInputDate(fechaOriginal) === form.fecha) payload.fecha = fechaOriginal;
       if (isEdit) {
         await api.put(`/asesorias/${id}`, payload);
       } else {
@@ -181,6 +197,36 @@ export default function AsesoriaForm() {
               onChange={(e) => set('telefonoClienta', e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Segmento</label>
+            <select value={form.segmento} onChange={(e) => set('segmento', e.target.value)} className={CLASE_INPUT}>
+              <option value="">—</option>
+              <option value="NOVIA">Novia</option>
+              <option value="MADRINA">Madrina</option>
+              <option value="INVITADA">Invitada</option>
+              <option value="CIVIL">Civil</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Fecha del evento (opcional)</label>
+            <input
+              type="date"
+              value={form.fechaEvento}
+              onChange={(e) => set('fechaEvento', e.target.value)}
+              className={CLASE_INPUT}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Diseñadora</label>
+            <select value={form.asignadaA} onChange={(e) => set('asignadaA', e.target.value)} className={CLASE_INPUT}>
+              <option value="">—</option>
+              <option value="CARO">Carolina</option>
+              <option value="MARIA">María</option>
+            </select>
+          </div>
+          <div className="flex items-end pb-2 text-xs text-[#2C2420]/50">
+            {origen === 'WEB' ? 'Agendada por la clienta desde la página web.' : ''}
           </div>
           <div className="col-span-2">
             <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Notas</label>

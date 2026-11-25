@@ -15,6 +15,9 @@ function baseData(data) {
     telefonoClienta: data.telefonoClienta ? String(data.telefonoClienta).trim() : null,
     monto: Number(data.monto),
     notas: data.notas ? String(data.notas).trim() : null,
+    segmento: ['NOVIA', 'MADRINA', 'INVITADA', 'CIVIL'].includes(data.segmento) ? data.segmento : null,
+    fechaEvento: data.fechaEvento ? new Date(data.fechaEvento) : null,
+    asignadaA: ['MARIA', 'CARO'].includes(data.asignadaA) ? data.asignadaA : null,
   };
 }
 

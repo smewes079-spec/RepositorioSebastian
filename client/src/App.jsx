@@ -14,6 +14,7 @@ import GastoGeneralForm from './pages/GastoGeneralForm.jsx';
 import RentabilidadPorVestido from './pages/RentabilidadPorVestido.jsx';
 import Configuracion from './pages/Configuracion.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import Agendar from './pages/Agendar.jsx';
 
 function PrivateRoute({ children }) {
   const { authenticated } = useAuth();
@@ -32,6 +33,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      {/* Página pública (link de Instagram): sin login. */}
+      <Route path="/agendar" element={<Agendar />} />
       <Route path="/" element={<Navigate to="/ventas" replace />} />
       <Route
         path="/ventas"

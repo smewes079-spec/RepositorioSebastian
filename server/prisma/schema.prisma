@@ -53,6 +53,11 @@ enum CotizacionRemitente {
   CARO
 }
 
+enum OrigenAsesoria {
+  MANUAL
+  WEB
+}
+
 enum CotizacionEstado {
   PENDIENTE
   ENVIADA
@@ -211,6 +216,14 @@ model Asesoria {
   monto           Int
   notas           String?
 
+  // Agendamiento (v1.28.0): segmento de la clienta, fecha de su evento,
+  // diseñadora a la que se asignó y si vino de la página pública /agendar.
+  segmento      TipoVestido?
+  fechaEvento   DateTime?
+  asignadaA     CotizacionRemitente?
+  origen        OrigenAsesoria       @default(MANUAL)
+  googleEventId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -351,7 +364,28 @@ model GmailConexion {
   remitente      CotizacionRemitente @id
   email          String
   refreshToken   String
+  // Permisos otorgados (separados por espacio). Desde v1.28.0 incluye el
+  // calendario; las conexiones anteriores solo tienen gmail.send.
+  scopes         String?
   conectadoEn    DateTime            @default(now())
   conectadoPorId String?
   updatedAt      DateTime            @updatedAt
+}
+
+// Reglas de la página pública de agendamiento (/agendar). Fila única.
+model ConfigAgenda {
+  id                    String  @id @default("main")
+  whatsapp              String? // número para sobrecupos de novias, ej. 56912345678
+  mesesMinimoMadrina    Int     @default(7)
+  mesesMinimoInvitada   Int     @default(5)
+  abiertoNovia          Boolean @default(true)
+  abiertoMadrina        Boolean @default(true)
+  abiertoInvitada       Boolean @default(true)
+  diasSemana            String  @default("1,2,3,4,5") // 1 = lunes … 7 = domingo
+  horaInicio            Int     @default(10)
+  horaFin               Int     @default(18) // última cita parte a horaFin - 1
+  diasHorizonte         Int     @default(90)
+  horasAvisoMinimo      Int     @default(24)
+
+  updatedAt DateTime @updatedAt
 }

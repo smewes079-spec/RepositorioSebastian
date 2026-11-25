@@ -21,11 +21,23 @@ function buildQuery(filtros) {
   return params.toString();
 }
 
+const SEGMENTO_LABELS = { NOVIA: 'Novia', MADRINA: 'Madrina', INVITADA: 'Invitada', CIVIL: 'Civil' };
+const DISENADORA_LABELS = { MARIA: 'María', CARO: 'Carolina' };
+const horaChile = new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit' });
+
+// Las agendadas desde la web traen la hora de la cita; las manuales, solo el día.
+function fechaConHora(a) {
+  if (a.origen !== 'WEB') return formatFecha(a.fecha);
+  const d = new Date(a.fecha);
+  const dia = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(d);
+  return `${formatFecha(`${dia}T12:00:00Z`)} ${horaChile.format(d)}`;
+}
+
 const COLUMN_DEFS = {
   fecha: {
     label: 'Fecha',
-    cell: (a) => <span className="text-[#2C2420]/70">{formatFecha(a.fecha)}</span>,
-    getValue: (a) => formatFecha(a.fecha),
+    cell: (a) => <span className="text-[#2C2420]/70">{fechaConHora(a)}</span>,
+    getValue: (a) => fechaConHora(a),
   },
   clienta: {
     label: 'Clienta',
@@ -37,6 +49,31 @@ const COLUMN_DEFS = {
     cell: (a) => <span className="text-[#2C2420]/70">{a.telefonoClienta || '—'}</span>,
     getValue: (a) => a.telefonoClienta || '',
   },
+  segmento: {
+    label: 'Segmento',
+    cell: (a) => <span className="text-[#2C2420]/70">{SEGMENTO_LABELS[a.segmento] || '—'}</span>,
+    getValue: (a) => SEGMENTO_LABELS[a.segmento] || '',
+  },
+  fechaEvento: {
+    label: 'Fecha evento',
+    cell: (a) => <span className="text-[#2C2420]/70">{a.fechaEvento ? formatFecha(a.fechaEvento) : '—'}</span>,
+    getValue: (a) => (a.fechaEvento ? formatFecha(a.fechaEvento) : ''),
+  },
+  asignadaA: {
+    label: 'Diseñadora',
+    cell: (a) => <span className="text-[#2C2420]/70">{DISENADORA_LABELS[a.asignadaA] || '—'}</span>,
+    getValue: (a) => DISENADORA_LABELS[a.asignadaA] || '',
+  },
+  origen: {
+    label: 'Origen',
+    cell: (a) =>
+      a.origen === 'WEB' ? (
+        <span className="text-xs px-2 py-0.5 rounded-full bg-[#F3EDE4] text-[#8A6D3B]">Web</span>
+      ) : (
+        <span className="text-[#2C2420]/40">Manual</span>
+      ),
+    getValue: (a) => (a.origen === 'WEB' ? 'Web' : 'Manual'),
+  },
   monto: {
     label: 'Monto',
     align: 'right',
@@ -45,11 +82,15 @@ const COLUMN_DEFS = {
   },
 };
 
-const ORDEN_COLUMNAS = ['fecha', 'clienta', 'telefono', 'monto'];
+const ORDEN_COLUMNAS = ['fecha', 'clienta', 'segmento', 'fechaEvento', 'asignadaA', 'origen', 'telefono', 'monto'];
 
 const ANCHOS_COLUMNAS_DEFECTO = {
-  fecha: 100,
+  fecha: 130,
   clienta: 200,
+  segmento: 100,
+  fechaEvento: 110,
+  asignadaA: 110,
+  origen: 90,
   telefono: 140,
   monto: 110,
 };

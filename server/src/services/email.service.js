@@ -129,7 +129,7 @@ export async function sendCotizacionEmail({ cotizacion, pdfBuffer, mensaje }) {
   if (!via) {
     const nombre = REMITENTES[cotizacion.remitente]?.name || 'quien envía';
     throw new Error(
-      `La casilla de Gmail de ${nombre} no está conectada. Conéctala en Configuración → Correo de cotizaciones.`
+      `La casilla de Gmail de ${nombre} no está conectada. Conéctala en Configuración → Conexión con Google.`
     );
   }
   const correo = armarCorreo({ cotizacion, pdfBuffer, mensaje });

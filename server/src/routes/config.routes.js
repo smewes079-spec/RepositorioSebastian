@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as configController from '../controllers/config.controller.js';
+import * as agendaController from '../controllers/agenda.controller.js';
 
 const router = Router();
 
@@ -20,5 +21,8 @@ router.delete('/costos-fijos/nombre/:nombre', configController.deleteCostoFijoNo
 
 router.get('/financiero', configController.financiero);
 router.put('/financiero', configController.updateFinanciero);
+
+router.get('/agenda', agendaController.getConfig);
+router.put('/agenda', agendaController.updateConfig);
 
 export default router;
