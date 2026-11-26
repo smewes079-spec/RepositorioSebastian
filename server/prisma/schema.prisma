@@ -100,6 +100,8 @@ model Venta {
   kanbanEstado    KanbanEstado @default(PENDIENTE)
   notas           String?
   notasProduccion String?
+  boleta1Enviada  Boolean      @default(false)
+  boleta2Enviada  Boolean      @default(false)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 

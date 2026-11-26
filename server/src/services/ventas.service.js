@@ -232,6 +232,20 @@ export async function moveKanban(id, kanbanEstado, usuarioId) {
   return withComputed(venta);
 }
 
+// Marca/desmarca desde el listado si ya se le envió a la clienta la boleta 1
+// y/o la boleta 2. Solo toca esos dos campos (y la auditoría).
+export async function marcarBoletas(id, body = {}, usuarioId) {
+  const data = { actualizadoPorId: usuarioId };
+  if (typeof body.boleta1Enviada === 'boolean') data.boleta1Enviada = body.boleta1Enviada;
+  if (typeof body.boleta2Enviada === 'boolean') data.boleta2Enviada = body.boleta2Enviada;
+  const venta = await prisma.venta.update({
+    where: { id },
+    data,
+    include: { cuotas: { orderBy: { numero: 'asc' } }, ...includeAuditoria },
+  });
+  return withComputed(venta);
+}
+
 export async function resumen(filters = {}) {
   const ventas = await listVentas(filters);
   const totalVendido = ventas.reduce((s, v) => s + v.precioTotal, 0);

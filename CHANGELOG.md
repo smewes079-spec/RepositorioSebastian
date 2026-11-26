@@ -8,6 +8,14 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.31.0 — 2026-11-26
+
+- **Nuevas columnas "Boleta 1" y "Boleta 2" en Ventas**: al final del listado de Ventas y Clientas hay dos columnas con un check para anotar si ya se le envió a la clienta la primera y la segunda boleta.
+  - El check se marca o desmarca **directo desde el listado**, con un click, y queda guardado al tiro (no abre la ficha de la venta).
+  - También aparecen en la ficha de cada venta ("Boleta 1 enviada" y "Boleta 2 enviada").
+  - Se pueden filtrar (Sí / No), ordenar, ocultar y mover como cualquier otra columna, y salen en el Excel como "Sí" o "No".
+  - Todas las ventas que ya existían parten sin marcar.
+
 ## v1.30.1 — 2026-11-26
 
 - **La agenda ahora revisa todos los calendarios de Carolina y María, no solo el principal**: antes solo miraba el calendario principal de cada una. Si una cita estaba en otro calendario (por ejemplo, uno de asesorías o uno compartido del taller), la página ofrecía esa hora como libre. Ahora cuentan como ocupados todos los calendarios que cada una tiene visibles en su Google Calendar. Los feriados y cumpleaños no cuentan.

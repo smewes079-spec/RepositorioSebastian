@@ -57,6 +57,16 @@ export async function moveKanban(req, res) {
   }
 }
 
+export async function marcarBoletas(req, res) {
+  try {
+    const venta = await ventasService.marcarBoletas(req.params.id, req.body, req.user.id);
+    res.json(venta);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'No se pudo guardar el envío de la boleta' });
+  }
+}
+
 export async function revertirACotizacion(req, res) {
   try {
     const cotizacion = await ventasService.revertirACotizacion(req.params.id, req.user.id);

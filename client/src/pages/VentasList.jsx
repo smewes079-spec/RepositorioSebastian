@@ -62,6 +62,22 @@ function EstadoBadge({ estado }) {
   );
 }
 
+// Check de "boleta enviada" que se marca directo desde el listado. El click no
+// abre la venta (stopPropagation) y se guarda al tiro vía PATCH /boletas.
+function BoletaCheck({ venta, campo, onToggle }) {
+  return (
+    <span onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center w-full">
+      <input
+        type="checkbox"
+        checked={!!venta[campo]}
+        onChange={(e) => onToggle(venta.id, campo, e.target.checked)}
+        className="accent-[#C9A96E] w-4 h-4 cursor-pointer"
+        title={venta[campo] ? 'Boleta enviada (click para desmarcar)' : 'Marcar boleta como enviada'}
+      />
+    </span>
+  );
+}
+
 function KanbanBadge({ kanbanEstado }) {
   const c = KANBAN_COLORS[kanbanEstado] || {};
   return (
@@ -160,11 +176,23 @@ const COLUMN_DEFS = {
     getValue: (v) => KANBAN_LABELS[v.kanbanEstado],
     sortField: 'kanbanEstado',
   },
+  boleta1: {
+    label: 'Boleta 1',
+    cell: (v, ctx) => <BoletaCheck venta={v} campo="boleta1Enviada" onToggle={ctx.onToggleBoleta} />,
+    getValue: (v) => (v.boleta1Enviada ? 'Sí' : 'No'),
+    sortField: 'boleta1Enviada',
+  },
+  boleta2: {
+    label: 'Boleta 2',
+    cell: (v, ctx) => <BoletaCheck venta={v} campo="boleta2Enviada" onToggle={ctx.onToggleBoleta} />,
+    getValue: (v) => (v.boleta2Enviada ? 'Sí' : 'No'),
+    sortField: 'boleta2Enviada',
+  },
 };
 
 const ORDEN_COLUMNAS_DEFECTO = [
   'codigo', 'clienta', 'tipo', 'fechaVenta', 'fechaEvento', 'fechaEntregaComprometida',
-  'total', 'saldo', 'cobrado', 'estado', 'produccion',
+  'total', 'saldo', 'cobrado', 'estado', 'produccion', 'boleta1', 'boleta2',
 ];
 
 const ANCHOS_COLUMNAS_DEFECTO = {
@@ -179,6 +207,8 @@ const ANCHOS_COLUMNAS_DEFECTO = {
   cobrado: 110,
   estado: 120,
   produccion: 120,
+  boleta1: 100,
+  boleta2: 100,
 };
 
 export default function VentasList() {
@@ -283,6 +313,20 @@ export default function VentasList() {
       prev.length === ventasFiltradas.length ? [] : ventasFiltradas.map((v) => v.id)
     );
   }
+
+  async function toggleBoleta(id, campo, valor) {
+    // Cambio optimista: se ve marcado al tiro; si falla, se revierte.
+    const aplicar = (val) => setVentas((prev) => prev.map((v) => (v.id === id ? { ...v, [campo]: val } : v)));
+    aplicar(valor);
+    try {
+      await api.patch(`/ventas/${id}/boletas`, { [campo]: valor });
+    } catch (err) {
+      aplicar(!valor);
+      setError(err.message || 'No se pudo guardar el check de la boleta');
+    }
+  }
+
+  const contextoCeldas = { onToggleBoleta: toggleBoleta };
 
   async function handleBulkDelete() {
     if (
@@ -582,7 +626,7 @@ export default function VentasList() {
                       key={key}
                       className={`px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis ${COLUMN_DEFS[key].align === 'right' ? 'text-right' : ''}`}
                     >
-                      {COLUMN_DEFS[key].cell(v)}
+                      {COLUMN_DEFS[key].cell(v, contextoCeldas)}
                     </td>
                   ))}
                 </tr>

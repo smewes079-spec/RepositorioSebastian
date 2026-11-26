@@ -21,6 +21,8 @@ const VACIO = {
   kanbanEstado: 'PENDIENTE',
   notas: '',
   notasProduccion: '',
+  boleta1Enviada: false,
+  boleta2Enviada: false,
 };
 
 export default function VentaForm() {
@@ -55,6 +57,8 @@ export default function VentaForm() {
           kanbanEstado: v.kanbanEstado,
           notas: v.notas || '',
           notasProduccion: v.notasProduccion || '',
+          boleta1Enviada: !!v.boleta1Enviada,
+          boleta2Enviada: !!v.boleta2Enviada,
         });
         setCuotas(
           v.cuotas.map((c) => ({
@@ -337,6 +341,22 @@ export default function VentaForm() {
               </select>
             </div>
           )}
+          <div className="col-span-2 flex flex-wrap gap-6">
+            {[
+              ['boleta1Enviada', 'Boleta 1 enviada'],
+              ['boleta2Enviada', 'Boleta 2 enviada'],
+            ].map(([campo, label]) => (
+              <label key={campo} className="flex items-center gap-2 text-sm text-[#2C2420]/80 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!form[campo]}
+                  onChange={(e) => handleChange(campo, e.target.checked)}
+                  className="accent-[#C9A96E] w-4 h-4"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
           <div className="col-span-2">
             <label className="block text-xs font-medium text-[#2C2420]/60 mb-1.5">Notas</label>
             <textarea

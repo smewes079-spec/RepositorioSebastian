@@ -19,6 +19,7 @@ router.post('/', ventasController.create);
 router.put('/:id', ventasController.update);
 router.delete('/:id', ventasController.destroy);
 router.patch('/:id/kanban', ventasController.moveKanban);
+router.patch('/:id/boletas', ventasController.marcarBoletas);
 router.post('/:id/revertir-a-cotizacion', ventasController.revertirACotizacion);
 
 router.post('/importar', upload.single('archivo'), async (req, res) => {
