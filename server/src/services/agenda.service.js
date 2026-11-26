@@ -122,23 +122,17 @@ function fechaValida(s) {
 // ---------- Reglas por segmento y capacidad de entrega ----------
 //
 // Capacidad: ~8 entregas al mes, contadas como las Ventas cuya fecha de
-// evento cae en ese mes. Las novias son la prioridad: su única restricción
-// es que el mes de su evento tenga cupo. Madrinas e invitadas solo usan
-// cupos que las novias ya no van a tomar: su evento debe estar
-//   - a N meses o más (lo que toma confeccionar: madrina 7, invitada 5), y
-//   - a menos de mesesReservaNovias (8): más lejos, el mes sigue reservado
-//     para novias, que agendan con mucha anticipación; y
-//   - en un mes con entregas < capacidadMensual.
+// evento cae en ese mes. Las novias son la prioridad: pueden agendar para
+// cualquier fecha cuyo mes tenga cupo. Madrinas e invitadas solo pueden
+// agendar con anticipación MÁXIMA de 7 y 5 meses (mesesMinimoMadrina /
+// mesesMinimoInvitada en ConfigAgenda; el nombre quedó de v1.28.0): más
+// lejos, el cupo sigue disponible para una novia, que agenda con mucha
+// anticipación. Sin plazo mínimo. Y el mes debe tener entregas < capacidad.
+// (mesesReservaNovias ya no se usa desde v1.29.2.)
 
 function fmtDMY(ymd) {
   const [y, m, d] = ymd.split('-');
   return `${d}-${m}-${y}`;
-}
-
-function diaSiguiente(fecha) {
-  const [y, m, d] = fecha.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d + 1));
-  return ymd(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
 }
 
 // Rango del mes calendario (mismo criterio que el resto de la app, que
@@ -169,21 +163,13 @@ export function evaluarVentana({ segmento, fechaEvento }, config, ahora = new Da
 
   const etiqueta = SEGMENTO_LABEL[segmento].toLowerCase();
   const meses = segmento === 'MADRINA' ? config.mesesMinimoMadrina : config.mesesMinimoInvitada;
-  if (fechaEvento < sumarMeses(hoy, meses)) {
-    return {
-      motivo: 'muy_cerca',
-      mensaje:
-        `Para confeccionar un vestido de ${etiqueta} necesitamos al menos ${meses} meses antes de la fecha del evento, ` +
-        'para poder dedicarle el tiempo que tu vestido merece. Lamentablemente, para tu fecha ya no alcanzamos.',
-    };
-  }
-  if (fechaEvento >= sumarMeses(hoy, config.mesesReservaNovias)) {
-    const desde = diaSiguiente(sumarMeses(fechaEvento, -config.mesesReservaNovias));
+  if (fechaEvento > sumarMeses(hoy, meses)) {
+    const desde = sumarMeses(fechaEvento, -meses);
     return {
       motivo: 'muy_lejos',
       mensaje:
-        `Todavía no abrimos la agenda de vestidos de ${etiqueta} para esa fecha. ` +
-        `Puedes agendar tu asesoría a partir del ${fmtDMY(desde)}. ¡Te esperamos!`,
+        `Las asesorías de vestidos de ${etiqueta} se agendan con un máximo de ${meses} meses de anticipación ` +
+        `a la fecha del evento. Puedes agendar tu hora a partir del ${fmtDMY(desde)}. ¡Te esperamos!`,
     };
   }
   return null;
@@ -217,23 +203,20 @@ export async function capacidadPorMes(cantidad = 12, ahora = new Date()) {
   const [hy, hm] = hoy.split('-').map(Number);
   const limiteMadrina = sumarMeses(hoy, config.mesesMinimoMadrina);
   const limiteInvitada = sumarMeses(hoy, config.mesesMinimoInvitada);
-  const limiteReserva = sumarMeses(hoy, config.mesesReservaNovias);
   const meses = [];
   for (let i = 0; i < cantidad; i++) {
     const total = hy * 12 + (hm - 1) + i;
     const y = Math.floor(total / 12);
     const m = (total % 12) + 1;
     const entregas = await entregasDelMes(y, m);
+    // Un segmento puede tomar el mes si alguna fecha del mes cae dentro de
+    // su anticipación máxima.
     const inicio = ymd(y, m, 1);
-    const fin = ymd(y, m, new Date(Date.UTC(y, m, 0)).getUTCDate());
-    // Un segmento puede tomar el mes si alguna fecha del mes cae en su ventana.
-    const abiertoPara = (limite) => fin >= limite && inicio < limiteReserva;
     let estado;
     if (entregas >= config.capacidadMensual) estado = 'lleno';
-    else if (inicio >= limiteReserva) estado = 'reservado_novias';
-    else if (abiertoPara(limiteMadrina)) estado = 'madrinas_invitadas';
-    else if (abiertoPara(limiteInvitada)) estado = 'invitadas';
-    else estado = 'solo_novias';
+    else if (inicio <= limiteInvitada) estado = 'madrinas_invitadas';
+    else if (inicio <= limiteMadrina) estado = 'madrinas';
+    else estado = 'reservado_novias';
     meses.push({ mes: `${y}-${String(m).padStart(2, '0')}`, entregas, capacidad: config.capacidadMensual, estado });
   }
   return meses;

@@ -156,7 +156,8 @@ node/vite, borrar la base y el usuario de prueba, parar postgres, borrar
   (sin librerías; `chileAUtc`), consulta `freeBusy` de cada diseñadora con su
   token de `GmailConexion` (scopes de calendario desde v1.28.0; ver
   `tieneCalendario`), aplica reglas de `ConfigAgenda` por segmento (desde v1.29.0:
-  novias solo con tope de entregas del mes (v1.29.1); madrinas/invitadas solo con evento en
-  [meses de confección, `mesesReservaNovias`) y mes con ventas <
-  `capacidadMensual`, contando `Venta.fechaEvento` por mes UTC) y al reservar crea el evento (`sendUpdates=all`) y una
+  todas con tope de entregas del mes (ventas <
+  `capacidadMensual`); madrinas/invitadas además con anticipación MÁXIMA
+  de `mesesMinimoMadrina`/`mesesMinimoInvitada` meses (v1.29.2; nombre
+  heredado, sin mínimo; `mesesReservaNovias` ya no se usa), contando `Venta.fechaEvento` por mes UTC) y al reservar crea el evento (`sendUpdates=all`) y una
   `Asesoria` con `origen = WEB`. Las reservas van en serie (un solo proceso).

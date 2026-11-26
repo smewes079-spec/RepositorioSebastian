@@ -8,6 +8,13 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.29.2 — 2026-11-26
+
+- **Corrección de la regla de madrinas e invitadas**: los 7 y 5 meses son la anticipación **máxima**, no la mínima. Una madrina solo puede agendar si su evento es **dentro de los próximos 7 meses**, y una invitada, **dentro de los próximos 5 meses**. Así no le quitan a una novia un cupo de un mes más lejano. No hay plazo mínimo: pueden agendar para fechas cercanas si el mes tiene cupo.
+- Si una madrina o una invitada intenta agendar para una fecha más lejana, la página le indica desde qué día puede agendar.
+- **Todas** (novias, madrinas e invitadas) siguen sin poder agendar si el mes de su evento ya tiene las 8 entregas completas.
+- En Configuración → Agenda, la tabla de los próximos 12 meses ahora muestra para cada mes: "Novias, madrinas e invitadas", "Novias y madrinas", "Solo novias" o "Lleno". Ya no se usa el ajuste "meses reservados para novias".
+
 ## v1.29.1 — 2026-11-26
 
 - **Las novias también respetan el tope de entregas del mes**: una novia puede agendar para cualquier fecha, salvo que el mes de su evento ya tenga completa la capacidad de entrega (8 vestidos). En ese caso, la página le dice que ese mes está completo y la invita a escribir por WhatsApp para ver alternativas.

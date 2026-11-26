@@ -14,10 +14,9 @@ const DIAS = [
 
 const ESTADO_CAPACIDAD = {
   lleno: { texto: 'Lleno', clase: 'bg-[#FBEFED] text-[#A85C52]' },
-  reservado_novias: { texto: 'Reservado para novias', clase: 'bg-[#F3EDE4] text-[#8A6D3B]' },
+  reservado_novias: { texto: 'Solo novias', clase: 'bg-[#F3EDE4] text-[#8A6D3B]' },
   madrinas_invitadas: { texto: 'Novias, madrinas e invitadas', clase: 'bg-[#EEF5F0] text-[#3F6B4C]' },
-  invitadas: { texto: 'Novias e invitadas', clase: 'bg-[#EEF5F0] text-[#3F6B4C]' },
-  solo_novias: { texto: 'Solo novias (muy encima para confeccionar)', clase: 'bg-black/5 text-[#2C2420]/60' },
+  madrinas: { texto: 'Novias y madrinas', clase: 'bg-[#EEF5F0] text-[#3F6B4C]' },
 };
 
 const input =
@@ -119,21 +118,21 @@ export default function AgendaConfig() {
           {segmentoFila(
             'abiertoMadrina',
             'Madrinas',
-            <>Confeccionar toma {num('mesesMinimoMadrina')} meses: su evento debe ser en al menos ese plazo, en un mes con cupo</>,
+            <>Solo si su evento es dentro de los próximos {num('mesesMinimoMadrina')} meses, en un mes con cupo</>,
           )}
           {segmentoFila(
             'abiertoInvitada',
             'Invitadas',
-            <>Confeccionar toma {num('mesesMinimoInvitada')} meses: su evento debe ser en al menos ese plazo, en un mes con cupo</>,
+            <>Solo si su evento es dentro de los próximos {num('mesesMinimoInvitada')} meses, en un mes con cupo</>,
           )}
         </div>
 
         <div>
           <p className="text-sm font-medium mb-1">Capacidad de entrega</p>
           <div className="flex flex-wrap items-center gap-2 text-sm text-[#2C2420]/80">
-            {num('capacidadMensual')} vestidos al mes (se cuentan las ventas por su fecha de evento). Los meses a{' '}
-            {num('mesesReservaNovias')} meses o más quedan reservados para novias; los más cercanos ceden sus cupos libres
-            a madrinas e invitadas.
+            {num('capacidadMensual')} vestidos al mes (se cuentan las ventas por su fecha de evento). Si un mes llega a ese
+            número, nadie más puede agendar para ese mes. Los meses más lejanos que el plazo de madrinas e invitadas quedan
+            solo para novias.
           </div>
           {capacidad.length > 0 && (
             <div className="mt-3 overflow-x-auto">
