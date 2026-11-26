@@ -8,6 +8,17 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.29.0 — 2026-11-26
+
+- **La agenda ahora cuida la capacidad de entrega del taller (8 vestidos al mes) y prioriza a las novias**. Las entregas de cada mes se cuentan según la fecha de evento de las ventas registradas en la app.
+  - **Novias:** ninguna restricción. Pueden agendar para cualquier fecha, aunque el mes esté lleno, y siguen viendo el botón de WhatsApp para sobrecupos.
+  - **Meses reservados para novias:** todo evento a 8 meses o más queda reservado para novias, porque ellas agendan con mucha anticipación. Madrinas e invitadas no pueden tomar esos cupos.
+  - **Invitadas:** solo pueden agendar si su evento es en al menos 5 meses (lo que toma confeccionar) y en menos de 8, y si ese mes tiene menos de 8 entregas. Así ocupan los cupos que las novias ya no van a tomar.
+  - **Madrinas:** igual, pero con al menos 7 meses de confección.
+  - Si no se puede, la clienta ve un mensaje amable: que su fecha está muy cerca para confeccionar, que ese mes ya está completo, o desde qué día puede volver a agendar.
+- **Configuración → Agenda:** se puede cambiar la capacidad mensual (8), a cuántos meses se reservan los cupos para novias (8) y cuántos meses toma confeccionar para madrinas (7) e invitadas (5). Además hay una **tabla de los próximos 12 meses** con las entregas registradas de cada mes y para quién quedan libres los cupos.
+- Esto reemplaza la regla de la versión anterior (madrinas solo con 7 meses o más de anticipación e invitadas con 5), que no consideraba la capacidad de entrega.
+
 ## v1.28.0 — 2026-11-25
 
 - **Nueva página para que las clientas agenden su asesoría**: es un link para la bio de Instagram, `https://hatton-schultz-novias.onrender.com/agendar`. La clienta elige si es **novia, madrina o invitada**, pone la fecha de su evento, elige un día y una hora libres, y deja su nombre, correo y teléfono. Queda agendada al tiro y le llega la invitación de Google Calendar a su correo, con la dirección del taller.

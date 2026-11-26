@@ -12,6 +12,14 @@ const DIAS = [
   [7, 'Dom'],
 ];
 
+const ESTADO_CAPACIDAD = {
+  lleno: { texto: 'Lleno', clase: 'bg-[#FBEFED] text-[#A85C52]' },
+  reservado_novias: { texto: 'Reservado para novias', clase: 'bg-[#F3EDE4] text-[#8A6D3B]' },
+  madrinas_invitadas: { texto: 'Novias, madrinas e invitadas', clase: 'bg-[#EEF5F0] text-[#3F6B4C]' },
+  invitadas: { texto: 'Novias e invitadas', clase: 'bg-[#EEF5F0] text-[#3F6B4C]' },
+  solo_novias: { texto: 'Solo novias (muy encima para confeccionar)', clase: 'bg-black/5 text-[#2C2420]/60' },
+};
+
 const input =
   'px-3 py-1.5 text-sm rounded-lg border border-black/10 focus:outline-none focus:ring-2 focus:ring-[#C9A96E]';
 
@@ -21,10 +29,18 @@ export default function AgendaConfig() {
   const [error, setError] = useState('');
   const [guardado, setGuardado] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [capacidad, setCapacidad] = useState([]);
   const link = `${window.location.origin}/agendar`;
+
+  const cargarCapacidad = () =>
+    api
+      .get('/config/agenda/capacidad')
+      .then(setCapacidad)
+      .catch(() => setCapacidad([]));
 
   useEffect(() => {
     api.get('/config/agenda').then(setC).catch((e) => setError(e.message));
+    cargarCapacidad();
   }, []);
 
   if (!c) return error ? <p className="text-sm text-[#A85C52] mt-8">{error}</p> : null;
@@ -42,6 +58,7 @@ export default function AgendaConfig() {
     try {
       setC(await api.put('/config/agenda', c));
       setGuardado(true);
+      cargarCapacidad();
     } catch (e) {
       setError(e.message);
     }
@@ -98,16 +115,59 @@ export default function AgendaConfig() {
 
         <div>
           <p className="text-sm font-medium mb-1">Quiénes pueden agendar</p>
-          {segmentoFila('abiertoNovia', 'Novias', 'Sin restricción de fecha de evento (y ven el botón de WhatsApp para sobrecupos)')}
+          {segmentoFila('abiertoNovia', 'Novias', 'Sin ninguna restricción (y ven el botón de WhatsApp para sobrecupos)')}
           {segmentoFila(
             'abiertoMadrina',
             'Madrinas',
-            <>Solo si faltan al menos {num('mesesMinimoMadrina')} meses para su evento</>,
+            <>Confeccionar toma {num('mesesMinimoMadrina')} meses: su evento debe ser en al menos ese plazo, en un mes con cupo</>,
           )}
           {segmentoFila(
             'abiertoInvitada',
             'Invitadas',
-            <>Solo si faltan al menos {num('mesesMinimoInvitada')} meses para su evento</>,
+            <>Confeccionar toma {num('mesesMinimoInvitada')} meses: su evento debe ser en al menos ese plazo, en un mes con cupo</>,
+          )}
+        </div>
+
+        <div>
+          <p className="text-sm font-medium mb-1">Capacidad de entrega</p>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-[#2C2420]/80">
+            {num('capacidadMensual')} vestidos al mes (se cuentan las ventas por su fecha de evento). Los meses a{' '}
+            {num('mesesReservaNovias')} meses o más quedan reservados para novias; los más cercanos ceden sus cupos libres
+            a madrinas e invitadas.
+          </div>
+          {capacidad.length > 0 && (
+            <div className="mt-3 overflow-x-auto">
+              <table className="text-xs">
+                <thead>
+                  <tr className="text-left text-[#2C2420]/50">
+                    <th className="pr-4 py-1 font-medium">Mes</th>
+                    <th className="pr-4 py-1 font-medium">Entregas</th>
+                    <th className="py-1 font-medium">Cupos libres para</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {capacidad.map((m) => {
+                    const [y, mm] = m.mes.split('-').map(Number);
+                    const etiqueta = new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+                      new Date(Date.UTC(y, mm - 1, 15)),
+                    );
+                    return (
+                      <tr key={m.mes} className="border-t border-black/5">
+                        <td className="pr-4 py-1.5 capitalize">{etiqueta}</td>
+                        <td className="pr-4 py-1.5">
+                          {m.entregas} / {m.capacidad}
+                        </td>
+                        <td className="py-1.5">
+                          <span className={`px-2 py-0.5 rounded-full ${ESTADO_CAPACIDAD[m.estado].clase}`}>
+                            {ESTADO_CAPACIDAD[m.estado].texto}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 

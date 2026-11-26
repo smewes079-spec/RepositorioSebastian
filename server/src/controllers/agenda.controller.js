@@ -49,3 +49,12 @@ export async function updateConfig(req, res) {
     res.status(400).json({ error: err.message || 'No se pudo guardar la configuración de la agenda' });
   }
 }
+
+export async function capacidad(req, res) {
+  try {
+    res.json(await agendaService.capacidadPorMes(12));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'No se pudo calcular la capacidad de entrega' });
+  }
+}

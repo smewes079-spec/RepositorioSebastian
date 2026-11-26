@@ -376,8 +376,14 @@ model GmailConexion {
 model ConfigAgenda {
   id                    String  @id @default("main")
   whatsapp              String? // número para sobrecupos de novias, ej. 56912345678
+  // Meses que toma confeccionar (el evento debe estar al menos a esa distancia).
   mesesMinimoMadrina    Int     @default(7)
   mesesMinimoInvitada   Int     @default(5)
+  // Capacidad de entrega: ventas por mes según su fecha de evento (v1.29.0).
+  capacidadMensual      Int     @default(8)
+  // Un mes libera sus cupos sobrantes a madrinas e invitadas recién cuando
+  // está a menos de estos meses; antes queda reservado para novias.
+  mesesReservaNovias    Int     @default(8)
   abiertoNovia          Boolean @default(true)
   abiertoMadrina        Boolean @default(true)
   abiertoInvitada       Boolean @default(true)

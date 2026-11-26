@@ -155,6 +155,8 @@ node/vite, borrar la base y el usuario de prueba, parar postgres, borrar
   con rate limit): `agenda.service.js` genera horarios en `America/Santiago`
   (sin librerías; `chileAUtc`), consulta `freeBusy` de cada diseñadora con su
   token de `GmailConexion` (scopes de calendario desde v1.28.0; ver
-  `tieneCalendario`), aplica reglas de `ConfigAgenda` por segmento (meses
-  mínimos al evento) y al reservar crea el evento (`sendUpdates=all`) y una
+  `tieneCalendario`), aplica reglas de `ConfigAgenda` por segmento (desde v1.29.0:
+  novias sin restricción; madrinas/invitadas solo con evento en
+  [meses de confección, `mesesReservaNovias`) y mes con ventas <
+  `capacidadMensual`, contando `Venta.fechaEvento` por mes UTC) y al reservar crea el evento (`sendUpdates=all`) y una
   `Asesoria` con `origen = WEB`. Las reservas van en serie (un solo proceso).

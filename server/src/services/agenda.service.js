@@ -25,7 +25,16 @@ export async function getConfigAgenda() {
   return existente || prisma.configAgenda.create({ data: { id: 'main' } });
 }
 
-const ENTEROS = ['mesesMinimoMadrina', 'mesesMinimoInvitada', 'horaInicio', 'horaFin', 'diasHorizonte', 'horasAvisoMinimo'];
+const ENTEROS = [
+  'mesesMinimoMadrina',
+  'mesesMinimoInvitada',
+  'capacidadMensual',
+  'mesesReservaNovias',
+  'horaInicio',
+  'horaFin',
+  'diasHorizonte',
+  'horasAvisoMinimo',
+];
 const BOOLEANOS = ['abiertoNovia', 'abiertoMadrina', 'abiertoInvitada'];
 
 export async function updateConfigAgenda(data) {
@@ -110,10 +119,40 @@ function fechaValida(s) {
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 
-// ---------- Reglas por segmento ----------
+// ---------- Reglas por segmento y capacidad de entrega ----------
+//
+// Capacidad: ~8 entregas al mes, contadas como las Ventas cuya fecha de
+// evento cae en ese mes. Las novias son la prioridad y no tienen ninguna
+// restricción. Madrinas e invitadas solo usan cupos que las novias ya no
+// van a tomar: su evento debe estar
+//   - a N meses o más (lo que toma confeccionar: madrina 7, invitada 5), y
+//   - a menos de mesesReservaNovias (8): más lejos, el mes sigue reservado
+//     para novias, que agendan con mucha anticipación; y
+//   - en un mes con entregas < capacidadMensual.
 
-// Devuelve null si puede agendar, o { motivo, mensaje } si no.
-export function evaluarSegmento({ segmento, fechaEvento }, config, ahora = new Date()) {
+function fmtDMY(ymd) {
+  const [y, m, d] = ymd.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+function diaSiguiente(fecha) {
+  const [y, m, d] = fecha.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + 1));
+  return ymd(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+}
+
+// Rango del mes calendario (mismo criterio que el resto de la app, que
+// agrupa las ventas por mes según la fecha de evento guardada).
+function rangoMes(y, m) {
+  return { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
+}
+
+export async function entregasDelMes(y, m) {
+  return prisma.venta.count({ where: { fechaEvento: rangoMes(y, m) } });
+}
+
+// Parte sin base de datos: segmento, pausa, fecha y ventana de meses.
+export function evaluarVentana({ segmento, fechaEvento }, config, ahora = new Date()) {
   if (!SEGMENTOS.includes(segmento)) return { motivo: 'segmento', mensaje: 'Elige si eres novia, madrina o invitada.' };
   const abierto = { NOVIA: config.abiertoNovia, MADRINA: config.abiertoMadrina, INVITADA: config.abiertoInvitada }[segmento];
   if (!abierto) {
@@ -126,18 +165,74 @@ export function evaluarSegmento({ segmento, fechaEvento }, config, ahora = new D
   if (!fechaValida(fechaEvento)) return { motivo: 'fecha', mensaje: 'Ingresa la fecha de tu evento.' };
   const hoy = hoyChile(ahora);
   if (fechaEvento <= hoy) return { motivo: 'fecha', mensaje: 'La fecha de tu evento debe ser posterior a hoy.' };
+  if (segmento === 'NOVIA') return null;
 
-  const meses = segmento === 'MADRINA' ? config.mesesMinimoMadrina : segmento === 'INVITADA' ? config.mesesMinimoInvitada : 0;
-  if (meses > 0 && fechaEvento < sumarMeses(hoy, meses)) {
+  const etiqueta = SEGMENTO_LABEL[segmento].toLowerCase();
+  const meses = segmento === 'MADRINA' ? config.mesesMinimoMadrina : config.mesesMinimoInvitada;
+  if (fechaEvento < sumarMeses(hoy, meses)) {
     return {
-      motivo: 'anticipacion',
+      motivo: 'muy_cerca',
       mensaje:
-        `Para vestidos de ${SEGMENTO_LABEL[segmento].toLowerCase()} trabajamos con al menos ${meses} meses de anticipación ` +
-        'a la fecha del evento, para poder dedicarle el tiempo que tu vestido merece. ' +
-        'Lamentablemente, para tu fecha ya no tenemos capacidad de confección.',
+        `Para confeccionar un vestido de ${etiqueta} necesitamos al menos ${meses} meses antes de la fecha del evento, ` +
+        'para poder dedicarle el tiempo que tu vestido merece. Lamentablemente, para tu fecha ya no alcanzamos.',
+    };
+  }
+  if (fechaEvento >= sumarMeses(hoy, config.mesesReservaNovias)) {
+    const desde = diaSiguiente(sumarMeses(fechaEvento, -config.mesesReservaNovias));
+    return {
+      motivo: 'muy_lejos',
+      mensaje:
+        `Todavía no abrimos la agenda de vestidos de ${etiqueta} para esa fecha. ` +
+        `Puedes agendar tu asesoría a partir del ${fmtDMY(desde)}. ¡Te esperamos!`,
     };
   }
   return null;
+}
+
+// Devuelve null si puede agendar, o { motivo, mensaje } si no.
+export async function evaluarSegmento(datos, config, ahora = new Date()) {
+  const rechazo = evaluarVentana(datos, config, ahora);
+  if (rechazo || datos.segmento === 'NOVIA') return rechazo;
+  const [y, m] = datos.fechaEvento.split('-').map(Number);
+  if ((await entregasDelMes(y, m)) >= config.capacidadMensual) {
+    return {
+      motivo: 'mes_lleno',
+      mensaje:
+        'Ya completamos nuestra capacidad de confección para el mes de tu evento. ' +
+        'Lamentablemente, no podemos tomar nuevos vestidos para esa fecha.',
+    };
+  }
+  return null;
+}
+
+// Para Configuración → Agenda: próximos meses con sus entregas y quién
+// puede tomar los cupos libres hoy.
+export async function capacidadPorMes(cantidad = 12, ahora = new Date()) {
+  const config = await getConfigAgenda();
+  const hoy = hoyChile(ahora);
+  const [hy, hm] = hoy.split('-').map(Number);
+  const limiteMadrina = sumarMeses(hoy, config.mesesMinimoMadrina);
+  const limiteInvitada = sumarMeses(hoy, config.mesesMinimoInvitada);
+  const limiteReserva = sumarMeses(hoy, config.mesesReservaNovias);
+  const meses = [];
+  for (let i = 0; i < cantidad; i++) {
+    const total = hy * 12 + (hm - 1) + i;
+    const y = Math.floor(total / 12);
+    const m = (total % 12) + 1;
+    const entregas = await entregasDelMes(y, m);
+    const inicio = ymd(y, m, 1);
+    const fin = ymd(y, m, new Date(Date.UTC(y, m, 0)).getUTCDate());
+    // Un segmento puede tomar el mes si alguna fecha del mes cae en su ventana.
+    const abiertoPara = (limite) => fin >= limite && inicio < limiteReserva;
+    let estado;
+    if (entregas >= config.capacidadMensual) estado = 'lleno';
+    else if (inicio >= limiteReserva) estado = 'reservado_novias';
+    else if (abiertoPara(limiteMadrina)) estado = 'madrinas_invitadas';
+    else if (abiertoPara(limiteInvitada)) estado = 'invitadas';
+    else estado = 'solo_novias';
+    meses.push({ mes: `${y}-${String(m).padStart(2, '0')}`, entregas, capacidad: config.capacidadMensual, estado });
+  }
+  return meses;
 }
 
 // ---------- Horarios ----------
@@ -224,7 +319,6 @@ export async function configPublica() {
   return {
     whatsapp: c.whatsapp,
     abierto: { NOVIA: c.abiertoNovia, MADRINA: c.abiertoMadrina, INVITADA: c.abiertoInvitada },
-    mesesMinimo: { MADRINA: c.mesesMinimoMadrina, INVITADA: c.mesesMinimoInvitada },
     direccion: DIRECCION,
     duracionMinutos: DURACION_MIN,
     disponible: conectadas.length > 0,
@@ -234,7 +328,7 @@ export async function configPublica() {
 // Horarios libres agrupados por día, para la página pública.
 export async function horariosDisponibles({ segmento, fechaEvento }, ahora = new Date()) {
   const config = await getConfigAgenda();
-  const rechazo = evaluarSegmento({ segmento, fechaEvento }, config, ahora);
+  const rechazo = await evaluarSegmento({ segmento, fechaEvento }, config, ahora);
   if (rechazo) return { ok: false, ...rechazo };
 
   const slots = generarHorarios(config, ahora);
@@ -279,7 +373,7 @@ export async function reservar(datos, ahora = new Date()) {
 
   return enSerie(async () => {
     const config = await getConfigAgenda();
-    const rechazo = evaluarSegmento(datos, config, ahora);
+    const rechazo = await evaluarSegmento(datos, config, ahora);
     if (rechazo) throw errorUsuario(rechazo.mensaje);
 
     const slot = generarHorarios(config, ahora).find((s) => s.inicio.toISOString() === datos.inicio);
