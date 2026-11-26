@@ -8,6 +8,11 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.29.1 — 2026-11-26
+
+- **Las novias también respetan el tope de entregas del mes**: una novia puede agendar para cualquier fecha, salvo que el mes de su evento ya tenga completa la capacidad de entrega (8 vestidos). En ese caso, la página le dice que ese mes está completo y la invita a escribir por WhatsApp para ver alternativas.
+- Madrinas e invitadas siguen igual que en la versión 1.29.0.
+
 ## v1.29.0 — 2026-11-26
 
 - **La agenda ahora cuida la capacidad de entrega del taller (8 vestidos al mes) y prioriza a las novias**. Las entregas de cada mes se cuentan según la fecha de evento de las ventas registradas en la app.

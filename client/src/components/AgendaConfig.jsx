@@ -115,7 +115,7 @@ export default function AgendaConfig() {
 
         <div>
           <p className="text-sm font-medium mb-1">Quiénes pueden agendar</p>
-          {segmentoFila('abiertoNovia', 'Novias', 'Sin ninguna restricción (y ven el botón de WhatsApp para sobrecupos)')}
+          {segmentoFila('abiertoNovia', 'Novias', 'Cualquier fecha, salvo que el mes de su evento ya esté lleno (ven el botón de WhatsApp para sobrecupos)')}
           {segmentoFila(
             'abiertoMadrina',
             'Madrinas',

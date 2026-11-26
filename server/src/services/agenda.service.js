@@ -122,9 +122,9 @@ function fechaValida(s) {
 // ---------- Reglas por segmento y capacidad de entrega ----------
 //
 // Capacidad: ~8 entregas al mes, contadas como las Ventas cuya fecha de
-// evento cae en ese mes. Las novias son la prioridad y no tienen ninguna
-// restricción. Madrinas e invitadas solo usan cupos que las novias ya no
-// van a tomar: su evento debe estar
+// evento cae en ese mes. Las novias son la prioridad: su única restricción
+// es que el mes de su evento tenga cupo. Madrinas e invitadas solo usan
+// cupos que las novias ya no van a tomar: su evento debe estar
 //   - a N meses o más (lo que toma confeccionar: madrina 7, invitada 5), y
 //   - a menos de mesesReservaNovias (8): más lejos, el mes sigue reservado
 //     para novias, que agendan con mucha anticipación; y
@@ -192,14 +192,18 @@ export function evaluarVentana({ segmento, fechaEvento }, config, ahora = new Da
 // Devuelve null si puede agendar, o { motivo, mensaje } si no.
 export async function evaluarSegmento(datos, config, ahora = new Date()) {
   const rechazo = evaluarVentana(datos, config, ahora);
-  if (rechazo || datos.segmento === 'NOVIA') return rechazo;
+  if (rechazo) return rechazo;
+  // El tope de entregas del mes aplica a todas, novias incluidas (v1.29.1):
+  // si el mes del evento ya tiene la capacidad completa, no se agenda.
   const [y, m] = datos.fechaEvento.split('-').map(Number);
   if ((await entregasDelMes(y, m)) >= config.capacidadMensual) {
     return {
       motivo: 'mes_lleno',
       mensaje:
         'Ya completamos nuestra capacidad de confección para el mes de tu evento. ' +
-        'Lamentablemente, no podemos tomar nuevos vestidos para esa fecha.',
+        (datos.segmento === 'NOVIA'
+          ? 'Escríbenos por WhatsApp y vemos juntas si hay alguna alternativa.'
+          : 'Lamentablemente, no podemos tomar nuevos vestidos para esa fecha.'),
     };
   }
   return null;
