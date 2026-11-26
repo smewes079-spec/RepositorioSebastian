@@ -1,5 +1,6 @@
 import * as gmailService from '../services/gmail.service.js';
 import { REMITENTES } from '../services/email.service.js';
+import * as agendaService from '../services/agenda.service.js';
 
 // URI a la que Google devuelve a la usuaria tras dar el permiso. Debe estar
 // registrada tal cual en el cliente OAuth de Google Cloud.
@@ -81,5 +82,26 @@ export async function desconectar(req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'No se pudo desconectar la casilla' });
+  }
+}
+
+// Calendarios de una diseñadora y cuáles cuentan como ocupados en la agenda.
+export async function calendarios(req, res) {
+  if (!REMITENTES[req.params.remitente]) return res.status(400).json({ error: 'Remitente desconocido' });
+  try {
+    res.json(await agendaService.calendariosParaConfig(req.params.remitente));
+  } catch (err) {
+    console.error(err);
+    res.status(502).json({ error: err.message || 'No se pudieron leer los calendarios' });
+  }
+}
+
+export async function guardarCalendarios(req, res) {
+  if (!REMITENTES[req.params.remitente]) return res.status(400).json({ error: 'Remitente desconocido' });
+  try {
+    res.json(await agendaService.guardarCalendariosAgenda(req.params.remitente, req.body?.ids));
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message || 'No se pudo guardar la elección de calendarios' });
   }
 }

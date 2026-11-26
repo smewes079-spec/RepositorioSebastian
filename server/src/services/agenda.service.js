@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { REMITENTES } from './email.service.js';
-import { tokenDeAcceso, tieneCalendario, gmailConfigurado } from './gmail.service.js';
+import { tokenDeAcceso, tieneCalendario, tieneListaCalendarios, gmailConfigurado } from './gmail.service.js';
 
 // Página pública de agendamiento (/agendar).
 //
@@ -14,6 +14,7 @@ const TZ = 'America/Santiago';
 const DIRECCION = 'Agustín del Castillo 2960, Vitacura';
 const FREEBUSY_URL = 'https://www.googleapis.com/calendar/v3/freeBusy';
 const EVENTS_URL = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+const CALENDAR_LIST_URL = 'https://www.googleapis.com/calendar/v3/users/me/calendarList';
 const DURACION_MIN = 60;
 const SEGMENTOS = ['NOVIA', 'MADRINA', 'INVITADA'];
 const SEGMENTO_LABEL = { NOVIA: 'Novia', MADRINA: 'Madrina', INVITADA: 'Invitada' };
@@ -251,26 +252,115 @@ async function conectadasConCalendario() {
   return conexiones.filter(tieneCalendario).map((c) => ({ ...c, nombre: REMITENTES[c.remitente]?.name || c.remitente }));
 }
 
-// Bloques ocupados de una diseñadora entre desde y hasta (en tramos de 60
-// días, por el límite de rango de la consulta freeBusy de Google).
+// ---------- Calendarios de cada diseñadora ----------
+//
+// Cada diseñadora puede tener varios calendarios (el principal, uno de
+// asesorías, uno compartido del taller…). Todos los que elija en
+// Configuración cuentan como ocupados. Por defecto (sin elección): todos los
+// que tiene visibles en Google Calendar, menos feriados, cumpleaños y
+// números de semana, que no son compromisos reales.
+
+const NO_BLOQUEAN = /#holiday@|#contacts@|#weeknum@|addressbook#/;
+
+// Lista de calendarios que ve la diseñadora (requiere el permiso de lista).
+export async function listarCalendariosGoogle(dis, token) {
+  const res = await fetch(`${CALENDAR_LIST_URL}?minAccessRole=freeBusyReader&maxResults=250`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`No se pudo leer la lista de calendarios de ${dis.nombre} (${data.error?.message || res.status}).`);
+  return (data.items || []).map((c) => ({
+    id: c.id,
+    nombre: c.summaryOverride || c.summary || c.id,
+    principal: !!c.primary,
+    visible: c.selected === true || !!c.primary,
+    porDefecto: (c.selected === true || !!c.primary) && !NO_BLOQUEAN.test(c.id),
+  }));
+}
+
+function calendariosElegidos(dis) {
+  try {
+    const ids = JSON.parse(dis.calendariosAgenda || 'null');
+    return Array.isArray(ids) && ids.length ? ids : null;
+  } catch {
+    return null;
+  }
+}
+
+async function calendariosQueBloquean(dis, token) {
+  const elegidos = calendariosElegidos(dis);
+  if (elegidos) return elegidos;
+  if (!tieneListaCalendarios(dis)) return ['primary']; // conexión anterior a v1.30.1
+  const lista = await listarCalendariosGoogle(dis, token);
+  const ids = lista.filter((c) => c.porDefecto).map((c) => (c.principal ? 'primary' : c.id));
+  return ids.length ? ids : ['primary'];
+}
+
+// Bloques ocupados de una diseñadora entre desde y hasta, sumando todos sus
+// calendarios que bloquean (en tramos de 60 días, por el límite de rango de
+// la consulta freeBusy de Google; hasta 50 calendarios por consulta).
 async function ocupados(dis, desde, hasta) {
   const token = await tokenDeAcceso(dis, dis.nombre);
+  const calendarios = (await calendariosQueBloquean(dis, token)).slice(0, 50);
   const bloques = [];
   for (let t = desde.getTime(); t < hasta.getTime(); t += 60 * 86400000) {
     const fin = Math.min(t + 60 * 86400000, hasta.getTime());
     const res = await fetch(FREEBUSY_URL, {
       method: 'POST',
       headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ timeMin: new Date(t).toISOString(), timeMax: new Date(fin).toISOString(), timeZone: TZ, items: [{ id: 'primary' }] }),
+      body: JSON.stringify({
+        timeMin: new Date(t).toISOString(),
+        timeMax: new Date(fin).toISOString(),
+        timeZone: TZ,
+        items: calendarios.map((id) => ({ id })),
+      }),
     });
     const data = await res.json().catch(() => ({}));
-    const cal = data.calendars?.primary;
-    if (!res.ok || cal?.errors?.length) {
-      throw new Error(`No se pudo leer el calendario de ${dis.nombre} (${data.error?.message || cal?.errors?.[0]?.reason || res.status}).`);
+    if (!res.ok) {
+      throw new Error(`No se pudo leer el calendario de ${dis.nombre} (${data.error?.message || res.status}).`);
     }
-    for (const b of cal.busy || []) bloques.push({ inicio: new Date(b.start).getTime(), fin: new Date(b.end).getTime() });
+    for (const id of calendarios) {
+      const cal = data.calendars?.[id];
+      if (cal?.errors?.length) {
+        // El principal es obligatorio; uno secundario que ya no existe o sin
+        // acceso se omite para no dejar la agenda caída.
+        if (id === 'primary') {
+          throw new Error(`No se pudo leer el calendario de ${dis.nombre} (${cal.errors[0].reason}).`);
+        }
+        console.warn(`Calendario ${id} de ${dis.nombre} omitido: ${cal.errors[0].reason}`);
+        continue;
+      }
+      for (const b of cal?.busy || []) bloques.push({ inicio: new Date(b.start).getTime(), fin: new Date(b.end).getTime() });
+    }
   }
   return bloques;
+}
+
+// Para Configuración: calendarios de una diseñadora y cuáles bloquean hoy.
+export async function calendariosParaConfig(remitente) {
+  const conexion = await prisma.gmailConexion.findUnique({ where: { remitente } });
+  if (!conexion || !tieneCalendario(conexion)) return { disponible: false, motivo: 'sin_conexion', calendarios: [] };
+  if (!tieneListaCalendarios(conexion)) return { disponible: false, motivo: 'reconectar', calendarios: [] };
+  const dis = { ...conexion, nombre: REMITENTES[remitente]?.name || remitente };
+  const token = await tokenDeAcceso(dis, dis.nombre);
+  const lista = await listarCalendariosGoogle(dis, token);
+  const elegidos = calendariosElegidos(dis);
+  return {
+    disponible: true,
+    automatico: !elegidos,
+    calendarios: lista.map((c) => {
+      const id = c.principal ? 'primary' : c.id;
+      return { id, nombre: c.nombre, principal: c.principal, bloquea: elegidos ? elegidos.includes(id) : c.porDefecto };
+    }),
+  };
+}
+
+export async function guardarCalendariosAgenda(remitente, ids) {
+  if (!Array.isArray(ids)) throw new Error('Lista de calendarios inválida');
+  const limpios = [...new Set(ids.map(String).filter(Boolean))];
+  if (!limpios.includes('primary')) limpios.unshift('primary'); // el principal siempre cuenta
+  await prisma.gmailConexion.update({ where: { remitente }, data: { calendariosAgenda: JSON.stringify(limpios) } });
+  return calendariosParaConfig(remitente);
 }
 
 function libre(bloques, slot) {

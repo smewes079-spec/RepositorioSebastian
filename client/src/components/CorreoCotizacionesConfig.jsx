@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle, CalendarDays, ChevronDown } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { formatFecha } from '../lib/format.js';
 
@@ -87,10 +87,14 @@ export default function CorreoCotizacionesConfig() {
                       {conexion ? (
                         <>
                           <span className="text-[#5C8C6A]">Conectada desde el {formatFecha(conexion.conectadoEn)}</span>
-                          {conexion.calendario ? (
+                          {!conexion.calendario ? (
+                            <span className="text-[#A85C52]"> · Falta el calendario: aprieta "Volver a conectar"</span>
+                          ) : conexion.todosLosCalendarios ? (
                             <span className="text-[#5C8C6A]"> · Calendario activo</span>
                           ) : (
-                            <span className="text-[#A85C52]"> · Falta el calendario: aprieta "Volver a conectar"</span>
+                            <span className="text-[#A85C52]">
+                              {' '}· Solo se revisa su calendario principal: aprieta "Volver a conectar" para revisar todos
+                            </span>
                           )}
                         </>
                       ) : (
@@ -118,11 +122,97 @@ export default function CorreoCotizacionesConfig() {
                     </button>
                   )}
                 </div>
+                {conexion?.calendario && conexion.todosLosCalendarios && (
+                  <CalendariosQueBloquean remitente={r.clave} nombre={r.name} />
+                )}
               </div>
             );
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Calendarios de la diseñadora que cuentan como "ocupado" para la agenda.
+function CalendariosQueBloquean({ remitente, nombre }) {
+  const [abierto, setAbierto] = useState(false);
+  const [datos, setDatos] = useState(null);
+  const [marcados, setMarcados] = useState([]);
+  const [error, setError] = useState('');
+  const [guardado, setGuardado] = useState(false);
+
+  async function abrir() {
+    setAbierto(!abierto);
+    if (datos || abierto) return;
+    try {
+      const d = await api.get(`/gmail/calendarios/${remitente}`);
+      setDatos(d);
+      setMarcados(d.calendarios.filter((c) => c.bloquea).map((c) => c.id));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function guardar() {
+    setError('');
+    try {
+      const d = await api.put(`/gmail/calendarios/${remitente}`, { ids: marcados });
+      setDatos(d);
+      setMarcados(d.calendarios.filter((c) => c.bloquea).map((c) => c.id));
+      setGuardado(true);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  return (
+    <div className="w-full pl-8">
+      <button onClick={abrir} className="flex items-center gap-1.5 text-xs text-[#C9A96E] hover:opacity-70">
+        <CalendarDays size={14} /> Calendarios de {nombre} que bloquean la agenda
+        <ChevronDown size={14} className={abierto ? 'rotate-180' : ''} />
+      </button>
+      {abierto && (
+        <div className="mt-2 rounded-lg bg-[#FAFAF8] border border-black/5 p-3 text-sm space-y-2">
+          {!datos && !error && <p className="text-xs text-[#2C2420]/50">Cargando…</p>}
+          {datos && (
+            <>
+              <p className="text-xs text-[#2C2420]/60">
+                Las horas ocupadas en los calendarios marcados no se ofrecen en la página de agendamiento.
+                {datos.automatico && ' Hoy se usan todos los que tiene visibles en Google Calendar.'}
+              </p>
+              {datos.calendarios.map((c) => (
+                <label key={c.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    disabled={c.principal}
+                    checked={c.principal || marcados.includes(c.id)}
+                    onChange={(e) => {
+                      setGuardado(false);
+                      setMarcados(e.target.checked ? [...marcados, c.id] : marcados.filter((x) => x !== c.id));
+                    }}
+                  />
+                  <span>
+                    {c.nombre}
+                    {c.principal && <span className="text-xs text-[#2C2420]/50"> (principal, siempre cuenta)</span>}
+                  </span>
+                </label>
+              ))}
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={guardar}
+                  className="px-3 py-1.5 text-xs rounded-lg text-white hover:opacity-90"
+                  style={{ backgroundColor: '#1A1A2E' }}
+                >
+                  Guardar
+                </button>
+                {guardado && <span className="text-xs text-[#5C8C6A]">Guardado</span>}
+              </div>
+            </>
+          )}
+          {error && <p className="text-xs text-[#A85C52]">{error}</p>}
+        </div>
+      )}
     </div>
   );
 }

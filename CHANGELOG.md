@@ -8,6 +8,12 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.30.1 — 2026-11-26
+
+- **La agenda ahora revisa todos los calendarios de Carolina y María, no solo el principal**: antes solo miraba el calendario principal de cada una. Si una cita estaba en otro calendario (por ejemplo, uno de asesorías o uno compartido del taller), la página ofrecía esa hora como libre. Ahora cuentan como ocupados todos los calendarios que cada una tiene visibles en su Google Calendar. Los feriados y cumpleaños no cuentan.
+- **Elegir qué calendarios bloquean la agenda**: en Configuración → Conexión con Google, bajo cada una, la opción "Calendarios que bloquean la agenda" muestra sus calendarios para marcar o desmarcar cuáles cuentan. El principal siempre cuenta.
+- **Para activarlo**: Carolina y María deben apretar **"Volver a conectar"** una vez más. Google pedirá un permiso nuevo, solo para ver qué calendarios tienen; no ve su contenido. Mientras no lo hagan, la app sigue revisando solo su calendario principal y lo avisa en Configuración.
+
 ## v1.30.0 — 2026-11-26
 
 - **Nuevo calendario en la página de agendamiento**: en vez de una fila de días, ahora se ve un **calendario del mes completo**, como el de las clínicas.

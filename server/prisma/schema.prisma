@@ -367,6 +367,9 @@ model GmailConexion {
   // Permisos otorgados (separados por espacio). Desde v1.28.0 incluye el
   // calendario; las conexiones anteriores solo tienen gmail.send.
   scopes         String?
+  // Calendarios que cuentan como ocupados para la agenda (JSON con sus ids).
+  // null = automático: todos los que tiene visibles en Google Calendar.
+  calendariosAgenda String?
   conectadoEn    DateTime            @default(now())
   conectadoPorId String?
   updatedAt      DateTime            @updatedAt

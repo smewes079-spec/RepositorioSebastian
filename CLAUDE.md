@@ -154,7 +154,9 @@ node/vite, borrar la base y el usuario de prueba, parar postgres, borrar
 - Agendamiento público (`/agendar`, rutas sin login en `/api/agenda-publica`
   con rate limit): `agenda.service.js` genera horarios en `America/Santiago`
   (sin librerías; `chileAUtc`), consulta `freeBusy` de cada diseñadora con su
-  token de `GmailConexion` (scopes de calendario desde v1.28.0; ver
+  token de `GmailConexion` sobre todos sus calendarios visibles (v1.30.1:
+  scope `calendar.calendarlist.readonly`; elección manual en
+  `GmailConexion.calendariosAgenda`, JSON de ids; sin ese scope solo `primary`) (scopes de calendario desde v1.28.0; ver
   `tieneCalendario`), aplica reglas de `ConfigAgenda` por segmento (desde v1.29.0:
   todas con tope de entregas del mes (ventas <
   `capacidadMensual`); madrinas/invitadas además con anticipación MÁXIMA

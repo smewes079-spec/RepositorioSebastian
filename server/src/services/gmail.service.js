@@ -19,12 +19,14 @@ const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 const SEND_URL = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send';
 export const SCOPE_CALENDARIO = 'https://www.googleapis.com/auth/calendar.events';
+export const SCOPE_LISTA_CALENDARIOS = 'https://www.googleapis.com/auth/calendar.calendarlist.readonly';
 const SCOPES = [
   'openid',
   'email',
   'https://www.googleapis.com/auth/gmail.send', // enviar cotizaciones (no leer correo)
   'https://www.googleapis.com/auth/calendar.freebusy', // ver horas ocupadas (sin ver el contenido)
   SCOPE_CALENDARIO, // crear las citas agendadas desde /agendar
+  SCOPE_LISTA_CALENDARIOS, // ver QUÉ calendarios tiene (no su contenido), para revisar todos, no solo el principal
 ];
 
 export function gmailConfigurado() {
@@ -120,7 +122,11 @@ export async function estadoConexiones() {
   });
   return {
     configurado: gmailConfigurado(),
-    conexiones: filas.map(({ scopes, ...f }) => ({ ...f, calendario: tieneCalendario({ scopes }) })),
+    conexiones: filas.map(({ scopes, ...f }) => ({
+      ...f,
+      calendario: tieneCalendario({ scopes }),
+      todosLosCalendarios: tieneListaCalendarios({ scopes }),
+    })),
   };
 }
 
@@ -216,6 +222,12 @@ export async function tokenDeAcceso(conexion, nombre) {
 
 export function tieneCalendario(conexion) {
   return !!conexion?.scopes && conexion.scopes.includes(SCOPE_CALENDARIO);
+}
+
+// Desde v1.30.1: permiso para listar sus calendarios. Las conexiones
+// anteriores solo pueden revisar el calendario principal.
+export function tieneListaCalendarios(conexion) {
+  return !!conexion?.scopes && conexion.scopes.includes(SCOPE_LISTA_CALENDARIOS);
 }
 
 export async function enviarPorGmail(conexion, correo, nombreRemitente) {
