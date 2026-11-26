@@ -11,6 +11,7 @@ import { useColumnWidths } from '../lib/useColumnWidths.js';
 import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import { formatCLP, formatFecha, CATEGORIA_GASTO_GENERAL_LABELS } from '../lib/format.js';
+import ScrollHorizontal from '../components/ScrollHorizontal.jsx';
 
 const FILTROS_INICIALES = { categoria: '', mesGasto: '' };
 
@@ -284,8 +285,8 @@ export default function GastosGeneralesList() {
         />
       </div>
 
-      <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+        <ScrollHorizontal>
           <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
             <colgroup>
               {columnasMostradas.map((key) => (
@@ -368,7 +369,7 @@ export default function GastosGeneralesList() {
                 ))}
             </tbody>
           </table>
-        </div>
+        </ScrollHorizontal>
       </div>
 
       {showImport && (

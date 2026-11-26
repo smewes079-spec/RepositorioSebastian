@@ -26,3 +26,12 @@ body {
   background-color: #C9A96E;
   border-radius: 8px;
 }
+
+/* La tabla se desplaza con la barra fija de abajo (ScrollHorizontal), así que
+   su propia barra se oculta para no mostrar dos. */
+.sin-barra-scroll {
+  scrollbar-width: none;
+}
+.sin-barra-scroll::-webkit-scrollbar {
+  display: none;
+}

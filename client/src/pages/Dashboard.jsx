@@ -4,6 +4,7 @@ import Layout from '../components/Layout.jsx';
 import PresupuestoVentas from '../components/PresupuestoVentas.jsx';
 import { api } from '../lib/api.js';
 import { formatCLP, formatMesCorto } from '../lib/format.js';
+import ScrollHorizontal from '../components/ScrollHorizontal.jsx';
 
 const EERR_TOTAL_VACIO = {
   ingresosReales: 0,
@@ -146,8 +147,8 @@ function EerrTable({ meses, total, vacioMensaje }) {
     { key: 'margenOperacionalPct', label: 'Margen operac. %', pct: true, signed: true },
   ];
   return (
-    <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+      <ScrollHorizontal>
         <table className="text-sm border-collapse">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
@@ -196,7 +197,7 @@ function EerrTable({ meses, total, vacioMensaje }) {
             </tr>
           </tfoot>
         </table>
-      </div>
+      </ScrollHorizontal>
     </div>
   );
 }
@@ -220,8 +221,8 @@ function FlujoCajaTable({ meses, total, vacioMensaje, sueldoSocias }) {
     { key: 'cajaAcumulada', label: 'Caja acumulada', bold: true, signed: true },
   ];
   return (
-    <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+      <ScrollHorizontal>
         <table className="text-sm border-collapse">
           <thead>
             <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
@@ -297,7 +298,7 @@ function FlujoCajaTable({ meses, total, vacioMensaje, sueldoSocias }) {
             </tr>
           </tfoot>
         </table>
-      </div>
+      </ScrollHorizontal>
     </div>
   );
 }

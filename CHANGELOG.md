@@ -8,6 +8,10 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.31.1 — 2026-11-26
+
+- **La barra para moverse hacia los lados ahora queda siempre a la vista**: en las tablas anchas (Ventas, Compras, Cotizaciones, Asesorías, Gastos generales, Rentabilidad por vestido, Presupuesto y las tablas de Estado de Resultados y Flujo de Caja) ya no hay que bajar hasta el final de la tabla para encontrar la barra horizontal. Ahora queda **fija en el borde de abajo de la pantalla** mientras se está mirando la tabla, así que se puede mover a la derecha para ver más columnas desde cualquier parte de la página. La barra vertical sigue siendo la normal de la página.
+
 ## v1.31.0 — 2026-11-26
 
 - **Nuevas columnas "Boleta 1" y "Boleta 2" en Ventas**: al final del listado de Ventas y Clientas hay dos columnas con un check para anotar si ya se le envió a la clienta la primera y la segunda boleta.

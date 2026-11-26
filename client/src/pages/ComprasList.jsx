@@ -18,6 +18,7 @@ import {
   TIPO_ASIGNACION_LABELS,
   TIPO_ASIGNACION_CORTO,
 } from '../lib/format.js';
+import ScrollHorizontal from '../components/ScrollHorizontal.jsx';
 
 const FILTROS_INICIALES = { categoria: '', tipoAsignacion: '', mesCompra: '' };
 
@@ -404,8 +405,8 @@ export default function ComprasList() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+        <ScrollHorizontal>
           <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
             <colgroup>
               <col style={{ width: 36 }} />
@@ -507,7 +508,7 @@ export default function ComprasList() {
                 ))}
             </tbody>
           </table>
-        </div>
+        </ScrollHorizontal>
       </div>
 
       {showImport && (

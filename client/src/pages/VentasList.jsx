@@ -22,6 +22,7 @@ import {
   KANBAN_LABELS,
   KANBAN_COLORS,
 } from '../lib/format.js';
+import ScrollHorizontal from '../components/ScrollHorizontal.jsx';
 
 const FILTROS_INICIALES = { tipo: '', estado: '', mesVenta: '', mesEvento: '', search: '' };
 const CAMPOS_FECHA = new Set(['fechaVenta', 'fechaEvento', 'fechaEntregaComprometida']);
@@ -532,8 +533,8 @@ export default function VentasList() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+        <ScrollHorizontal>
         <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: 36 }} />
@@ -633,7 +634,7 @@ export default function VentasList() {
               ))}
           </tbody>
         </table>
-        </div>
+        </ScrollHorizontal>
       </div>
 
       {showImport && (

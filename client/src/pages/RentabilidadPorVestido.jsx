@@ -19,6 +19,7 @@ import { useColumnWidths } from '../lib/useColumnWidths.js';
 import { exportRowsToExcel } from '../lib/exportExcel.js';
 import { api } from '../lib/api.js';
 import { formatCLP, formatFecha, TIPO_LABELS, TIPO_COLORS } from '../lib/format.js';
+import ScrollHorizontal from '../components/ScrollHorizontal.jsx';
 
 function mergeTendencias(porTipo) {
   const meses = new Set();
@@ -374,8 +375,8 @@ export default function RentabilidadPorVestido() {
           />
         </div>
       </div>
-      <div className="bg-white rounded-xl border border-black/5 overflow-hidden mb-6">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl border border-black/5 overflow-clip mb-6">
+        <ScrollHorizontal>
           <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
             <colgroup>
               {columnasPorTipoMostradas.map((key) => (
@@ -416,7 +417,7 @@ export default function RentabilidadPorVestido() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollHorizontal>
       </div>
 
       <div className="bg-white rounded-xl border border-black/5 p-6 mb-8">
@@ -486,8 +487,8 @@ export default function RentabilidadPorVestido() {
           />
         </div>
       </div>
-      <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+        <ScrollHorizontal>
           <table className="w-full text-sm" style={{ tableLayout: 'fixed' }}>
             <colgroup>
               {columnasDetalleMostradas.map((key) => (
@@ -542,7 +543,7 @@ export default function RentabilidadPorVestido() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollHorizontal>
       </div>
     </Layout>
   );

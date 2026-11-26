@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, X, Wand2, TrendingUp } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { formatCLP, formatMesCorto, formatMesLargo, toInputDate, TIPO_LABELS } from '../lib/format.js';
 import PresupuestoCuotasEditor from './PresupuestoCuotasEditor.jsx';
+import ScrollHorizontal from './ScrollHorizontal.jsx';
 
 const VACIO = { tipo: 'NOVIA', mes: '', cantidad: 1, montoTotal: 0 };
 
@@ -244,8 +245,8 @@ export default function PresupuestoVentas() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-black/5 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl border border-black/5 overflow-clip">
+        <ScrollHorizontal>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-[#2C2420]/50 uppercase tracking-wide border-b border-black/5">
@@ -286,7 +287,7 @@ export default function PresupuestoVentas() {
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollHorizontal>
       </div>
     </div>
   );
