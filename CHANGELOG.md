@@ -8,6 +8,15 @@ Cada mejora aprobada de la app queda registrada acá como una versión nueva, si
 - Cada mejora nueva sube el número del medio (ej. `v1.1.0` → `v1.2.0`). Un arreglo chico sube el número final (ej. `v1.2.0` → `v1.2.1`).
 - Cada versión queda en su propio commit de git (con el número de versión en el mensaje), así que nunca se pierde una versión anterior y se puede volver a cualquiera revisando el historial en GitHub.
 
+## v1.30.0 — 2026-11-26
+
+- **Nuevo calendario en la página de agendamiento**: en vez de una fila de días, ahora se ve un **calendario del mes completo**, como el de las clínicas.
+  - Los **días con horas disponibles** se destacan en rosa y se pueden elegir.
+  - Los **días sin horas** (pasados, fines de semana, ocupados en el calendario de Carolina y María, o fuera de lo que permite la regla del segmento) aparecen **en gris y tachados**, y no se pueden apretar.
+  - Al entrar se elige solo el primer día disponible, y al elegir un día aparecen **de inmediato** sus horas libres. En el computador se ven al lado derecho del calendario; en el celular, justo debajo.
+  - Con las flechas se cambia de mes, hasta donde llega la agenda.
+  - El botón ahora dice la hora elegida: "Continuar con las 11:00 hrs".
+
 ## v1.29.2 — 2026-11-26
 
 - **Corrección de la regla de madrinas e invitadas**: los 7 y 5 meses son la anticipación **máxima**, no la mínima. Una madrina solo puede agendar si su evento es **dentro de los próximos 7 meses**, y una invitada, **dentro de los próximos 5 meses**. Así no le quitan a una novia un cupo de un mes más lejano. No hay plazo mínimo: pueden agendar para fechas cercanas si el mes tiene cupo.

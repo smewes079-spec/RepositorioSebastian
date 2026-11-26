@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api.js';
+import CalendarioDisponible from '../components/CalendarioDisponible.jsx';
 
 // Página PÚBLICA de agendamiento (link de la bio de Instagram). Sin login.
 // 1) segmento → 2) fecha del evento (reglas por segmento) → 3) día y hora
@@ -16,7 +17,6 @@ const SEGMENTOS = [
 ];
 
 const fmtDia = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
-const fmtDiaCorto = new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 const diaDe = (ymd) => new Date(`${ymd}T12:00:00Z`);
 const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -66,7 +66,8 @@ export default function Agendar() {
     api.get('/agenda-publica/config').then(setConfig).catch(() => setConfig({ disponible: false }));
   }, []);
 
-  const hoy = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  // Fecha de hoy en Chile (YYYY-MM-DD).
+  const hoy = useMemo(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date()), []);
   const etiqueta = SEGMENTOS.find((s) => s.clave === segmento)?.titulo || '';
 
   async function buscarHorarios() {
@@ -113,7 +114,7 @@ export default function Agendar() {
         <p className="font-serif text-white tracking-[0.3em] uppercase text-sm mt-2">Hatton Schultz Atelier</p>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-6">
+      <main className={`${paso === 3 && horarios?.ok ? 'max-w-3xl' : 'max-w-md'} mx-auto px-4 py-6`}>
         <h1 className="font-serif text-3xl text-center mb-1">Agenda tu asesoría</h1>
         <p className="text-center text-sm text-[#2C2420]/60 mb-6">
           Presencial · 1 hora{config?.direccion ? ` · ${config.direccion}` : ''}
@@ -186,50 +187,49 @@ export default function Agendar() {
             )}
 
             {horarios.ok && horarios.dias.length > 0 && (
-              <>
-                <p className="text-sm font-medium">Elige el día</p>
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-                  {horarios.dias.map((d) => (
-                    <button
-                      key={d.fecha}
-                      onClick={() => {
-                        setDiaSel(d.fecha);
-                        setSlot(null);
-                      }}
-                      className={`shrink-0 px-3 py-2 rounded-xl text-xs border ${
-                        d.fecha === diaSel ? 'bg-[#1A1A2E] text-white border-[#1A1A2E]' : 'bg-white border-black/10'
-                      }`}
-                    >
-                      {capitalizar(fmtDiaCorto.format(diaDe(d.fecha)))}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-sm font-medium">{capitalizar(fmtDia.format(diaDe(diaSel)))}</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {horasDelDia.map((h) => (
-                    <button
-                      key={h.inicio}
-                      onClick={() => setSlot({ ...h, fecha: diaSel })}
-                      className={`py-2.5 rounded-xl text-sm border ${
-                        slot?.inicio === h.inicio ? 'bg-[#1A1A2E] text-white border-[#1A1A2E]' : 'bg-white border-black/10'
-                      }`}
-                    >
-                      {h.hora}
-                    </button>
-                  ))}
-                </div>
-                <Boton onClick={() => setPaso(4)} disabled={!slot}>
-                  Continuar
-                </Boton>
-                {segmento === 'NOVIA' && config?.whatsapp && (
-                  <div className="pt-2 space-y-2">
-                    <p className="text-xs text-center text-[#2C2420]/60">
-                      ¿No encuentras un horario cercano? Escríbenos y vemos un sobrecupo.
-                    </p>
-                    <WhatsApp numero={config.whatsapp} texto={mensajeWsp} />
+              <div className="grid gap-4 md:grid-cols-2 md:items-start">
+                <CalendarioDisponible
+                  dias={horarios.dias}
+                  seleccionado={diaSel}
+                  hoy={hoy}
+                  onSeleccionar={(fecha) => {
+                    setDiaSel(fecha);
+                    setSlot(null);
+                  }}
+                />
+                <div className="bg-white rounded-xl border border-black/5 p-4 space-y-4">
+                  <div>
+                    <p className="font-serif text-lg">{capitalizar(fmtDia.format(diaDe(diaSel)))}</p>
+                    <p className="text-xs text-[#2C2420]/60">Asesoría presencial · 1 hora · {config?.direccion}</p>
                   </div>
-                )}
-              </>
+                  <div className="flex flex-wrap gap-2">
+                    {horasDelDia.map((h) => (
+                      <button
+                        key={h.inicio}
+                        onClick={() => setSlot({ ...h, fecha: diaSel })}
+                        className={`px-4 py-2 rounded-full text-sm border ${
+                          slot?.inicio === h.inicio
+                            ? 'bg-[#1A1A2E] text-white border-[#1A1A2E]'
+                            : 'bg-white border-[#C9B9B3] text-[#5A4640] hover:bg-[#F7F2F0]'
+                        }`}
+                      >
+                        {h.hora}
+                      </button>
+                    ))}
+                  </div>
+                  <Boton onClick={() => setPaso(4)} disabled={!slot}>
+                    {slot ? `Continuar con las ${slot.hora} hrs` : 'Elige una hora'}
+                  </Boton>
+                  {segmento === 'NOVIA' && config?.whatsapp && (
+                    <div className="pt-1 space-y-2">
+                      <p className="text-xs text-center text-[#2C2420]/60">
+                        ¿No encuentras un horario cercano? Escríbenos y vemos un sobrecupo.
+                      </p>
+                      <WhatsApp numero={config.whatsapp} texto={mensajeWsp} />
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
             {error && <p className="text-sm text-[#A85C52]">{error}</p>}
           </section>
